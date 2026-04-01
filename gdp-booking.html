@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reserva tu Tour · Gente de París</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf8f4;
+    --white: #ffffff;
+    --noir: #111111;
+    --charcoal: #2a2a2a;
+    --smoke: #5a5a5a;
+    --muted: #9a9a9a;
+    --border: #e8e4dc;
+    --gold: #b8860b;
+    --gold-light: #d4a017;
+    --gold-bg: #fdf6e3;
+    --green: #2d7a4f;
+    --green-bg: #edf7f1;
+    --red: #c0392b;
+    --red-bg: #fdf0ee;
+    --orange: #e07b00;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--charcoal);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--noir);
+    padding: 20px 24px;
+    text-align: center;
+  }
+  .header-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: #f5f2ec;
+    letter-spacing: 0.06em;
+  }
+  .header-logo em { color: #c9a84c; font-style: italic; }
+  .header-sub {
+    font-size: 0.78rem;
+    color: #888;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* ── STEPS BAR ── */
+  .steps-bar {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    justify-content: center;
+    gap: 0;
+  }
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+  .step-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--muted);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 500;
+    transition: all 0.3s;
+  }
+  .step.active .step-num { background: var(--noir); color: #f5f2ec; }
+  .step.active { color: var(--charcoal); }
+  .step.done .step-num { background: var(--green); color: white; }
+  .step-sep { width: 40px; height: 1px; background: var(--border); margin: 0 8px; align-self: center; }
+
+  main { max-width: 680px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  /* ── SCREENS ── */
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+
+  .screen-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.7rem;
+    font-weight: 600;
+    color: var(--noir);
+    margin-bottom: 6px;
+  }
+  .screen-sub {
+    color: var(--smoke);
+    font-size: 0.9rem;
+    margin-bottom: 28px;
+  }
+
+  /* ── CALENDARIO ── */
+  .cal-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .cal-month {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+  .cal-nav-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 34px; height: 34px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--charcoal);
+    transition: all 0.2s;
+  }
+  .cal-nav-btn:hover { background: var(--noir); color: white; border-color: var(--noir); }
+
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .cal-dow {
+    text-align: center;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 6px 0;
+  }
+  .cal-day {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    font-size: 0.88rem;
+    border: 1px solid transparent;
+    background: var(--white);
+  }
+  .cal-day.empty { background: none; cursor: default; }
+  .cal-day.past { opacity: 0.35; cursor: default; pointer-events: none; }
+  .cal-day.blocked { background: var(--red-bg); color: var(--muted); cursor: not-allowed; }
+  .cal-day.available { border-color: rgba(45,122,79,0.2); }
+  .cal-day.available:hover { background: var(--green-bg); border-color: var(--green); }
+  .cal-day.selected { background: var(--noir); color: white; border-color: var(--noir); }
+  .cal-day.today { border-color: var(--gold); }
+  .cal-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--green);
+    margin-top: 2px;
+  }
+  .cal-day.selected .cal-dot { background: #c9a84c; }
+
+  /* ── TOURS LIST ── */
+  .tours-list { display: grid; gap: 14px; }
+  .tour-card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .tour-card:hover { border-color: var(--noir); box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+  .tour-card.selected { border-color: var(--noir); background: var(--gold-bg); }
+  .tour-card.full { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+  .tour-card-top { display: flex; gap: 14px; align-items: flex-start; }
+  .tour-card-emoji { font-size: 2rem; line-height: 1; }
+  .tour-card-info { flex: 1; }
+  .tour-card-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--noir);
+    margin-bottom: 4px;
+  }
+  .tour-card-desc { font-size: 0.83rem; color: var(--smoke); line-height: 1.5; }
+  .tour-card-meta {
+    display: flex;
+    gap: 16px;
+    margin-top: 14px;
+    font-size: 0.82rem;
+    color: var(--smoke);
+    flex-wrap: wrap;
+  }
+  .tour-card-meta span { display: flex; align-items: center; gap: 4px; }
+  .cupo-bar {
+    margin-top: 12px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .cupo-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+  .cupo-text { font-size: 0.75rem; color: var(--muted); margin-top: 5px; }
+
+  /* ── FORMULARIO ── */
+  .form-group { margin-bottom: 20px; }
+  .form-label {
+    display: block;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--smoke);
+    margin-bottom: 7px;
+  }
+  input[type="text"], input[type="tel"] {
+    width: 100%;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    color: var(--charcoal);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    padding: 12px 16px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus { border-color: var(--noir); }
+
+  .pax-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .counter-input {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .counter-btn {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    color: var(--charcoal);
+  }
+  .counter-btn:hover { background: var(--noir); color: white; border-color: var(--noir); }
+  .counter-val { font-size: 1.2rem; font-weight: 500; min-width: 24px; text-align: center; }
+
+  /* ── RESUMEN ── */
+  .summary-card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .summary-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: var(--smoke);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+  }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-key { color: var(--smoke); }
+  .summary-val { color: var(--noir); font-weight: 500; }
+  .summary-total {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--noir);
+  }
+
+  /* ── SUCCESS ── */
+  .success-screen { text-align: center; padding: 40px 20px; }
+  .success-icon { font-size: 4rem; margin-bottom: 16px; }
+  .success-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--noir);
+    margin-bottom: 8px;
+  }
+  .success-sub { color: var(--smoke); margin-bottom: 32px; }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-primary {
+    background: var(--noir);
+    color: white;
+    width: 100%;
+  }
+  .btn-primary:hover { background: #2a2a2a; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-ghost {
+    background: none;
+    border: 1.5px solid var(--border);
+    color: var(--charcoal);
+  }
+  .btn-ghost:hover { border-color: var(--noir); }
+  .btn-whatsapp { background: #25d366; color: white; }
+  .btn-whatsapp:hover { background: #20b958; }
+  .btn-back {
+    background: none;
+    border: none;
+    color: var(--smoke);
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 20px;
+    padding: 0;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-back:hover { color: var(--noir); }
+  .btn-row { display: flex; gap: 12px; flex-direction: column; }
+
+  .alert {
+    padding: 14px 18px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+  }
+  .alert-info { background: var(--gold-bg); border: 1px solid rgba(184,134,11,0.3); color: var(--gold); }
+  .alert-error { background: var(--red-bg); border: 1px solid rgba(192,57,43,0.3); color: var(--red); }
+
+  .loading-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 40px;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 2.5px solid var(--border);
+    border-top-color: var(--noir);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .selected-tour-recap {
+    background: var(--gold-bg);
+    border: 1px solid rgba(184,134,11,0.3);
+    border-radius: 8px;
+    padding: 14px 18px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 24px;
+    font-size: 0.88rem;
+  }
+  .selected-tour-recap strong { color: var(--noir); }
+
+  @media (max-width: 480px) {
+    .screen-title { font-size: 1.4rem; }
+    .pax-group { grid-template-columns: 1fr; }
+    .step-sep { width: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-logo">Gente de <em>París</em></div>
+  <div class="header-sub">Reserva tu tour</div>
+</header>
+
+<div class="steps-bar">
+  <div class="step active" id="step1"><div class="step-num">1</div> Fecha</div>
+  <div class="step-sep"></div>
+  <div class="step" id="step2"><div class="step-num">2</div> Tour</div>
+  <div class="step-sep"></div>
+  <div class="step" id="step3"><div class="step-num">3</div> Datos</div>
+  <div class="step-sep"></div>
+  <div class="step" id="step4"><div class="step-num">4</div> Confirmar</div>
+</div>
+
+<main>
+
+  <!-- SCREEN 1: CALENDARIO -->
+  <div class="screen active" id="screen1">
+    <h1 class="screen-title">¿Cuándo quieres venir?</h1>
+    <p class="screen-sub">Selecciona una fecha para ver los tours disponibles.</p>
+    <div id="calContainer">
+      <div class="loading-center"><div class="spinner"></div>Cargando calendario…</div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: TOURS -->
+  <div class="screen" id="screen2">
+    <button class="btn-back" onclick="goTo(1)">← Cambiar fecha</button>
+    <h1 class="screen-title" id="screen2Title">Tours disponibles</h1>
+    <p class="screen-sub" id="screen2Sub"></p>
+    <div id="toursList"></div>
+    <div style="margin-top:20px">
+      <button class="btn btn-primary" id="btnSelectTour" onclick="goTo(3)" disabled>Continuar →</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: FORMULARIO -->
+  <div class="screen" id="screen3">
+    <button class="btn-back" onclick="goTo(2)">← Cambiar tour</button>
+    <h1 class="screen-title">Tus datos</h1>
+    <p class="screen-sub">Necesitamos estos datos para confirmar tu reserva.</p>
+
+    <div class="selected-tour-recap" id="selectedTourRecap"></div>
+
+    <div class="form-group">
+      <label class="form-label">Nombre completo</label>
+      <input type="text" id="fNombre" placeholder="María García">
+    </div>
+    <div class="form-group">
+      <label class="form-label">WhatsApp / Teléfono</label>
+      <input type="tel" id="fWhatsapp" placeholder="+34 600 000 000">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Número de participantes</label>
+      <div class="pax-group">
+        <div>
+          <label class="form-label">Adultos</label>
+          <div class="counter-input">
+            <button class="counter-btn" onclick="changeCount('adultos',-1)">−</button>
+            <span class="counter-val" id="countAdultos">1</span>
+            <button class="counter-btn" onclick="changeCount('adultos',1)">+</button>
+          </div>
+        </div>
+        <div>
+          <label class="form-label">Menores</label>
+          <div class="counter-input">
+            <button class="counter-btn" onclick="changeCount('menores',-1)">−</button>
+            <span class="counter-val" id="countMenores">0</span>
+            <button class="counter-btn" onclick="changeCount('menores',1)">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="paxAlert"></div>
+    <button class="btn btn-primary" onclick="goTo(4)">Ver resumen →</button>
+  </div>
+
+  <!-- SCREEN 4: RESUMEN -->
+  <div class="screen" id="screen4">
+    <button class="btn-back" onclick="goTo(3)">← Editar datos</button>
+    <h1 class="screen-title">Confirma tu reserva</h1>
+    <p class="screen-sub">Revisa los detalles antes de confirmar.</p>
+
+    <div class="summary-card" id="summaryCard"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="confirmarReserva()">✓ Confirmar y reservar</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 5: ÉXITO -->
+  <div class="screen" id="screen5">
+    <div class="success-screen">
+      <div class="success-icon">🎉</div>
+      <h1 class="success-title">¡Reserva confirmada!</h1>
+      <p class="success-sub" id="successSub">Tu reserva ha sido registrada correctamente.</p>
+
+      <div class="summary-card" id="voucherCard" style="text-align:left;margin-bottom:24px"></div>
+
+      <div class="btn-row">
+        <a id="btnWA" href="#" target="_blank" class="btn btn-whatsapp">💬 Enviar por WhatsApp</a>
+        <button class="btn btn-ghost" onclick="downloadVoucher()">📄 Descargar voucher</button>
+        <button class="btn btn-ghost" onclick="resetApp()">← Nueva reserva</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbzublsoEo4DlJ0QIEbuH86iC-Ztjzxuj6UO4Z1YMmHBqDcAaQsVdOr1a5pE2rS_06gk/exec';
+const ADMIN_WA = '33760940851';
+const DIAS_NUM = { 0:'dom', 1:'lun', 2:'mar', 3:'mie', 4:'jue', 5:'vie', 6:'sab' };
+const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+let tours = [], bloqueos = [], reservas = [];
+let calYear, calMonth;
+let selectedDate = null;
+let selectedTour = null;
+let adultos = 1, menores = 0;
+let currentReserva = null;
+
+// ── API ──
+async function apiCall(params) {
+  const readActions = ['getTours','getBloqueos','getReservas'];
+  if (readActions.includes(params.action)) {
+    const url = new URL(API);
+    url.searchParams.set('action', params.action);
+    const res = await fetch(url.toString());
+    const text = await res.text();
+    try { return JSON.parse(text); }
+    catch(e) { throw new Error('Respuesta no-JSON: ' + text.slice(0,300)); }
+  } else {
+    const res = await fetch(API, {
+      method: 'POST',
+      body: JSON.stringify(params)
+    });
+    const text = await res.text();
+    let result;
+    try { result = JSON.parse(text); }
+    catch(e) { throw new Error('No-JSON: ' + text.slice(0,300)); }
+    if (result && result.error) throw new Error(result.error);
+    return result;
+  }
+}
+
+// ── INIT ──
+async function init() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+  try {
+    [tours, bloqueos, reservas] = await Promise.all([
+      apiCall({ action: 'getTours' }),
+      apiCall({ action: 'getBloqueos' }),
+      apiCall({ action: 'getReservas' })
+    ]);
+    if (!Array.isArray(tours)) tours = [];
+    if (!Array.isArray(bloqueos)) bloqueos = [];
+    if (!Array.isArray(reservas)) reservas = [];
+  } catch(e) {
+    document.getElementById('calContainer').innerHTML = '<div class="alert alert-error">Error al cargar los datos. Por favor recarga la página.</div>';
+    return;
+  }
+  renderCalendar();
+}
+
+// ── STEPS ──
+function goTo(step) {
+  // validaciones
+  if (step === 3) {
+    if (!selectedTour) return;
+  }
+  if (step === 4) {
+    const nombre = document.getElementById('fNombre').value.trim();
+    const wa = document.getElementById('fWhatsapp').value.trim();
+    if (!nombre) { alert('Por favor escribe tu nombre completo.'); return; }
+    if (!wa) { alert('Por favor escribe tu número de WhatsApp.'); return; }
+    if (adultos + menores < 1) { alert('Debe haber al menos 1 participante.'); return; }
+    buildSummary();
+  }
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen' + step).classList.add('active');
+
+  // steps bar
+  for (let i = 1; i <= 4; i++) {
+    const s = document.getElementById('step' + i);
+    s.classList.remove('active','done');
+    if (i < step) s.classList.add('done');
+    else if (i === step) s.classList.add('active');
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── CALENDARIO ──
+function renderCalendar() {
+  const container = document.getElementById('calContainer');
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  let html = `
+  <div class="cal-nav">
+    <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
+    <div class="cal-month">${MONTHS[calMonth]} ${calYear}</div>
+    <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+  </div>
+  <div class="cal-grid">
+    <div class="cal-dow">Lun</div><div class="cal-dow">Mar</div><div class="cal-dow">Mié</div>
+    <div class="cal-dow">Jue</div><div class="cal-dow">Vie</div><div class="cal-dow">Sáb</div>
+    <div class="cal-dow">Dom</div>`;
+
+  // offset (Monday-based)
+  const offset = (firstDay === 0 ? 6 : firstDay - 1);
+  for (let i = 0; i < offset; i++) html += '<div class="cal-day empty"></div>';
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(calYear, calMonth, d);
+    const dateStr = toDateStr(date);
+    const isPast = date < today;
+    const isToday = date.getTime() === today.getTime();
+    const isSelected = dateStr === selectedDate;
+    const { available, blocked } = getDateStatus(date);
+
+    let cls = 'cal-day';
+    if (isPast) cls += ' past';
+    else if (blocked) cls += ' blocked';
+    else if (available) cls += ' available';
+    if (isToday) cls += ' today';
+    if (isSelected) cls += ' selected';
+
+    const dot = (!isPast && !blocked && available) ? '<div class="cal-dot"></div>' : '';
+    const click = (!isPast && !blocked && available) ? `onclick="selectDate('${dateStr}')"` : '';
+    html += `<div class="${cls}" ${click}>${d}${dot}</div>`;
+  }
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function toDateStr(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth()+1).padStart(2,'0');
+  const d = String(date.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+
+function getDateStatus(date) {
+  const dateStr = toDateStr(date);
+  const dayKey = DIAS_NUM[date.getDay()];
+
+  // check if ALL tours are blocked for this date
+  const allBlocked = bloqueos.some(b => b.fecha === dateStr && (b.tourId === 'all' || b.tourId === 'ALL'));
+  if (allBlocked) return { available: false, blocked: true };
+
+  // check if there's at least one active tour available this day
+  const activeTours = tours.filter(t => {
+    const activo = t.activo === true || t.activo === 'true' || t.activo === 'TRUE';
+    if (!activo) return false;
+    const dias = t.dias ? t.dias.split(',').map(x=>x.trim()) : [];
+    if (!dias.includes(dayKey)) return false;
+    const isTourBlocked = bloqueos.some(b => b.fecha === dateStr && b.tourId == t.id);
+    if (isTourBlocked) return false;
+    const cupoUsado = reservas.filter(r => r.fecha === dateStr && r.tourId == t.id)
+      .reduce((sum,r) => sum + (parseInt(r.adultos)||0) + (parseInt(r.menores)||0), 0);
+    return cupoUsado < parseInt(t.cupo);
+  });
+
+  return { available: activeTours.length > 0, blocked: false };
+}
+
+function selectDate(dateStr) {
+  selectedDate = dateStr;
+  selectedTour = null;
+  renderCalendar();
+  showTours(dateStr);
+  goTo(2);
+}
+
+// ── TOURS ──
+function showTours(dateStr) {
+  const date = new Date(dateStr + 'T12:00:00');
+  const dayKey = DIAS_NUM[date.getDay()];
+  const [y, m, d] = dateStr.split('-');
+  const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+  document.getElementById('screen2Title').textContent = `Tours del ${parseInt(d)} de ${months[parseInt(m)-1]}`;
+  document.getElementById('screen2Sub').textContent = 'Elige el tour que más te guste.';
+
+  const available = tours.filter(t => {
+    const activo = t.activo === true || t.activo === 'true' || t.activo === 'TRUE';
+    if (!activo) return false;
+    const dias = t.dias ? t.dias.split(',').map(x=>x.trim()) : [];
+    if (!dias.includes(dayKey)) return false;
+    const isTourBlocked = bloqueos.some(b => b.fecha === dateStr && b.tourId == t.id);
+    return !isTourBlocked;
+  });
+
+  const list = document.getElementById('toursList');
+  if (!available.length) {
+    list.innerHTML = '<div class="alert alert-error">No hay tours disponibles en esta fecha.</div>';
+    return;
+  }
+
+  list.innerHTML = available.map(t => {
+    const cupoUsado = reservas.filter(r => r.fecha === dateStr && r.tourId == t.id)
+      .reduce((sum,r) => sum + (parseInt(r.adultos)||0) + (parseInt(r.menores)||0), 0);
+    const cupoRestante = parseInt(t.cupo) - cupoUsado;
+    const pct = (cupoUsado / parseInt(t.cupo)) * 100;
+    const cupoColor = pct < 50 ? '#2d7a4f' : pct < 80 ? '#e07b00' : '#c0392b';
+    const isFull = cupoRestante <= 0;
+
+    return `
+    <div class="tour-card ${isFull?'full':''}" id="tcard_${t.id}" onclick="selectTour('${t.id}')">
+      <div class="tour-card-top">
+        <div class="tour-card-emoji">${t.emoji||'🗼'}</div>
+        <div class="tour-card-info">
+          <div class="tour-card-name">${t.nombre}</div>
+          <div class="tour-card-desc">${t.descripcion||''}</div>
+          <div class="tour-card-meta">
+            <span>🕐 ${t.horario||'--'}</span>
+            <span>💶 ${t.precio}€/persona</span>
+            ${isFull ? '<span style="color:var(--red)">✗ Sin plazas</span>' : `<span style="color:var(--green)">✓ ${cupoRestante} plazas</span>`}
+          </div>
+        </div>
+      </div>
+      <div class="cupo-bar"><div class="cupo-fill" style="width:${pct}%;background:${cupoColor}"></div></div>
+      <div class="cupo-text">${isFull ? 'Sin disponibilidad' : `${cupoRestante} de ${t.cupo} plazas disponibles`}</div>
+    </div>`;
+  }).join('');
+}
+
+function selectTour(id) {
+  selectedTour = tours.find(t => t.id == id);
+  document.querySelectorAll('.tour-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('tcard_' + id)?.classList.add('selected');
+  document.getElementById('btnSelectTour').disabled = false;
+  document.getElementById('btnSelectTour').textContent = 'Continuar → ' + selectedTour.nombre;
+}
+
+// ── PAX ──
+function changeCount(type, delta) {
+  if (type === 'adultos') {
+    adultos = Math.max(0, adultos + delta);
+    document.getElementById('countAdultos').textContent = adultos;
+  } else {
+    menores = Math.max(0, menores + delta);
+    document.getElementById('countMenores').textContent = menores;
+  }
+  // recap en screen3
+  updateScreen3Recap();
+}
+
+function updateScreen3Recap() {
+  if (!selectedTour || !selectedDate) return;
+  const cupoUsado = reservas.filter(r => r.fecha === selectedDate && r.tourId == selectedTour.id)
+    .reduce((sum,r) => sum + (parseInt(r.adultos)||0) + (parseInt(r.menores)||0), 0);
+  const cupoRestante = parseInt(selectedTour.cupo) - cupoUsado;
+  const total = (adultos + menores) * parseFloat(selectedTour.precio);
+  const alerta = document.getElementById('paxAlert');
+  if (adultos + menores > cupoRestante) {
+    alerta.innerHTML = `<div class="alert alert-error">Solo quedan ${cupoRestante} plazas disponibles.</div>`;
+  } else {
+    alerta.innerHTML = '';
+  }
+  const recap = document.getElementById('selectedTourRecap');
+  recap.innerHTML = `<span style="font-size:1.5rem">${selectedTour.emoji||'🗼'}</span>
+    <div><strong>${selectedTour.nombre}</strong> · ${selectedTour.horario}<br>
+    <span style="font-size:0.8rem;color:var(--smoke)">${formatDateNice(selectedDate)} · ${adultos} adultos, ${menores} menores · <strong>${total}€</strong></span></div>`;
+}
+
+// ── RESUMEN ──
+function buildSummary() {
+  const nombre = document.getElementById('fNombre').value.trim();
+  const wa = document.getElementById('fWhatsapp').value.trim();
+  const total = (adultos + menores) * parseFloat(selectedTour.precio||0);
+
+  document.getElementById('summaryCard').innerHTML = `
+    <div class="summary-title">Detalle de la reserva</div>
+    <div class="summary-row"><span class="summary-key">Tour</span><span class="summary-val">${selectedTour.emoji||''} ${selectedTour.nombre}</span></div>
+    <div class="summary-row"><span class="summary-key">Fecha</span><span class="summary-val">${formatDateNice(selectedDate)}</span></div>
+    <div class="summary-row"><span class="summary-key">Horario</span><span class="summary-val">${selectedTour.horario||'--'}</span></div>
+    <div class="summary-row"><span class="summary-key">Nombre</span><span class="summary-val">${nombre}</span></div>
+    <div class="summary-row"><span class="summary-key">WhatsApp</span><span class="summary-val">${wa}</span></div>
+    <div class="summary-row"><span class="summary-key">Participantes</span><span class="summary-val">${adultos} adulto${adultos!==1?'s':''}, ${menores} menor${menores!==1?'es':''}</span></div>
+    <div class="summary-row"><span class="summary-key">Total estimado</span><span class="summary-val summary-total">${total}€</span></div>`;
+}
+
+// ── CONFIRMAR ──
+async function confirmarReserva() {
+  const nombre = document.getElementById('fNombre').value.trim();
+  const wa = document.getElementById('fWhatsapp').value.trim().replace(/\s+/g,'');
+  const total = (adultos + menores) * parseFloat(selectedTour.precio||0);
+
+  const reserva = {
+    id: 'res_' + Date.now(),
+    fecha: selectedDate,
+    tourId: selectedTour.id,
+    tourNombre: selectedTour.nombre,
+    horario: selectedTour.horario||'',
+    nombre,
+    whatsapp: wa,
+    adultos,
+    menores,
+    total,
+    timestamp: new Date().toISOString()
+  };
+
+  try {
+    await apiCall({ action: 'saveReserva', data: reserva });
+    reservas.push(reserva); // actualizar cupos localmente
+    currentReserva = reserva;
+    showSuccess(reserva);
+  } catch(e) {
+    alert('Error al guardar la reserva. Por favor inténtalo de nuevo.');
+  }
+}
+
+function showSuccess(r) {
+  const total = (r.adultos + r.menores) * parseFloat(selectedTour.precio||0);
+  document.getElementById('successSub').textContent = `Tu lugar en el tour ${selectedTour.nombre} del ${formatDateNice(r.fecha)} está reservado.`;
+
+  document.getElementById('voucherCard').innerHTML = `
+    <div class="summary-title">🎟 Voucher de reserva</div>
+    <div class="summary-row"><span class="summary-key">Referencia</span><span class="summary-val">${r.id}</span></div>
+    <div class="summary-row"><span class="summary-key">Tour</span><span class="summary-val">${selectedTour.emoji||''} ${r.tourNombre}</span></div>
+    <div class="summary-row"><span class="summary-key">Fecha</span><span class="summary-val">${formatDateNice(r.fecha)}</span></div>
+    <div class="summary-row"><span class="summary-key">Horario</span><span class="summary-val">${r.horario}</span></div>
+    <div class="summary-row"><span class="summary-key">Nombre</span><span class="summary-val">${r.nombre}</span></div>
+    <div class="summary-row"><span class="summary-key">Participantes</span><span class="summary-val">${r.adultos} adultos, ${r.menores} menores</span></div>
+    <div class="summary-row"><span class="summary-key">Total</span><span class="summary-val summary-total">${total}€</span></div>`;
+
+  // WhatsApp link
+  const msg = encodeURIComponent(
+    `🗼 *Nueva reserva - Gente de París*\n\n` +
+    `📅 Fecha: ${formatDateNice(r.fecha)}\n` +
+    `🎯 Tour: ${r.tourNombre}\n` +
+    `🕐 Horario: ${r.horario}\n` +
+    `👤 Nombre: ${r.nombre}\n` +
+    `📱 WhatsApp: ${r.whatsapp}\n` +
+    `👥 Participantes: ${r.adultos} adultos, ${r.menores} menores\n` +
+    `💶 Total: ${total}€\n` +
+    `🔖 Ref: ${r.id}`
+  );
+  document.getElementById('btnWA').href = `https://wa.me/${ADMIN_WA}?text=${msg}`;
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen5').classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function downloadVoucher() {
+  const r = currentReserva;
+  if (!r) return;
+  const total = (r.adultos + r.menores) * parseFloat(selectedTour.precio||0);
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Voucher GDP</title>
+  <style>
+    body{font-family:Georgia,serif;max-width:480px;margin:40px auto;padding:20px;color:#111}
+    h1{font-size:1.6rem;color:#b8860b;border-bottom:2px solid #b8860b;padding-bottom:8px}
+    .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:0.9rem}
+    .key{color:#666} .val{font-weight:600}
+    .total{font-size:1.3rem;color:#111;font-weight:700}
+    .footer{margin-top:24px;font-size:0.78rem;color:#999;text-align:center}
+  </style></head><body>
+  <h1>🗼 Gente de París · Voucher</h1>
+  <div class="row"><span class="key">Referencia</span><span class="val">${r.id}</span></div>
+  <div class="row"><span class="key">Tour</span><span class="val">${r.tourNombre}</span></div>
+  <div class="row"><span class="key">Fecha</span><span class="val">${formatDateNice(r.fecha)}</span></div>
+  <div class="row"><span class="key">Horario</span><span class="val">${r.horario}</span></div>
+  <div class="row"><span class="key">Nombre</span><span class="val">${r.nombre}</span></div>
+  <div class="row"><span class="key">WhatsApp</span><span class="val">${r.whatsapp}</span></div>
+  <div class="row"><span class="key">Participantes</span><span class="val">${r.adultos} adultos, ${r.menores} menores</span></div>
+  <div class="row"><span class="key">Total</span><span class="val total">${total}€</span></div>
+  <div class="footer">Gente de París · Reserva confirmada · ${new Date().toLocaleDateString('es-ES')}</div>
+  </body></html>`;
+  const blob = new Blob([html], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `voucher-GDP-${r.id}.html`;
+  a.click();
+}
+
+function resetApp() {
+  selectedDate = null; selectedTour = null; adultos = 1; menores = 0;
+  document.getElementById('fNombre').value = '';
+  document.getElementById('fWhatsapp').value = '';
+  document.getElementById('countAdultos').textContent = '1';
+  document.getElementById('countMenores').textContent = '0';
+  document.getElementById('btnSelectTour').disabled = true;
+  goTo(1);
+  renderCalendar();
+}
+
+// ── UTILS ──
+function formatDateNice(str) {
+  if (!str) return '';
+  const [y,m,d] = str.split('-');
+  const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return `${parseInt(d)} de ${months[parseInt(m)-1]} de ${y}`;
+}
+
+// Update recap when going to screen3
+const origGoTo = goTo;
+window.goTo = function(step) {
+  origGoTo(step);
+  if (step === 3) setTimeout(updateScreen3Recap, 50);
+};
+
+init();
+</script>
+</body>
+</html>
