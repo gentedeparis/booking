@@ -571,20 +571,84 @@ async function apiCall(params) {
   }
 }
 
+
+// ── NORMALIZAR DATOS DE GOOGLE SHEETS ──
+// Sheets devuelve fechas como objetos Date serializados (ej: "1899-12-30T10:50:00.000Z")
+// Esta función convierte todo a strings legibles
+
+function normalizarFecha(val) {
+  if (!val) return '';
+  const s = String(val);
+  // Si ya es formato YYYY-MM-DD, perfecto
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  // Si viene como Date serializada de Sheets
+  try {
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,'0');
+      const day = String(d.getDate()).padStart(2,'0');
+      return `${y}-${m}-${day}`;
+    }
+  } catch(e) {}
+  return s;
+}
+
+function normalizarHorario(val) {
+  if (!val) return '';
+  const s = String(val);
+  // Si ya es HH:MM, perfecto
+  if (/^\d{1,2}:\d{2}$/.test(s)) return s;
+  // Si viene como Date serializada de Sheets (tiempo como fracción del día)
+  try {
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      const h = String(d.getUTCHours()).padStart(2,'0');
+      const min = String(d.getUTCMinutes()).padStart(2,'0');
+      return `${h}:${min}`;
+    }
+  } catch(e) {}
+  return s;
+}
+
+function normalizarTours(arr) {
+  return arr.map(t => ({
+    ...t,
+    horario: normalizarHorario(t.horario),
+    activo: String(t.activo).toLowerCase()
+  }));
+}
+
+function normalizarBloqueos(arr) {
+  return arr.map(b => ({
+    ...b,
+    fecha: normalizarFecha(b.fecha),
+    tourId: String(b.tourId || '').toLowerCase()
+  }));
+}
+
+function normalizarReservas(arr) {
+  return arr.map(r => ({
+    ...r,
+    fecha: normalizarFecha(r.fecha),
+    horario: normalizarHorario(r.horario)
+  }));
+}
+
 // ── INIT ──
 async function init() {
   const now = new Date();
   calYear = now.getFullYear();
   calMonth = now.getMonth();
   try {
-    [tours, bloqueos, reservas] = await Promise.all([
+    const [rawTours, rawBloqueos, rawReservas] = await Promise.all([
       apiCall({ action: 'getTours' }),
       apiCall({ action: 'getBloqueos' }),
       apiCall({ action: 'getReservas' })
     ]);
-    if (!Array.isArray(tours)) tours = [];
-    if (!Array.isArray(bloqueos)) bloqueos = [];
-    if (!Array.isArray(reservas)) reservas = [];
+    tours = normalizarTours(Array.isArray(rawTours) ? rawTours : []);
+    bloqueos = normalizarBloqueos(Array.isArray(rawBloqueos) ? rawBloqueos : []);
+    reservas = normalizarReservas(Array.isArray(rawReservas) ? rawReservas : []);
   } catch(e) {
     document.getElementById('calContainer').innerHTML = '<div class="alert alert-error">Error al cargar los datos. Por favor recarga la página.</div>';
     return;
@@ -691,7 +755,7 @@ function getDateStatus(date) {
   const dayKey = DIAS_NUM[date.getDay()];
 
   // check if ALL tours are blocked for this date
-  const allBlocked = bloqueos.some(b => b.fecha === dateStr && String(b.tourId).toLowerCase() === 'all');
+  const allBlocked = bloqueos.some(b => b.fecha === dateStr && b.tourId === 'all');
   if (allBlocked) return { available: false, blocked: true };
 
   // check if there's at least one active tour available this day
@@ -997,14 +1061,14 @@ init();
 // Auto-refresh cada 5 minutos para ver bloqueos y cupos actualizados
 setInterval(async () => {
   try {
-    [tours, bloqueos, reservas] = await Promise.all([
+    const [rawTours, rawBloqueos, rawReservas] = await Promise.all([
       apiCall({ action: 'getTours' }),
       apiCall({ action: 'getBloqueos' }),
       apiCall({ action: 'getReservas' })
     ]);
-    if (!Array.isArray(tours)) tours = [];
-    if (!Array.isArray(bloqueos)) bloqueos = [];
-    if (!Array.isArray(reservas)) reservas = [];
+    tours = normalizarTours(Array.isArray(rawTours) ? rawTours : []);
+    bloqueos = normalizarBloqueos(Array.isArray(rawBloqueos) ? rawBloqueos : []);
+    reservas = normalizarReservas(Array.isArray(rawReservas) ? rawReservas : []);
     renderCalendar(); // actualizar calendario con disponibilidad fresca
   } catch(e) { console.warn('Auto-refresh falló:', e); }
 }, 5 * 60 * 1000);
