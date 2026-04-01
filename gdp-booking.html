@@ -501,7 +501,7 @@
     <div class="summary-card" id="summaryCard"></div>
 
     <div class="btn-row">
-      <button class="btn btn-primary" onclick="confirmarReserva()">✓ Confirmar y reservar</button>
+      <button class="btn btn-primary" id="btnConfirmar" onclick="confirmarReserva()">✓ Confirmar y reservar</button>
     </div>
   </div>
 
@@ -515,9 +515,19 @@
       <div class="summary-card" id="voucherCard" style="text-align:left;margin-bottom:24px"></div>
 
       <div class="btn-row">
-        <a id="btnWA" href="#" target="_blank" class="btn btn-whatsapp">💬 Enviar por WhatsApp</a>
+        <a id="btnWA" href="#" target="_blank" class="btn btn-whatsapp">💬 Enviar reserva por WhatsApp</a>
         <button class="btn btn-ghost" onclick="downloadVoucher()">📄 Descargar voucher</button>
-        <button class="btn btn-ghost" onclick="resetApp()">← Nueva reserva</button>
+      </div>
+
+      <div style="margin-top:28px;padding:20px;background:white;border:1.5px solid var(--border);border-radius:12px;text-align:center;font-size:0.88rem;color:var(--smoke)">
+        ¿Deseas cambiar de fecha, cancelar o contactarnos?<br>
+        <a id="btnWAContacto" href="#" target="_blank" class="btn btn-whatsapp" style="margin-top:12px;display:inline-flex">
+          💬 Escribir a Gente de París
+        </a>
+      </div>
+
+      <div style="margin-top:12px">
+        <button class="btn btn-ghost" onclick="resetApp()" style="width:100%">← Nueva reserva</button>
       </div>
     </div>
   </div>
@@ -819,6 +829,10 @@ function buildSummary() {
 
 // ── CONFIRMAR ──
 async function confirmarReserva() {
+  const btn = document.getElementById('btnConfirmar');
+  btn.disabled = true;
+  btn.textContent = '⏳ Confirmando...';
+
   const nombre = document.getElementById('fNombre').value.trim();
   const wa = document.getElementById('fWhatsapp').value.trim().replace(/\s+/g,'');
   const total = (adultos + menores) * parseFloat(selectedTour.precio||0);
@@ -843,6 +857,8 @@ async function confirmarReserva() {
     currentReserva = reserva;
     showSuccess(reserva);
   } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '✓ Confirmar y reservar';
     alert('Error al guardar la reserva. Por favor inténtalo de nuevo.');
   }
 }
@@ -851,12 +867,22 @@ function showSuccess(r) {
   const total = (r.adultos + r.menores) * parseFloat(selectedTour.precio||0);
   document.getElementById('successSub').textContent = `Tu lugar en el tour ${selectedTour.nombre} del ${formatDateNice(r.fecha)} está reservado.`;
 
+  const encuentroHTML = selectedTour.direccion ? `
+    <div class="summary-row">
+      <span class="summary-key">📍 Punto de encuentro</span>
+      <span class="summary-val">
+        ${selectedTour.direccion}
+        ${selectedTour.mapsLink ? `<br><a href="${selectedTour.mapsLink}" target="_blank" style="color:var(--gold);font-size:0.82rem;text-decoration:none">🗺 Ver en Google Maps →</a>` : ''}
+      </span>
+    </div>` : '';
+
   document.getElementById('voucherCard').innerHTML = `
     <div class="summary-title">🎟 Voucher de reserva</div>
     <div class="summary-row"><span class="summary-key">Referencia</span><span class="summary-val">${r.id}</span></div>
     <div class="summary-row"><span class="summary-key">Tour</span><span class="summary-val">${selectedTour.emoji||''} ${r.tourNombre}</span></div>
     <div class="summary-row"><span class="summary-key">Fecha</span><span class="summary-val">${formatDateNice(r.fecha)}</span></div>
     <div class="summary-row"><span class="summary-key">Horario</span><span class="summary-val">${r.horario}</span></div>
+    ${encuentroHTML}
     <div class="summary-row"><span class="summary-key">Nombre</span><span class="summary-val">${r.nombre}</span></div>
     <div class="summary-row"><span class="summary-key">Participantes</span><span class="summary-val">${r.adultos} adultos, ${r.menores} menores</span></div>
     <div class="summary-row"><span class="summary-key">Total</span><span class="summary-val summary-total">${total}€</span></div>`;
@@ -875,6 +901,17 @@ function showSuccess(r) {
   );
   document.getElementById('btnWA').href = `https://wa.me/${ADMIN_WA}?text=${msg}`;
 
+  // Botón de contacto con datos de la reserva
+  const msgContacto = encodeURIComponent(
+    `Hola, tengo una reserva:\n` +
+    `Nombre: ${r.nombre}\n` +
+    `Tour: ${r.tourNombre}\n` +
+    `Fecha: ${formatDateNice(r.fecha)}\n` +
+    `Referencia: ${r.id}\n\n` +
+    `Y quiero...`
+  );
+  document.getElementById('btnWAContacto').href = `https://wa.me/${ADMIN_WA}?text=${msgContacto}`;
+
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen5').classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -884,28 +921,45 @@ function downloadVoucher() {
   const r = currentReserva;
   if (!r) return;
   const total = (r.adultos + r.menores) * parseFloat(selectedTour.precio||0);
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+
+  const encuentroRow = selectedTour && selectedTour.direccion ? `
+  <div class="row">
+    <span class="key">📍 Punto de encuentro</span>
+    <span class="val">${selectedTour.direccion}${selectedTour.mapsLink ? ' &nbsp;<a href="' + selectedTour.mapsLink + '" target="_blank" style="color:#b8860b">Ver en Maps →</a>' : ''}</span>
+  </div>` : '';
+
+  const msgContacto = encodeURIComponent('Hola, tengo una reserva:\nNombre: ' + r.nombre + '\nTour: ' + r.tourNombre + '\nFecha: ' + formatDateNice(r.fecha) + '\nReferencia: ' + r.id + '\n\nY quiero...');
+
+  const dlHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8">
   <title>Voucher GDP</title>
   <style>
     body{font-family:Georgia,serif;max-width:480px;margin:40px auto;padding:20px;color:#111}
     h1{font-size:1.6rem;color:#b8860b;border-bottom:2px solid #b8860b;padding-bottom:8px}
-    .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:0.9rem}
-    .key{color:#666} .val{font-weight:600}
+    .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:0.9rem;gap:12px}
+    .key{color:#666;white-space:nowrap} .val{font-weight:600;text-align:right}
     .total{font-size:1.3rem;color:#111;font-weight:700}
     .footer{margin-top:24px;font-size:0.78rem;color:#999;text-align:center}
+    .contacto{margin-top:28px;padding:16px;background:#fdf6e3;border-radius:8px;font-size:0.85rem;color:#555;text-align:center}
+    .wa-btn{display:inline-block;margin-top:12px;background:#25d366;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:0.9rem}
   </style></head><body>
   <h1>🗼 Gente de París · Voucher</h1>
   <div class="row"><span class="key">Referencia</span><span class="val">${r.id}</span></div>
   <div class="row"><span class="key">Tour</span><span class="val">${r.tourNombre}</span></div>
   <div class="row"><span class="key">Fecha</span><span class="val">${formatDateNice(r.fecha)}</span></div>
   <div class="row"><span class="key">Horario</span><span class="val">${r.horario}</span></div>
+  ${encuentroRow}
   <div class="row"><span class="key">Nombre</span><span class="val">${r.nombre}</span></div>
   <div class="row"><span class="key">WhatsApp</span><span class="val">${r.whatsapp}</span></div>
   <div class="row"><span class="key">Participantes</span><span class="val">${r.adultos} adultos, ${r.menores} menores</span></div>
   <div class="row"><span class="key">Total</span><span class="val total">${total}€</span></div>
+  <div class="contacto">
+    ¿Deseas cambiar de fecha, cancelar o contactarnos? Escríbenos:<br>
+    <a class="wa-btn" href="https://wa.me/${ADMIN_WA}?text=${msgContacto}">💬 Contactar por WhatsApp</a>
+  </div>
   <div class="footer">Gente de París · Reserva confirmada · ${new Date().toLocaleDateString('es-ES')}</div>
   </body></html>`;
-  const blob = new Blob([html], { type: 'text/html' });
+
+  const blob = new Blob([dlHtml], { type: 'text/html' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `voucher-GDP-${r.id}.html`;
