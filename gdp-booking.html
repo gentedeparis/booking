@@ -519,7 +519,7 @@
         <button class="btn btn-ghost" onclick="downloadVoucher()">📄 Descargar voucher</button>
       </div>
 
-      <div style="margin-top:28px;padding:20px;background:white;border:1.5px solid var(--border);border-radius:12px;text-align:center;font-size:0.88rem;color:var(--smoke)">
+      <div id="contactoBox" style="margin-top:28px;padding:20px;background:white;border:1.5px solid var(--border);border-radius:12px;text-align:center;font-size:0.88rem;color:var(--smoke)">
         ¿Deseas cambiar de fecha, cancelar o contactarnos?<br>
         <a id="btnWAContacto" href="#" target="_blank" class="btn btn-whatsapp" style="margin-top:12px;display:inline-flex">
           💬 Escribir a Gente de París
@@ -972,7 +972,7 @@ function showSuccess(r) {
   );
   document.getElementById('btnWA').href = `https://wa.me/${ADMIN_WA}?text=${msg}`;
 
-  // Botón de contacto con datos de la reserva
+  // URL del botón de contacto — se inyecta directamente en el HTML
   const msgContacto = encodeURIComponent(
     `Hola, tengo una reserva:\n` +
     `Nombre: ${r.nombre}\n` +
@@ -981,10 +981,13 @@ function showSuccess(r) {
     `Referencia: ${r.id}\n\n` +
     `Y quiero...`
   );
-  document.getElementById('btnWAContacto').href = `https://wa.me/${ADMIN_WA}?text=${msgContacto}`;
+  const waContactoURL = `https://wa.me/${ADMIN_WA}?text=${msgContacto}`;
 
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen5').classList.add('active');
+  // Ahora que el DOM está activo, asignar el href del botón de contacto
+  const btnContacto = document.getElementById('btnWAContacto');
+  if (btnContacto) btnContacto.href = waContactoURL;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
