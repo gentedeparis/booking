@@ -453,6 +453,14 @@
       <input type="number" id="tCupo" min="1" value="15">
     </div>
     <div class="form-group">
+      <label>Punto de encuentro (dirección)</label>
+      <input type="text" id="tDireccion" placeholder="Ej: Plaza de la Bastilla, frente a la columna">
+    </div>
+    <div class="form-group">
+      <label>Link Google Maps</label>
+      <input type="url" id="tMapsLink" placeholder="https://maps.google.com/...">
+    </div>
+    <div class="form-group">
       <label>Días disponibles</label>
       <div class="dias-checkboxes">
         <label class="dia-check"><input type="checkbox" name="dia" value="lun"> Lun</label>
@@ -624,6 +632,8 @@ function openTourModal(id) {
       document.getElementById('tHorario').value = t.horario||'';
       document.getElementById('tPrecio').value = t.precio||'';
       document.getElementById('tCupo').value = t.cupo||'15';
+      document.getElementById('tDireccion').value = t.direccion||'';
+      document.getElementById('tMapsLink').value = t.mapsLink||'';
       if (t.dias) t.dias.split(',').forEach(d => {
         const cb = document.querySelector(`input[name="dia"][value="${d.trim()}"]`);
         if (cb) cb.checked = true;
@@ -636,6 +646,8 @@ function openTourModal(id) {
     document.getElementById('tHorario').value = '';
     document.getElementById('tPrecio').value = '';
     document.getElementById('tCupo').value = '15';
+    document.getElementById('tDireccion').value = '';
+    document.getElementById('tMapsLink').value = '';
   }
   modal.classList.add('open');
 }
@@ -659,6 +671,8 @@ async function saveTour() {
       horario: document.getElementById('tHorario').value,
       cupo: parseInt(document.getElementById('tCupo').value) || 15,
       precio: parseFloat(document.getElementById('tPrecio').value) || 0,
+      direccion: document.getElementById('tDireccion').value.trim(),
+      mapsLink: document.getElementById('tMapsLink').value.trim(),
       activo: tourActual ? String(tourActual.activo) : 'true'
     };
 
