@@ -993,8 +993,7 @@ async function registrarEnDossier(guide,date,toursData){
     const semInfo=getSemanaKey(date);
     const entry={
       id:'dos_'+guide.replace(/\s+/g,'')+'_'+date+'_'+tx.tourId,
-      guia:guide,
-      fecha:date,
+      guia:guide,fecha:date,
       tourNombre:tx.tourNombre,horario:tx.horario||'',
       idioma:'',paxTotal:tx.clients.reduce((s,c)=>s+(c.adults||0)+(c.minors||0),0),
       asistentes:0,creditos:0,
@@ -1038,34 +1037,12 @@ function opsDownloadGuideFile(){
 async function initDossier(){
   showLoading();
   try{
-    // 1. Intentar getGuias (requiere que el Apps Script lo tenga implementado)
-    let guias=[];
-    try{
-      const raw=await apiCall({action:'getGuias'});
-      guias=Array.isArray(raw)?raw.filter(Boolean):[];
-    }catch(e){console.warn('getGuias no disponible, usando fallback');}
-
-    // 2. Fallback: leer todos los registros y extraer guías únicos
-    if(!guias.length){
-      try{
-        const all=await apiCall({action:'getAllDossierEntries'});
-        if(Array.isArray(all)){
-          guias=[...new Set(all.map(e=>e.guia).filter(Boolean))];
-        }
-      }catch(e2){console.warn('getAllDossierEntries no disponible, usando fallback local');}
-    }
-
-    // 3. Último fallback: extraer guías de las jornadas guardadas localmente
-    if(!guias.length){
-      guias=[...new Set(Object.values(opsTours).map(j=>j.guide).filter(Boolean))];
-    }
-
-    dossierGuias=guias;
+    const guias=await apiCall({action:'getGuias'});
+    dossierGuias=Array.isArray(guias)?guias:[];
     renderDossierTabs();
     if(dossierGuias.length&&!dossierActivo){dossierActivo=dossierGuias[0];await loadDossierGuia(dossierActivo);}
     else if(dossierActivo){await loadDossierGuia(dossierActivo);}
-    else if(!dossierGuias.length){document.getElementById('dossierContent').innerHTML='<div class="empty-state"><div class="ei">📁</div>Aún no hay guías. Crea el primero con "+ Nuevo guía".</div>';}
-  }catch(e){showToast('Error cargando dossier: '+(e.message||e),'error');}
+  }catch(e){showToast('Error cargando dossier','error');}
   hideLoading();
 }
 
@@ -1082,18 +1059,11 @@ async function selectDossierGuia(guia){
 async function loadDossierGuia(guia){
   try{
     const entries=await apiCall({action:'getDossier',guia});
-    // Normalizar: aceptar entradas aunque guia tenga diferente capitalización
-    // o sea un registro antiguo sin campo guia (fallback por id)
-    const normalized=(Array.isArray(entries)?entries:[]).filter(e=>{
-      if(!e)return false;
-      if(!e.guia)return e.id&&e.id.toLowerCase().includes(guia.replace(/\s+/g,'').toLowerCase());
-      return e.guia.trim().toLowerCase()===guia.trim().toLowerCase();
-    });
-    dossierEntries[guia]=normalized;
+    dossierEntries[guia]=Array.isArray(entries)?entries:[];
     const pagos=await apiCall({action:'getPagosSemana',guia});
     pagosEntries[guia]=Array.isArray(pagos)?pagos:[];
     renderDossierContent(guia);
-  }catch(e){showToast('Error cargando dossier de '+guia+': '+(e.message||e),'error');}
+  }catch(e){showToast('Error cargando dossier de '+guia,'error');}
 }
 
 function renderDossierContent(guia){
@@ -1193,10 +1163,11 @@ async function updateDossierField(guia,id,campo,valor){
   const entry=entries.find(e=>e.id===id);
   if(!entry)return;
   entry[campo]=valor;
-  entry.guia=guia; // garantizar campo guia siempre presente
+  // Recalcular semanas localmente
   const semInfo=getSemanaKey(entry.fecha);entry.semana=semInfo.key;
   try{await apiCall({action:'saveDossierEntry',data:{...entry,guia}});}
   catch(e){showToast('Error guardando campo','error');}
+  // Re-render sección pagos
   renderDossierContent(guia);
 }
 
