@@ -590,9 +590,16 @@ function goTo(step) {
   }
   if (step === 4) {
     const nombre = document.getElementById('fNombre').value.trim();
-    const wa = document.getElementById('fWhatsapp').value.trim();
+    const waRaw = document.getElementById('fWhatsapp').value.trim();
     if (!nombre) { alert('Por favor escribe tu nombre completo.'); return; }
-    if (!wa) { alert('Por favor escribe tu número de WhatsApp.'); return; }
+    if (!waRaw) { alert('Por favor escribe tu número de WhatsApp.'); return; }
+    // Validación básica: solo dígitos y símbolos de teléfono, mínimo 7 dígitos
+    const waClean = waRaw.replace(/[\s\-().+]/g, '');
+    if (!/^\d{7,15}$/.test(waClean)) {
+      alert('El número de teléfono no parece válido. Usa formato internacional, ej: +33760940851');
+      return;
+    }
+    const wa = waRaw;
     if (adultos + menores < 1) { alert('Debe haber al menos 1 participante.'); return; }
     buildSummary();
   }
@@ -674,7 +681,7 @@ function getDateStatus(date) {
   const dayKey = DIAS_NUM[date.getDay()];
 
   // check if ALL tours are blocked for this date
-  const allBlocked = bloqueos.some(b => b.fecha === dateStr && (b.tourId === 'all' || b.tourId === 'ALL'));
+  const allBlocked = bloqueos.some(b => b.fecha === dateStr && String(b.tourId).toLowerCase() === 'all');
   if (allBlocked) return { available: false, blocked: true };
 
   // check if there's at least one active tour available this day
@@ -683,7 +690,7 @@ function getDateStatus(date) {
     if (!activo) return false;
     const dias = t.dias ? t.dias.split(',').map(x=>x.trim()) : [];
     if (!dias.includes(dayKey)) return false;
-    const isTourBlocked = bloqueos.some(b => b.fecha === dateStr && b.tourId == t.id);
+    const isTourBlocked = bloqueos.some(b => b.fecha === dateStr && String(b.tourId) === String(t.id));
     if (isTourBlocked) return false;
     const cupoUsado = reservas.filter(r => r.fecha === dateStr && r.tourId == t.id)
       .reduce((sum,r) => sum + (parseInt(r.adultos)||0) + (parseInt(r.menores)||0), 0);
@@ -716,7 +723,7 @@ function showTours(dateStr) {
     if (!activo) return false;
     const dias = t.dias ? t.dias.split(',').map(x=>x.trim()) : [];
     if (!dias.includes(dayKey)) return false;
-    const isTourBlocked = bloqueos.some(b => b.fecha === dateStr && b.tourId == t.id);
+    const isTourBlocked = bloqueos.some(b => b.fecha === dateStr && String(b.tourId) === String(t.id));
     return !isTourBlocked;
   });
 
@@ -932,6 +939,21 @@ window.goTo = function(step) {
 };
 
 init();
+
+// Auto-refresh cada 5 minutos para ver bloqueos y cupos actualizados
+setInterval(async () => {
+  try {
+    [tours, bloqueos, reservas] = await Promise.all([
+      apiCall({ action: 'getTours' }),
+      apiCall({ action: 'getBloqueos' }),
+      apiCall({ action: 'getReservas' })
+    ]);
+    if (!Array.isArray(tours)) tours = [];
+    if (!Array.isArray(bloqueos)) bloqueos = [];
+    if (!Array.isArray(reservas)) reservas = [];
+    renderCalendar(); // actualizar calendario con disponibilidad fresca
+  } catch(e) { console.warn('Auto-refresh falló:', e); }
+}, 5 * 60 * 1000);
 </script>
 </body>
 </html>
