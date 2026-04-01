@@ -359,6 +359,41 @@
   .toast.success { border-color: var(--green); }
   .toast.error { border-color: var(--red); }
 
+  /* ── BANNER LIMPIEZA ── */
+  .banner-limpieza {
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    animation: fadeIn 0.4s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+  .banner-limpieza.aviso {
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.4);
+  }
+  .banner-limpieza.ultimatum {
+    background: rgba(192,57,43,0.15);
+    border: 1px solid rgba(192,57,43,0.6);
+  }
+  .banner-limpieza.critico {
+    background: rgba(192,57,43,0.25);
+    border: 2px solid var(--red);
+  }
+  .banner-icon { font-size: 1.8rem; flex-shrink: 0; }
+  .banner-body { flex: 1; }
+  .banner-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    margin-bottom: 4px;
+  }
+  .banner-aviso .banner-title { color: var(--gold); }
+  .banner-ultimatum .banner-title, .banner-critico .banner-title { color: #e74c3c; }
+  .banner-text { font-size: 0.83rem; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
+  .banner-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
   @media (max-width: 600px) {
     main { padding: 16px; }
     .form-row { grid-template-columns: 1fr; }
@@ -413,8 +448,12 @@
   <div class="tab-panel" id="tab-reservas">
     <div class="section-header">
       <h1 class="section-title">Reservas</h1>
-      <button class="btn btn-ghost" onclick="loadReservas()">↻ Actualizar</button>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost btn-sm" onclick="exportarCSV()">⬇ Exportar CSV</button>
+        <button class="btn btn-ghost" onclick="loadReservas()">↻ Actualizar</button>
+      </div>
     </div>
+    <div id="bannerLimpieza"></div>
     <div class="reservas-filter">
       <input type="date" id="filtroFecha" onchange="renderReservas()">
       <button class="btn btn-ghost btn-sm" onclick="document.getElementById('filtroFecha').value='';renderReservas()">Ver todas</button>
@@ -551,31 +590,18 @@ function normalizarHorario(val) {
 
 // ── API helpers ──
 async function apiCall(params) {
-  const readActions = ['getTours','getBloqueos','getReservas'];
-
-  if (readActions.includes(params.action)) {
-    // Lecturas: GET simple
-    const url = new URL(API);
-    url.searchParams.set('action', params.action);
-    const res = await fetch(url.toString());
-    const text = await res.text();
-    try { return JSON.parse(text); }
-    catch(e) { throw new Error('Respuesta no-JSON: ' + text.slice(0,300)); }
-
-  } else {
-    // Escrituras: POST con body texto plano (sin Content-Type)
-    // Apps Script lo recibe en doPost -> e.postData.contents
-    const res = await fetch(API, {
-      method: 'POST',
-      body: JSON.stringify(params)
-    });
-    const text = await res.text();
-    let result;
-    try { result = JSON.parse(text); }
-    catch(e) { throw new Error('No-JSON: ' + text.slice(0,300)); }
-    if (result && result.error) throw new Error(result.error);
-    return result;
-  }
+  // Todo por GET — es lo más estable con Google Apps Script desde dominios externos
+  const url = new URL(API);
+  Object.entries(params).forEach(([k, v]) => {
+    url.searchParams.set(k, typeof v === 'object' ? JSON.stringify(v) : v);
+  });
+  const res = await fetch(url.toString());
+  const text = await res.text();
+  let result;
+  try { result = JSON.parse(text); }
+  catch(e) { throw new Error('Respuesta no-JSON: ' + text.slice(0, 300)); }
+  if (result && result.error) throw new Error(result.error);
+  return result;
 }
 
 function setSyncStatus(state, text) {
@@ -838,6 +864,7 @@ async function loadReservas() {
       horario: normalizarHorario(r.horario)
     }));
     renderReservas();
+    evaluarLimpieza();
     setSyncStatus('ok', 'Sincronizado');
   } catch(e) {
     setSyncStatus('error', 'Error');
@@ -923,6 +950,182 @@ function formatDate(str) {
   const [y,m,d] = str.split('-');
   const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
+}
+
+// ── LIMPIEZA AUTOMÁTICA ──
+const DIAS_AVISO = 15;
+const DIAS_ULTIMATUM = 20;
+const DIAS_BORRADO_AUTO = 25;
+const LS_KEY = 'gdp_limpieza_v1';
+
+function getLimpiezaState() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); } catch(e) { return {}; }
+}
+function setLimpiezaState(obj) {
+  localStorage.setItem(LS_KEY, JSON.stringify(obj));
+}
+
+function getReservasAntiguas() {
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  return reservas.filter(r => {
+    if (!r.fecha) return false;
+    const fecha = new Date(r.fecha + 'T00:00:00');
+    const dias = Math.floor((hoy - fecha) / (1000*60*60*24));
+    return dias >= DIAS_AVISO;
+  });
+}
+
+function formatDateCSV(str) {
+  if (!str) return '';
+  const [y,m,d] = String(str).split('-');
+  const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${parseInt(d)}-${months[parseInt(m)-1]}-${y}`;
+}
+
+function exportarCSV(soloAntiguas) {
+  const lista = soloAntiguas ? getReservasAntiguas() : reservas;
+  if (!lista.length) { showToast('No hay reservas para exportar', 'error'); return; }
+
+  // Ordenar por fecha
+  const sorted = [...lista].sort((a,b) => String(a.fecha) > String(b.fecha) ? 1 : -1);
+  const primera = formatDateCSV(sorted[0].fecha);
+  const ultima = formatDateCSV(sorted[sorted.length-1].fecha);
+  const nombre = `reservas_${primera}_al_${ultima}.csv`;
+
+  // Generar CSV con BOM UTF-8 para Excel
+  const headers = ['ID','Fecha','Tour','Horario','Cliente','WhatsApp','Adultos','Menores','Total','Estado','Timestamp'];
+  const rows = sorted.map(r => [
+    r.id||'', r.fecha||'', r.tourNombre||'', r.horario||'',
+    r.nombre||'', r.whatsapp||'', r.adultos||0, r.menores||0,
+    r.total||0, r.estado||'confirmada', r.timestamp||''
+  ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
+
+  const csv = '﻿' + headers.join(',') + '
+' + rows.join('
+');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nombre;
+  a.click();
+  return nombre;
+}
+
+async function borrarReservasAntiguas() {
+  const antiguas = getReservasAntiguas();
+  showLoading();
+  let errores = 0;
+  for (const r of antiguas) {
+    try {
+      await apiCall({ action: 'deleteReserva', id: r.id });
+    } catch(e) { errores++; }
+  }
+  hideLoading();
+  return errores;
+}
+
+async function accionDescargarYLimpiar() {
+  const antiguas = getReservasAntiguas();
+  if (!antiguas.length) { showToast('No hay reservas antiguas', 'error'); return; }
+
+  // 1. Exportar CSV
+  exportarCSV(true);
+
+  // 2. Confirmar borrado
+  setTimeout(async () => {
+    const ok = confirm(`Se ha descargado el CSV con ${antiguas.length} reservas.
+
+¿Confirmar eliminación de estas reservas de la base de datos?`);
+    if (!ok) return;
+
+    const errores = await borrarReservasAntiguas();
+    if (errores === 0) {
+      setLimpiezaState({ ultimaLimpieza: new Date().toISOString() });
+      await loadReservas();
+      document.getElementById('bannerLimpieza').innerHTML = '';
+      showToast(`${antiguas.length} reservas archivadas y eliminadas ✓`);
+    } else {
+      showToast('Algunas reservas no se pudieron eliminar. Inténtalo de nuevo.', 'error');
+    }
+  }, 800);
+}
+
+async function borradoAutomatico() {
+  const antiguas = getReservasAntiguas();
+  if (!antiguas.length) return;
+  const errores = await borrarReservasAntiguas();
+  if (errores === 0) {
+    setLimpiezaState({ ultimaLimpieza: new Date().toISOString() });
+    await loadReservas();
+    document.getElementById('bannerLimpieza').innerHTML = '';
+    showToast('Reservas antiguas eliminadas automáticamente (sin copia)', 'error');
+  }
+}
+
+function evaluarLimpieza() {
+  const antiguas = getReservasAntiguas();
+  if (!antiguas.length) return;
+
+  const state = getLimpiezaState();
+  const hoy = new Date();
+
+  // Verificar si ya se limpió recientemente (menos de 15 días)
+  if (state.ultimaLimpieza) {
+    const diasDesde = Math.floor((hoy - new Date(state.ultimaLimpieza)) / (1000*60*60*24));
+    if (diasDesde < DIAS_AVISO) return; // aún no toca
+  }
+
+  // Calcular la reserva más antigua
+  const sorted = [...antiguas].sort((a,b) => String(a.fecha) > String(b.fecha) ? 1 : -1);
+  const fechaMasAntigua = new Date(sorted[0].fecha + 'T00:00:00');
+  const diasAntiguedad = Math.floor((hoy - fechaMasAntigua) / (1000*60*60*24));
+
+  const banner = document.getElementById('bannerLimpieza');
+
+  if (diasAntiguedad >= DIAS_BORRADO_AUTO) {
+    // Borrado automático silencioso
+    banner.innerHTML = '<div class="banner-limpieza critico"><div class="banner-icon">🚨</div><div class="banner-body"><div class="banner-title" style="color:#e74c3c">Borrado automático en curso…</div><div class="banner-text">Se superaron los 25 días sin archivar. Eliminando reservas antiguas sin copia.</div></div></div>';
+    setTimeout(() => borradoAutomatico(), 1500);
+    return;
+  }
+
+  if (diasAntiguedad >= DIAS_ULTIMATUM) {
+    // Ultimátum — 5 días para actuar
+    const diasRestantes = DIAS_BORRADO_AUTO - diasAntiguedad;
+    banner.innerHTML = `
+    <div class="banner-limpieza ultimatum">
+      <div class="banner-icon">🚨</div>
+      <div class="banner-body">
+        <div class="banner-title" style="color:#e74c3c">⚠️ ÚLTIMO AVISO — Borrado automático en ${diasRestantes} día${diasRestantes!==1?'s':''}</div>
+        <div class="banner-text">
+          Tienes <strong style="color:#e74c3c">${antiguas.length} reservas</strong> con más de ${DIAS_ULTIMATUM} días sin archivar.<br>
+          Si no actúas en <strong>${diasRestantes} día${diasRestantes!==1?'s':''}</strong>, se eliminarán <strong>definitivamente y sin copia de seguridad</strong>.
+        </div>
+        <div class="banner-actions">
+          <button class="btn btn-gold" onclick="accionDescargarYLimpiar()">⬇ Descargar CSV y limpiar ahora</button>
+        </div>
+      </div>
+    </div>`;
+    return;
+  }
+
+  // Aviso normal — a partir de 15 días
+  banner.innerHTML = `
+  <div class="banner-limpieza aviso">
+    <div class="banner-icon">🗂</div>
+    <div class="banner-body">
+      <div class="banner-title" style="color:var(--gold)">Hay reservas para archivar</div>
+      <div class="banner-text">
+        Tienes <strong>${antiguas.length} reservas</strong> con más de ${DIAS_AVISO} días.<br>
+        Puedes descargarlas como CSV y limpiar la base de datos.<br>
+        <em style="font-size:0.78rem">Si no actúas en ${DIAS_BORRADO_AUTO - diasAntiguedad} días, se eliminarán automáticamente.</em>
+      </div>
+      <div class="banner-actions">
+        <button class="btn btn-gold" onclick="accionDescargarYLimpiar()">⬇ Descargar CSV y limpiar</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('bannerLimpieza').innerHTML=''">Recordármelo luego</button>
+      </div>
+    </div>
+  </div>`;
 }
 
 // ── INIT ──
