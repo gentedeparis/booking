@@ -516,6 +516,39 @@ const DIAS_NUM = { 0:'dom', 1:'lun', 2:'mar', 3:'mie', 4:'jue', 5:'vie', 6:'sab'
 let tours = [], bloqueos = [], reservas = [];
 let editingTourId = null;
 
+
+// ── NORMALIZAR DATOS DE GOOGLE SHEETS ──
+function normalizarFecha(val) {
+  if (!val) return '';
+  const s = String(val);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  try {
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,'0');
+      const day = String(d.getDate()).padStart(2,'0');
+      return `${y}-${m}-${day}`;
+    }
+  } catch(e) {}
+  return s;
+}
+
+function normalizarHorario(val) {
+  if (!val) return '';
+  const s = String(val);
+  if (/^\d{1,2}:\d{2}$/.test(s)) return s;
+  try {
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      const h = String(d.getUTCHours()).padStart(2,'0');
+      const min = String(d.getUTCMinutes()).padStart(2,'0');
+      return `${h}:${min}`;
+    }
+  } catch(e) {}
+  return s;
+}
+
 // ── API helpers ──
 async function apiCall(params) {
   const readActions = ['getTours','getBloqueos','getReservas'];
@@ -576,7 +609,10 @@ async function loadTours() {
   setSyncStatus('loading', 'Cargando…');
   try {
     const resp = await apiCall({ action: 'getTours' });
-    tours = Array.isArray(resp) ? resp.filter(t => t && t.id) : [];
+    tours = (Array.isArray(resp) ? resp.filter(t => t && t.id) : []).map(t => ({
+      ...t,
+      horario: normalizarHorario(t.horario)
+    }));
     renderTours();
     populateTourSelect();
     setSyncStatus('ok', 'Sincronizado');
@@ -710,8 +746,11 @@ async function toggleTour(id) {
 // ── BLOQUEOS ──
 async function loadBloqueos() {
   try {
-    bloqueos = await apiCall({ action: 'getBloqueos' });
-    if (!Array.isArray(bloqueos)) bloqueos = [];
+    const rawBlq = await apiCall({ action: 'getBloqueos' });
+    bloqueos = (Array.isArray(rawBlq) ? rawBlq : []).map(b => ({
+      ...b,
+      fecha: normalizarFecha(b.fecha)
+    }));
     renderBloqueos();
   } catch(e) {
     showToast('Error al cargar bloqueos', 'error');
@@ -792,8 +831,12 @@ async function deleteBloqueo(id) {
 async function loadReservas() {
   setSyncStatus('loading', 'Actualizando…');
   try {
-    reservas = await apiCall({ action: 'getReservas' });
-    if (!Array.isArray(reservas)) reservas = [];
+    const rawRes = await apiCall({ action: 'getReservas' });
+    reservas = (Array.isArray(rawRes) ? rawRes : []).map(r => ({
+      ...r,
+      fecha: normalizarFecha(r.fecha),
+      horario: normalizarHorario(r.horario)
+    }));
     renderReservas();
     setSyncStatus('ok', 'Sincronizado');
   } catch(e) {
