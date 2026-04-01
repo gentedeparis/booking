@@ -958,19 +958,7 @@ function showSuccess(r) {
     <div class="summary-row"><span class="summary-key">Participantes</span><span class="summary-val">${r.adultos} adultos, ${r.menores} menores</span></div>
     <div class="summary-row"><span class="summary-key">Total</span><span class="summary-val summary-total">${total}€</span></div>`;
 
-  // WhatsApp link
-  const msg = encodeURIComponent(
-    `🗼 *Nueva reserva - Gente de París*\n\n` +
-    `📅 Fecha: ${formatDateNice(r.fecha)}\n` +
-    `🎯 Tour: ${r.tourNombre}\n` +
-    `🕐 Horario: ${r.horario}\n` +
-    `👤 Nombre: ${r.nombre}\n` +
-    `📱 WhatsApp: ${r.whatsapp}\n` +
-    `👥 Participantes: ${r.adultos} adultos, ${r.menores} menores\n` +
-    `💶 Total: ${total}€\n` +
-    `🔖 Ref: ${r.id}`
-  );
-  document.getElementById('btnWA').href = `https://wa.me/${ADMIN_WA}?text=${msg}`;
+  // El mensaje al admin se envía desde compartirVoucher()
 
   // URL del botón de contacto — se inyecta directamente en el HTML
   const msgContacto = encodeURIComponent(
