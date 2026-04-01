@@ -515,7 +515,7 @@
       <div class="summary-card" id="voucherCard" style="text-align:left;margin-bottom:24px"></div>
 
       <div class="btn-row">
-        <a id="btnWA" href="#" target="_blank" class="btn btn-whatsapp">💬 Enviar reserva por WhatsApp</a>
+        <button class="btn btn-whatsapp" id="btnShareWA" onclick="compartirVoucher()">📤 Compartir voucher por WhatsApp</button>
         <button class="btn btn-ghost" onclick="downloadVoucher()">📄 Descargar voucher</button>
       </div>
 
@@ -981,24 +981,27 @@ function showSuccess(r) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function downloadVoucher() {
-  const r = currentReserva;
-  if (!r) return;
-  const total = (r.adultos + r.menores) * parseFloat(selectedTour.precio||0);
-
-  const encuentroRow = selectedTour && selectedTour.direccion ? `
+function generarHTMLVoucher(r) {
+  const total = (parseInt(r.adultos)||0 + parseInt(r.menores)||0) * parseFloat(selectedTour ? selectedTour.precio||0 : 0);
+  const direccion = selectedTour && selectedTour.direccion ? selectedTour.direccion : '';
+  const mapsLink = selectedTour && selectedTour.mapsLink ? selectedTour.mapsLink : '';
+  const msgContacto = encodeURIComponent(
+    'Hola, tengo una reserva:\nNombre: ' + r.nombre +
+    '\nTour: ' + r.tourNombre +
+    '\nFecha: ' + formatDateNice(r.fecha) +
+    '\nReferencia: ' + r.id + '\n\nY quiero...'
+  );
+  const encuentroRow = direccion ? `
   <div class="row">
     <span class="key">📍 Punto de encuentro</span>
-    <span class="val">${selectedTour.direccion}${selectedTour.mapsLink ? ' &nbsp;<a href="' + selectedTour.mapsLink + '" target="_blank" style="color:#b8860b">Ver en Maps →</a>' : ''}</span>
+    <span class="val">${direccion}${mapsLink ? ' &nbsp;<a href="' + mapsLink + '" target="_blank" style="color:#b8860b">Ver en Maps →</a>' : ''}</span>
   </div>` : '';
 
-  const msgContacto = encodeURIComponent('Hola, tengo una reserva:\nNombre: ' + r.nombre + '\nTour: ' + r.tourNombre + '\nFecha: ' + formatDateNice(r.fecha) + '\nReferencia: ' + r.id + '\n\nY quiero...');
-
-  const dlHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8">
   <title>Voucher GDP</title>
   <style>
     body{font-family:Georgia,serif;max-width:480px;margin:40px auto;padding:20px;color:#111}
-    h1{font-size:1.6rem;color:#b8860b;border-bottom:2px solid #b8860b;padding-bottom:8px}
+    h1{font-size:1.6rem;color:#b8860b;border-bottom:2px solid #b8860b;padding-bottom:8px;display:flex;align-items:center;gap:10px}
     .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:0.9rem;gap:12px}
     .key{color:#666;white-space:nowrap} .val{font-weight:600;text-align:right}
     .total{font-size:1.3rem;color:#111;font-weight:700}
@@ -1022,8 +1025,52 @@ function downloadVoucher() {
   </div>
   <div class="footer">Gente de París · Reserva confirmada · ${new Date().toLocaleDateString('es-ES')}</div>
   </body></html>`;
+}
 
-  const blob = new Blob([dlHtml], { type: 'text/html' });
+async function compartirVoucher() {
+  const r = currentReserva;
+  if (!r) return;
+  const htmlContent = generarHTMLVoucher(r);
+  const blob = new Blob([htmlContent], { type: 'text/html' });
+  const file = new File([blob], `voucher-GDP-${r.id}.html`, { type: 'text/html' });
+
+  // Web Share API (funciona en móvil)
+  if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        title: 'Voucher - Gente de París',
+        text: `Voucher de reserva: ${r.tourNombre} · ${formatDateNice(r.fecha)}`,
+        files: [file]
+      });
+      return;
+    } catch(e) {
+      if (e.name === 'AbortError') return; // usuario canceló
+    }
+  }
+
+  // Fallback desktop: descargar + abrir WhatsApp Web
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `voucher-GDP-${r.id}.html`;
+  a.click();
+
+  setTimeout(() => {
+    const msg = encodeURIComponent(
+      `Hola, te comparto mi voucher de reserva:\n` +
+      `Tour: ${r.tourNombre}\n` +
+      `Fecha: ${formatDateNice(r.fecha)}\n` +
+      `Nombre: ${r.nombre}\n` +
+      `Ref: ${r.id}`
+    );
+    window.open('https://wa.me/?text=' + msg, '_blank');
+  }, 800);
+}
+
+function downloadVoucher() {
+  const r = currentReserva;
+  if (!r) return;
+  const htmlContent = generarHTMLVoucher(r);
+  const blob = new Blob([htmlContent], { type: 'text/html' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `voucher-GDP-${r.id}.html`;
