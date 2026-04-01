@@ -1000,9 +1000,7 @@ function exportarCSV(soloAntiguas) {
     r.total||0, r.estado||'confirmada', r.timestamp||''
   ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
 
-  const csv = '﻿' + headers.join(',') + '
-' + rows.join('
-');
+  const csv = '\ufeff' + headers.join(',') + '\n' + rows.join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
