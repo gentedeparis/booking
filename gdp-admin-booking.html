@@ -90,7 +90,7 @@
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
 
-  /* ── TOURS ── */
+  /* -- TOURS -- */
   .section-header {
     display: flex;
     justify-content: space-between;
@@ -176,7 +176,7 @@
     color: var(--light);
   }
 
-  /* ── MODAL ── */
+  /* -- MODAL -- */
   .modal-overlay {
     display: none;
     position: fixed; inset: 0;
@@ -250,7 +250,7 @@
   .dia-check:has(input:checked) { background: rgba(201,168,76,0.15); border-color: var(--gold); color: var(--gold); }
   .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
 
-  /* ── BLOQUEOS ── */
+  /* -- BLOQUEOS -- */
   .bloqueos-grid { display: grid; gap: 12px; }
   .bloqueo-card {
     background: var(--charcoal);
@@ -276,7 +276,7 @@
   }
   .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
 
-  /* ── RESERVAS ── */
+  /* -- RESERVAS -- */
   .reservas-filter {
     display: flex;
     gap: 12px;
@@ -359,7 +359,7 @@
   .toast.success { border-color: var(--green); }
   .toast.error { border-color: var(--red); }
 
-  /* ── BANNER LIMPIEZA ── */
+  /* -- BANNER LIMPIEZA -- */
   .banner-limpieza {
     border-radius: 10px;
     padding: 18px 22px;
@@ -410,7 +410,7 @@
   <div class="logo">Gente de París <span>· Admin</span></div>
   <div class="sync-status">
     <div class="sync-dot" id="syncDot"></div>
-    <span id="syncText">Conectando…</span>
+    <span id="syncText">Conectando...</span>
   </div>
 </header>
 
@@ -422,29 +422,29 @@
 
 <main>
 
-  <!-- ── TAB TOURS ── -->
+  <!-- -- TAB TOURS -- -->
   <div class="tab-panel active" id="tab-tours">
     <div class="section-header">
       <h1 class="section-title">Tours</h1>
       <button class="btn btn-gold" onclick="openTourModal()">+ Nuevo tour</button>
     </div>
     <div class="tours-grid" id="toursGrid">
-      <div class="empty-state"><div class="icon">⏳</div>Cargando tours…</div>
+      <div class="empty-state"><div class="icon">⏳</div>Cargando tours...</div>
     </div>
   </div>
 
-  <!-- ── TAB BLOQUEOS ── -->
+  <!-- -- TAB BLOQUEOS -- -->
   <div class="tab-panel" id="tab-bloqueos">
     <div class="section-header">
       <h1 class="section-title">Bloqueos</h1>
       <button class="btn btn-gold" onclick="openBloqueoModal()">+ Nuevo bloqueo</button>
     </div>
     <div class="bloqueos-grid" id="bloqueosGrid">
-      <div class="empty-state"><div class="icon">⏳</div>Cargando bloqueos…</div>
+      <div class="empty-state"><div class="icon">⏳</div>Cargando bloqueos...</div>
     </div>
   </div>
 
-  <!-- ── TAB RESERVAS ── -->
+  <!-- -- TAB RESERVAS -- -->
   <div class="tab-panel" id="tab-reservas">
     <div class="section-header">
       <h1 class="section-title">Reservas</h1>
@@ -459,13 +459,13 @@
       <button class="btn btn-ghost btn-sm" onclick="document.getElementById('filtroFecha').value='';renderReservas()">Ver todas</button>
     </div>
     <div id="reservasContainer">
-      <div class="empty-state"><div class="icon">⏳</div>Cargando reservas…</div>
+      <div class="empty-state"><div class="icon">⏳</div>Cargando reservas...</div>
     </div>
   </div>
 
 </main>
 
-<!-- ── MODAL TOUR ── -->
+<!-- -- MODAL TOUR -- -->
 <div class="modal-overlay" id="tourModal">
   <div class="modal">
     <div class="modal-title" id="tourModalTitle">Nuevo Tour</div>
@@ -475,7 +475,7 @@
     </div>
     <div class="form-group">
       <label>Descripción</label>
-      <textarea id="tDesc" placeholder="Breve descripción del tour…"></textarea>
+      <textarea id="tDesc" placeholder="Breve descripción del tour..."></textarea>
     </div>
     <div class="form-row">
       <div class="form-group">
@@ -518,7 +518,7 @@
   </div>
 </div>
 
-<!-- ── MODAL BLOQUEO ── -->
+<!-- -- MODAL BLOQUEO -- -->
 <div class="modal-overlay" id="bloqueoModal">
   <div class="modal">
     <div class="modal-title">Nuevo Bloqueo</div>
@@ -534,7 +534,7 @@
     </div>
     <div class="form-group">
       <label>Motivo (opcional)</label>
-      <input type="text" id="bMotivo" placeholder="Festivo, vacaciones…">
+      <input type="text" id="bMotivo" placeholder="Festivo, vacaciones...">
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeBloqueoModal()">Cancelar</button>
@@ -556,7 +556,7 @@ let tours = [], bloqueos = [], reservas = [];
 let editingTourId = null;
 
 
-// ── NORMALIZAR DATOS DE GOOGLE SHEETS ──
+// -- NORMALIZAR DATOS DE GOOGLE SHEETS --
 function normalizarFecha(val) {
   if (!val) return '';
   const s = String(val);
@@ -588,9 +588,9 @@ function normalizarHorario(val) {
   return s;
 }
 
-// ── API helpers ──
+// -- API helpers --
 async function apiCall(params) {
-  // Todo por GET — es lo más estable con Google Apps Script desde dominios externos
+  // Todo por GET - es lo más estable con Google Apps Script desde dominios externos
   const url = new URL(API);
   Object.entries(params).forEach(([k, v]) => {
     url.searchParams.set(k, typeof v === 'object' ? JSON.stringify(v) : v);
@@ -621,7 +621,7 @@ function showToast(msg, type='success', duration=3500) {
   setTimeout(() => t.classList.remove('show'), duration);
 }
 
-// ── TABS ──
+// -- TABS --
 function showTab(name) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -630,9 +630,9 @@ function showTab(name) {
   if (name === 'reservas') loadReservas();
 }
 
-// ── TOURS ──
+// -- TOURS --
 async function loadTours() {
-  setSyncStatus('loading', 'Cargando…');
+  setSyncStatus('loading', 'Cargando...');
   try {
     const resp = await apiCall({ action: 'getTours' });
     tours = (Array.isArray(resp) ? resp.filter(t => t && t.id) : []).map(t => ({
@@ -769,7 +769,7 @@ async function toggleTour(id) {
   hideLoading();
 }
 
-// ── BLOQUEOS ──
+// -- BLOQUEOS --
 async function loadBloqueos() {
   try {
     const rawBlq = await apiCall({ action: 'getBloqueos' });
@@ -796,7 +796,7 @@ function renderBloqueos() {
     <div class="bloqueo-card">
       <div class="bloqueo-info">
         <div class="bloqueo-fecha">📅 ${formatDate(b.fecha)}</div>
-        <div class="bloqueo-detalle">🚫 ${tourNombre}${b.motivo ? ' — ' + b.motivo : ''}</div>
+        <div class="bloqueo-detalle">🚫 ${tourNombre}${b.motivo ? ' - ' + b.motivo : ''}</div>
       </div>
       <button class="btn btn-danger btn-sm" onclick="deleteBloqueo('${b.id}')">Eliminar</button>
     </div>`;
@@ -853,9 +853,9 @@ async function deleteBloqueo(id) {
   hideLoading();
 }
 
-// ── RESERVAS ──
+// -- RESERVAS --
 async function loadReservas() {
-  setSyncStatus('loading', 'Actualizando…');
+  setSyncStatus('loading', 'Actualizando...');
   try {
     const rawRes = await apiCall({ action: 'getReservas' });
     reservas = (Array.isArray(rawRes) ? rawRes : []).map(r => ({
@@ -909,7 +909,7 @@ function renderReservas() {
   </table>`;
 }
 
-// ── ACCIONES RESERVAS ──
+// -- ACCIONES RESERVAS --
 async function eliminarReserva(id) {
   if (!confirm('¿Eliminar esta reserva definitivamente? Esta acción no se puede deshacer.')) return;
   showLoading();
@@ -944,7 +944,7 @@ async function cancelarReserva(id, nombre, whatsapp, fecha, tourNombre) {
   hideLoading();
 }
 
-// ── UTILS ──
+// -- UTILS --
 function formatDate(str) {
   if (!str) return '';
   const [y,m,d] = str.split('-');
@@ -952,7 +952,7 @@ function formatDate(str) {
   return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
 }
 
-// ── LIMPIEZA AUTOMÁTICA ──
+// -- LIMPIEZA AUTOMÁTICA --
 const DIAS_AVISO = 15;
 const DIAS_ULTIMATUM = 20;
 const DIAS_BORRADO_AUTO = 25;
@@ -986,26 +986,37 @@ function exportarCSV(soloAntiguas) {
   const lista = soloAntiguas ? getReservasAntiguas() : reservas;
   if (!lista.length) { showToast('No hay reservas para exportar', 'error'); return; }
 
-  // Ordenar por fecha
-  const sorted = [...lista].sort((a,b) => String(a.fecha) > String(b.fecha) ? 1 : -1);
+  const sorted = [...lista].sort(function(a,b) {
+    return String(a.fecha) > String(b.fecha) ? 1 : -1;
+  });
+
   const primera = formatDateCSV(sorted[0].fecha);
   const ultima = formatDateCSV(sorted[sorted.length-1].fecha);
-  const nombre = `reservas_${primera}_al_${ultima}.csv`;
+  const nombre = 'reservas_' + primera + '_al_' + ultima + '.csv';
 
-  // Generar CSV con BOM UTF-8 para Excel
   const headers = ['ID','Fecha','Tour','Horario','Cliente','WhatsApp','Adultos','Menores','Total','Estado','Timestamp'];
-  const rows = sorted.map(r => [
-    r.id||'', r.fecha||'', r.tourNombre||'', r.horario||'',
-    r.nombre||'', r.whatsapp||'', r.adultos||0, r.menores||0,
-    r.total||0, r.estado||'confirmada', r.timestamp||''
-  ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(','));
 
-  const csv = '\ufeff' + headers.join(',') + '\n' + rows.join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  function escaparCSV(val) {
+    return '"' + String(val).replace(/"/g, '""') + '"';
+  }
+
+  const filas = sorted.map(function(r) {
+    return [
+      r.id||'', r.fecha||'', r.tourNombre||'', r.horario||'',
+      r.nombre||'', r.whatsapp||'', r.adultos||0, r.menores||0,
+      r.total||0, r.estado||'confirmada', r.timestamp||''
+    ].map(escaparCSV).join(',');
+  });
+
+  const lineas = [headers.join(',')].concat(filas).join('\r\n');
+  const bom = String.fromCharCode(0xFEFF);
+  const blob = new Blob([bom + lineas], { type: 'text/csv;charset=utf-8;' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = nombre;
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
   return nombre;
 }
 
@@ -1082,19 +1093,19 @@ function evaluarLimpieza() {
 
   if (diasAntiguedad >= DIAS_BORRADO_AUTO) {
     // Borrado automático silencioso
-    banner.innerHTML = '<div class="banner-limpieza critico"><div class="banner-icon">🚨</div><div class="banner-body"><div class="banner-title" style="color:#e74c3c">Borrado automático en curso…</div><div class="banner-text">Se superaron los 25 días sin archivar. Eliminando reservas antiguas sin copia.</div></div></div>';
+    banner.innerHTML = '<div class="banner-limpieza critico"><div class="banner-icon">🚨</div><div class="banner-body"><div class="banner-title" style="color:#e74c3c">Borrado automático en curso...</div><div class="banner-text">Se superaron los 25 días sin archivar. Eliminando reservas antiguas sin copia.</div></div></div>';
     setTimeout(() => borradoAutomatico(), 1500);
     return;
   }
 
   if (diasAntiguedad >= DIAS_ULTIMATUM) {
-    // Ultimátum — 5 días para actuar
+    // Ultimátum - 5 días para actuar
     const diasRestantes = DIAS_BORRADO_AUTO - diasAntiguedad;
     banner.innerHTML = `
     <div class="banner-limpieza ultimatum">
       <div class="banner-icon">🚨</div>
       <div class="banner-body">
-        <div class="banner-title" style="color:#e74c3c">⚠️ ÚLTIMO AVISO — Borrado automático en ${diasRestantes} día${diasRestantes!==1?'s':''}</div>
+        <div class="banner-title" style="color:#e74c3c">⚠️ ÚLTIMO AVISO - Borrado automático en ${diasRestantes} día${diasRestantes!==1?'s':''}</div>
         <div class="banner-text">
           Tienes <strong style="color:#e74c3c">${antiguas.length} reservas</strong> con más de ${DIAS_ULTIMATUM} días sin archivar.<br>
           Si no actúas en <strong>${diasRestantes} día${diasRestantes!==1?'s':''}</strong>, se eliminarán <strong>definitivamente y sin copia de seguridad</strong>.
@@ -1107,7 +1118,7 @@ function evaluarLimpieza() {
     return;
   }
 
-  // Aviso normal — a partir de 15 días
+  // Aviso normal - a partir de 15 días
   banner.innerHTML = `
   <div class="banner-limpieza aviso">
     <div class="banner-icon">🗂</div>
@@ -1126,9 +1137,9 @@ function evaluarLimpieza() {
   </div>`;
 }
 
-// ── INIT ──
+// -- INIT --
 async function init() {
-  setSyncStatus('loading', 'Conectando…');
+  setSyncStatus('loading', 'Conectando...');
   await loadTours();
   await loadBloqueos();
 }
