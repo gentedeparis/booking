@@ -308,6 +308,11 @@
     color: var(--light);
   }
   tr:hover td { background: rgba(255,255,255,0.02); }
+  tr.cancelada td { opacity: 0.45; text-decoration: line-through; }
+  tr.cancelada td:last-child { text-decoration: none; }
+  .btn-cancelar { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+  .btn-cancelar:hover { background: var(--gold); color: var(--noir); }
+  .badge-cancelada { background: rgba(136,136,136,0.2); color: var(--muted); }
   .total-tag {
     display: inline-block;
     background: rgba(201,168,76,0.15);
@@ -795,21 +800,64 @@ function renderReservas() {
   container.innerHTML = `
   <table>
     <thead><tr>
-      <th>Fecha</th><th>Tour</th><th>Horario</th><th>Cliente</th><th>WhatsApp</th><th>Pax</th><th>Total</th>
+      <th>Fecha</th><th>Tour</th><th>Horario</th><th>Cliente</th><th>WhatsApp</th><th>Pax</th><th>Total</th><th>Estado</th><th></th>
     </tr></thead>
     <tbody>
-      ${sorted.map(r => `
-      <tr>
-        <td>${formatDate(r.fecha)}</td>
-        <td>${r.tourNombre||''}</td>
-        <td>${r.horario||''}</td>
-        <td>${r.nombre||''}</td>
-        <td><a href="https://wa.me/${r.whatsapp}" target="_blank" style="color:var(--gold);text-decoration:none">📱 ${r.whatsapp}</a></td>
-        <td>${r.adultos||0}A ${r.menores||0}M</td>
-        <td><span class="total-tag">${r.total||0}€</span></td>
-      </tr>`).join('')}
+      ${sorted.map(r => {
+        const cancelada = r.estado === 'cancelada';
+        return `
+        <tr class="${cancelada ? 'cancelada' : ''}">
+          <td>${formatDate(r.fecha)}</td>
+          <td>${r.tourNombre||''}</td>
+          <td>${r.horario||''}</td>
+          <td>${r.nombre||''}</td>
+          <td><a href="https://wa.me/${r.whatsapp}" target="_blank" style="color:var(--gold);text-decoration:none">📱 ${r.whatsapp}</a></td>
+          <td>${r.adultos||0}A ${r.menores||0}M</td>
+          <td><span class="total-tag">${r.total||0}€</span></td>
+          <td>${cancelada ? '<span class="badge badge-cancelada">Cancelada</span>' : '<span class="badge badge-green">Confirmada</span>'}</td>
+          <td style="white-space:nowrap;display:flex;gap:6px;padding:8px 12px">
+            ${!cancelada ? `<button class="btn btn-cancelar btn-sm" onclick="cancelarReserva('${r.id}','${r.nombre}','${r.whatsapp}','${r.fecha}','${r.tourNombre}')">✕ Cancelar</button>` : ''}
+            <button class="btn btn-danger btn-sm" onclick="eliminarReserva('${r.id}')">🗑</button>
+          </td>
+        </tr>`;
+      }).join('')}
     </tbody>
   </table>`;
+}
+
+// ── ACCIONES RESERVAS ──
+async function eliminarReserva(id) {
+  if (!confirm('¿Eliminar esta reserva definitivamente? Esta acción no se puede deshacer.')) return;
+  showLoading();
+  try {
+    await apiCall({ action: 'deleteReserva', id });
+    await loadReservas();
+    showToast('Reserva eliminada ✓');
+  } catch(e) {
+    showToast('Error al eliminar: ' + (e.message||e), 'error');
+  }
+  hideLoading();
+}
+
+async function cancelarReserva(id, nombre, whatsapp, fecha, tourNombre) {
+  if (!confirm(`¿Cancelar la reserva de ${nombre}? Se abrirá WhatsApp para notificarle.`)) return;
+  showLoading();
+  try {
+    await apiCall({ action: 'cancelReserva', id });
+    await loadReservas();
+    showToast('Reserva cancelada ✓');
+    // Abrir WhatsApp al cliente con mensaje automático
+    const msg = encodeURIComponent(
+      `Hola ${nombre} 👋\n\nTe escribimos desde *Gente de París* para informarte que tu reserva ha sido *cancelada*:\n\n` +
+      `📅 Fecha: ${formatDate(fecha)}\n🎯 Tour: ${tourNombre}\n\n` +
+      `Lamentamos los inconvenientes. Si tienes alguna pregunta o quieres reagendar, estamos a tu disposición. ¡Hasta pronto! 🗼`
+    );
+    const wa = whatsapp.replace(/[^0-9]/g,'');
+    window.open('https://wa.me/' + wa + '?text=' + msg, '_blank');
+  } catch(e) {
+    showToast('Error al cancelar: ' + (e.message||e), 'error');
+  }
+  hideLoading();
 }
 
 // ── UTILS ──
