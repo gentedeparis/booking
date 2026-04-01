@@ -448,7 +448,7 @@ textarea{resize:vertical;min-height:70px;}
         <!-- Info base -->
         <div style="background:var(--charcoal);border:1px solid var(--graphite);border-radius:10px;padding:20px;margin-bottom:14px;">
           <div class="form-row">
-            <div class="form-group"><label>Guía asignado</label><input type="text" id="ot-guide" placeholder="Nombre del guía"></div>
+            <div class="form-group"><label>Guía asignado</label><input type="text" id="ot-guide" placeholder="Nombre del guía" list="guia-suggestions" autocomplete="off"><datalist id="guia-suggestions"></datalist></div>
             <div class="form-group"><label>Fecha</label><input type="date" id="ot-date"></div>
           </div>
         </div>
@@ -999,7 +999,8 @@ async function registrarEnDossier(guide,date,toursData){
       asistentes:0,creditos:0,
       semana:semInfo.key,timestamp:new Date().toISOString()
     };
-    try{await apiCall({action:'saveDossierEntry',data:entry});}catch(e){console.warn('Dossier save error:',e);}
+    // FIX: guia debe ir como parámetro top-level para que Apps Script lo lea via e.parameter.guia
+    try{await apiCall({action:'saveDossierEntry',guia:guide,data:entry});}catch(e){console.warn('Dossier save error:',e);}
   }
 }
 
@@ -1034,11 +1035,20 @@ function opsDownloadGuideFile(){
 }
 
 // ─── DOSSIER ─────────────────────────────────────────────────────────────────
+
+// Rellena el datalist del campo "guía" en Tour Manager para evitar nombres mal escritos
+function populateGuiaDatalist(){
+  const dl=document.getElementById('guia-suggestions');
+  if(!dl)return;
+  dl.innerHTML=dossierGuias.map(g=>`<option value="${escH(g)}">`).join('');
+}
+
 async function initDossier(){
   showLoading();
   try{
     const guias=await apiCall({action:'getGuias'});
     dossierGuias=Array.isArray(guias)?guias:[];
+    populateGuiaDatalist();
     renderDossierTabs();
     if(dossierGuias.length&&!dossierActivo){dossierActivo=dossierGuias[0];await loadDossierGuia(dossierActivo);}
     else if(dossierActivo){await loadDossierGuia(dossierActivo);}
@@ -1165,7 +1175,8 @@ async function updateDossierField(guia,id,campo,valor){
   entry[campo]=valor;
   // Recalcular semanas localmente
   const semInfo=getSemanaKey(entry.fecha);entry.semana=semInfo.key;
-  try{await apiCall({action:'saveDossierEntry',data:{...entry,guia}});}
+  // FIX: guia debe ir como parámetro top-level Y dentro de data
+  try{await apiCall({action:'saveDossierEntry',guia,data:{...entry,guia}});}
   catch(e){showToast('Error guardando campo','error');}
   // Re-render sección pagos
   renderDossierContent(guia);
@@ -1203,9 +1214,12 @@ async function createNewGuia(){
   if(dossierGuias.includes(nombre)){showToast('Este guía ya existe','warning');closeNewGuiaModal();return;}
   showLoading();
   try{
-    // Crear pestaña iniciando con getDossier (crea la hoja si no existe)
-    await apiCall({action:'getDossier',guia:nombre});
-    dossierGuias.push(nombre);dossierActivo=nombre;dossierEntries[nombre]=[];pagosEntries[nombre]=[];
+    // FIX: usar los entries devueltos en vez de sobreescribir con []
+    const entries=await apiCall({action:'getDossier',guia:nombre});
+    dossierGuias.push(nombre);dossierActivo=nombre;
+    dossierEntries[nombre]=Array.isArray(entries)?entries:[];
+    pagosEntries[nombre]=[];
+    populateGuiaDatalist();
     renderDossierTabs();renderDossierContent(nombre);
     closeNewGuiaModal();showToast(`Dossier de ${nombre} creado ✓`);
   }catch(e){showToast('Error creando guía','error');}
