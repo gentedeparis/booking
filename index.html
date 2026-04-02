@@ -221,7 +221,7 @@ textarea{resize:vertical;min-height:70px;}
 .dossier-tab:hover{border-color:var(--smoke);color:var(--light);}
 .dossier-tab.active{background:rgba(201,168,76,0.12);border-color:var(--gold);color:var(--gold);}
 .dossier-month-sep{background:rgba(27,43,75,0.4);border:1px solid rgba(27,43,75,0.6);border-radius:6px;padding:6px 14px;font-size:0.7rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#7fa7d9;margin:14px 0 8px;text-align:center;}
-.dossier-row{background:var(--charcoal);border:1px solid var(--graphite);border-radius:8px;padding:14px 16px;margin-bottom:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr 80px 105px 60px;gap:10px;align-items:center;transition:border-color 0.2s;}
+.dossier-row{background:var(--charcoal);border:1px solid var(--graphite);border-radius:8px;padding:14px 16px;margin-bottom:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr 80px 70px;gap:10px;align-items:center;transition:border-color 0.2s;}
 .dossier-row:hover{border-color:var(--smoke);}
 .dossier-row-header{background:transparent;border:none;padding:6px 16px;font-size:0.66rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);}
 .dr-tour{font-size:0.85rem;color:var(--white);font-weight:500;}
@@ -1281,12 +1281,14 @@ function renderDossierTabs(){
 }
 async function selectDossierGuia(guia){dossierActivo=guia;renderDossierTabs();showLoading();await loadDossierGuia(guia);hideLoading();}
 async function loadDossierGuia(guia){
-  try{const entries=await apiCall({action:'getDossier',guia});dossierEntries[guia]=(Array.isArray(entries)?entries:[]).map(e=>({...e,fecha:normalizarFecha(e.fecha),horario:normalizarHorario(e.horario)}));}catch(e){dossierEntries[guia]=[];}
+  try{var entries=await apiCall({action:'getDossier',guia:guia});dossierEntries[guia]=Array.isArray(entries)?entries:[];}catch(e){dossierEntries[guia]=[];}
+  try{var pagos=await apiCall({action:'getPagosSemana',guia:guia});pagosEntries[guia]=(Array.isArray(pagos)?pagos:[]).map(function(p){return Object.assign({},p,{fechaInicio:normalizarFecha(p.fechaInicio),fechaFin:normalizarFecha(p.fechaFin)});});}catch(e){pagosEntries[guia]=[];}
   renderDossierContent(guia);
 }
 
 function renderDossierContent(guia){
   var entries=dossierEntries[guia]||[];
+  var pagos=pagosEntries[guia]||[];
   var el=document.getElementById('dossierContent');
 
   var byMonth={};
@@ -1300,61 +1302,59 @@ function renderDossierContent(guia){
   var months=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   var monthName=function(key){var p=key.split('-');var mn=months[parseInt(p[1])-1];return(mn?mn.toUpperCase():'???')+' '+(p[0]||'');};
 
-  // ── Mapa mensual: total + pagado por entries ──
+  var semanaMap={};
+  entries.forEach(function(e){
+    if(!e.fecha)return;var fn=normalizarFecha(e.fecha);if(!fn)return;
+    var si=getSemanaKey(fn);
+    if(!semanaMap[si.key])semanaMap[si.key]={inicio:si.inicio,fin:si.fin,creditos:0};
+    semanaMap[si.key].creditos+=parseInt(e.creditos)||0;
+  });
+
+  // Score mensual
   var mesMap={};
   entries.forEach(function(e){
     if(!e.fecha)return;var fn=normalizarFecha(e.fecha);if(!fn)return;
     var p=fn.split('-');var mk=p[0]+'-'+p[1];
-    if(!mesMap[mk]){var lastDay=new Date(parseInt(p[0]),parseInt(p[1]),0).getDate();mesMap[mk]={inicio:p[0]+'-'+p[1]+'-01',fin:p[0]+'-'+p[1]+'-'+String(lastDay).padStart(2,'0'),total:0,pagado:0};}
-    var cred=parseInt(e.creditos)||0;
-    mesMap[mk].total+=cred;
-    if(e.estadoPago==='pagado')mesMap[mk].pagado+=cred;
+    if(!mesMap[mk]){var lastDay=new Date(parseInt(p[0]),parseInt(p[1]),0).getDate();mesMap[mk]={inicio:p[0]+'-'+p[1]+'-01',fin:p[0]+'-'+p[1]+'-'+String(lastDay).padStart(2,'0'),creditos:0};}
+    mesMap[mk].creditos+=parseInt(e.creditos)||0;
   });
 
-  var estadoSelectStyle='background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);font-family:\'DM Sans\',sans-serif;font-size:0.74rem;padding:5px 7px;outline:none;cursor:pointer;width:100%;';
-
-  var html='<div style="margin-bottom:24px;">'\
-    +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:6px;">'\
-    +'<div style="font-family:\'Playfair Display\',serif;font-size:1.1rem;color:var(--white);">📋 Planing &amp; Créditos — '+guia+'</div>'\
-    +'<div style="display:flex;gap:8px;">'\
-    +'<button class="btn btn-ghost btn-sm" onclick="downloadDossierPublic(\''+escH(guia)+'\')">📤 Vista pública</button>'\
-    +'<button class="btn btn-gold btn-sm" onclick="openManualDossierEntry(\''+escH(guia)+'\')">+ Agregar registro</button>'\
-    +'</div></div>'\
-    +'<div style="font-size:0.76rem;color:var(--muted);margin-bottom:16px;">Edita los campos aquí. Los estados se guardan por registro.</div>';
+  var html='<div style="margin-bottom:24px;">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:6px;">'
+    +'<div style="font-family:\'Playfair Display\',serif;font-size:1.1rem;color:var(--white);">📋 Planing &amp; Créditos — '+guia+'</div>'
+    +'<div style="display:flex;gap:8px;">'
+    +'<button class="btn btn-ghost btn-sm" onclick="downloadDossierPublic(\''+escH(guia)+'\')">📤 Vista pública</button>'
+    +'<button class="btn btn-gold btn-sm" onclick="openManualDossierEntry(\''+escH(guia)+'\')">+ Agregar registro</button>'
+    +'</div></div>'
+    +'<div style="font-size:0.76rem;color:var(--muted);margin-bottom:16px;">Edita los campos aquí. Se sincronizan con Sheets.</div>';
 
   if(!entries.length){
     html+='<div class="empty-state"><div class="ei">📭</div>Sin registros. Se crean al guardar jornadas.</div>';
   }else{
-    html+='<div class="dossier-row dossier-row-header"><span>Tour</span><span>Fecha / Hora</span><span>Idioma</span><span>PAX / Asist.</span><span style="text-align:center">Créd.</span><span>Estado</span><span></span></div>';
+    html+='<div class="dossier-row dossier-row-header"><span>Tour</span><span>Fecha / Hora</span><span>Idioma</span><span>PAX / Asist.</span><span style="text-align:center">Créd.</span><span></span></div>';
     Object.keys(byMonth).sort().forEach(function(mk){
       html+='<div class="dossier-month-sep">/////// '+monthName(mk)+' ///////</div>';
       byMonth[mk].sort(function(a,b){return a.fecha>b.fecha?1:-1;}).forEach(function(e){
-        var estadoE=e.estadoPago||'pendiente';
-        var isPagado=(estadoE==='pagado');
-        html+='<div class="dossier-row" style="'+(isPagado?'opacity:0.7;':'')+'">'\
-          +'<div><div class="dr-tour">'+escH(e.tourNombre||'')+'</div><div class="dr-date">'+formatDate(e.fecha)+'</div></div>'\
-          +'<div class="dr-date">'+(e.horario||'--')+'</div>'\
-          +'<div class="dr-field"><input type="text" placeholder="ESP/ENG/FRA" value="'+escH(e.idioma||'')+'" onchange="updateDossierField(\''+escH(guia)+'\',\''+escH(e.id)+'\',\'idioma\',this.value)"></div>'\
-          +'<div class="dr-field" style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'\
-          +'<input type="number" min="0" placeholder="PAX" value="'+(e.paxTotal||'')+'" onchange="updateDossierField(\''+escH(guia)+'\',\''+escH(e.id)+'\',\'paxTotal\',this.value)" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);font-family:\'DM Sans\',sans-serif;font-size:0.82rem;padding:6px 9px;outline:none;width:100%">'\
-          +'<input type="number" min="0" placeholder="Asist." value="'+(e.asistentes||'')+'" onchange="updateDossierField(\''+escH(guia)+'\',\''+escH(e.id)+'\',\'asistentes\',this.value)" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);font-family:\'DM Sans\',sans-serif;font-size:0.82rem;padding:6px 9px;outline:none;width:100%">'\
-          +'</div>'\
-          +'<div class="dr-field"><input type="number" min="0" placeholder="0" value="'+(e.creditos||'')+'" onchange="updateDossierField(\''+escH(guia)+'\',\''+escH(e.id)+'\',\'creditos\',this.value)" style="background:var(--graphite);border:1px solid rgba(201,168,76,0.4);border-radius:5px;color:'+(isPagado?'var(--green)':'var(--gold)')+';font-family:\'Playfair Display\',serif;font-size:1rem;padding:6px 9px;outline:none;width:100%;text-align:center"></div>'\
-          +'<div class="dr-field"><select style="'+estadoSelectStyle+(isPagado?'border-color:var(--green);color:var(--green);':'')+'" onchange="updateDossierField(\''+escH(guia)+'\',\''+escH(e.id)+'\',\'estadoPago\',this.value)">'\
-          +'<option value="pendiente" '+(estadoE==='pendiente'?'selected':'')+'>⏳ Pendiente</option>'\
-          +'<option value="pagado" '+(estadoE==='pagado'?'selected':'')+'>✅ Pagado</option>'\
-          +'</select></div>'\
-          +'<div style="text-align:right"><button class="btn btn-danger btn-sm" onclick="deleteDossierEntry(\''+escH(guia)+'\',\''+escH(e.id)+'\')">🗑</button></div>'\
+        html+='<div class="dossier-row">'
+          +'<div><div class="dr-tour">'+escH(e.tourNombre||'')+'</div><div class="dr-date">'+formatDate(e.fecha)+'</div></div>'
+          +'<div class="dr-date">'+(e.horario||'--')+'</div>'
+          +'<div class="dr-field"><input type="text" placeholder="ESP/ENG/FRA" value="'+escH(e.idioma||'')+'" onchange="updateDossierField(\''+escH(guia)+'\',\''+escH(e.id)+'\',\'idioma\',this.value)"></div>'
+          +'<div class="dr-field" style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'
+          +'<input type="number" min="0" placeholder="PAX" value="'+(e.paxTotal||'')+'" onchange="updateDossierField(\''+escH(guia)+'\',\''+escH(e.id)+'\',\'paxTotal\',this.value)" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);font-family:\'DM Sans\',sans-serif;font-size:0.82rem;padding:6px 9px;outline:none;width:100%">'
+          +'<input type="number" min="0" placeholder="Asist." value="'+(e.asistentes||'')+'" onchange="updateDossierField(\''+escH(guia)+'\',\''+escH(e.id)+'\',\'asistentes\',this.value)" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);font-family:\'DM Sans\',sans-serif;font-size:0.82rem;padding:6px 9px;outline:none;width:100%">'
+          +'</div>'
+          +'<div class="dr-field"><input type="number" min="0" placeholder="0" value="'+(e.creditos||'')+'" onchange="updateDossierField(\''+escH(guia)+'\',\''+escH(e.id)+'\',\'creditos\',this.value)" style="background:var(--graphite);border:1px solid rgba(201,168,76,0.4);border-radius:5px;color:var(--gold);font-family:\'Playfair Display\',serif;font-size:1rem;padding:6px 9px;outline:none;width:100%;text-align:center"></div>'
+          +'<div style="text-align:right"><button class="btn btn-danger btn-sm" onclick="deleteDossierEntry(\''+escH(guia)+'\',\''+escH(e.id)+'\')">🗑</button></div>'
           +'</div>';
       });
     });
   }
   html+='</div>';
 
-  // ── Score mensual (calculado desde entries) ──
-  html+='<div style="margin-top:30px;">'\
-    +'<div style="font-family:\'Playfair Display\',serif;font-size:1.1rem;color:var(--white);margin-bottom:6px;">📅 Score mensual — '+guia+'</div>'\
-    +'<div style="font-size:0.76rem;color:var(--muted);margin-bottom:16px;">Saldo calculado automáticamente desde los registros.</div>';
+  // Score mensual
+  html+='<div style="margin-top:30px;">'
+    +'<div style="font-family:\'Playfair Display\',serif;font-size:1.1rem;color:var(--white);margin-bottom:6px;">📅 Score mensual — '+guia+'</div>'
+    +'<div style="font-size:0.76rem;color:var(--muted);margin-bottom:16px;">Total de créditos por mes calendario.</div>';
 
   var mesesOrdenados=Object.keys(mesMap).sort();
   var monthNamesLong=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -1362,35 +1362,57 @@ function renderDossierContent(guia){
   if(!mesesOrdenados.length){
     html+='<div class="empty-state" style="padding:20px"><div class="ei" style="font-size:1.5rem">📊</div>Sin créditos aún.</div>';
   }else{
+    // BUG FIX: usar concatenación de strings en lugar de template literals para evitar el backtick roto
     mesesOrdenados.forEach(function(mk){
       var sm=mesMap[mk];
-      var pendiente=sm.total-sm.pagado;
-      var todoPagado=(pendiente===0&&sm.total>0);
+      var pagoMes=pagos.find(function(p){return p.semana==='mes_'+mk;});
+      var estadoMes=pagoMes?pagoMes.estado:'pendiente';
       var p=mk.split('-');
       var nombreMes=monthNamesLong[parseInt(p[1])-1]+' '+p[0];
-      html+='<div class="dossier-mes-block '+(todoPagado?'pagado':'')+'" style="'+(todoPagado?'border-color:rgba(39,174,96,0.5)':'')+'">'\
-        +'<div class="dmb-header">'\
-        +'<div>'\
-        +'<div class="dmb-title">📅 '+nombreMes+'</div>'\
-        +'<div class="dmb-range">'+formatDate(sm.inicio)+' → '+formatDate(sm.fin)+'</div>'\
-        +'</div>'\
-        +'<div style="text-align:right;min-width:140px;">'\
-        +'<div class="dmb-total" style="color:'+(todoPagado?'var(--green)':'var(--gold)')+'">'+sm.total+' créditos</div>'\
-        +(todoPagado
-          ?'<div style="font-size:0.74rem;color:var(--green);margin-top:4px;">✅ Todo cobrado</div>'
-          :'<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;font-size:0.78rem;">'\
-            +'<span style="color:var(--gold);">⏳ '+pendiente+' pend.</span>'\
-            +(sm.pagado>0?'<span style="color:var(--green);">✅ '+sm.pagado+' cob.</span>':'')\
-            +'</div>'
-        )+'</div>'\
-        +'</div>'\
-        +'</div>';
+      var selectStyle='background:var(--graphite);border:1px solid var(--smoke);border-radius:6px;color:var(--white);font-family:\'DM Sans\',sans-serif;font-size:0.8rem;padding:6px 10px;outline:none;cursor:pointer;width:auto;';
+      html+='<div class="dossier-mes-block '+(estadoMes==='pagado'?'pagado':'')+'">'
+        +'<div class="dmb-header">'
+        +'<div><div class="dmb-title">📅 '+nombreMes+'</div><div class="dmb-range">'+formatDate(sm.inicio)+' → '+formatDate(sm.fin)+'</div></div>'
+        +'<div style="text-align:right">'
+        +'<div class="dmb-total">'+sm.creditos+' créditos</div>'
+        +'<div class="dsb-estado" style="margin-top:6px">'
+        +'<select class="'+estadoMes+'" onchange="updatePagoEstado(\''+escH(guia)+'\',\'mes_'+mk+'\',\''+sm.inicio+'\',\''+sm.fin+'\','+sm.creditos+',this.value,this)" style="'+selectStyle+'">'
+        +'<option value="pendiente" '+(estadoMes==='pendiente'?'selected':'')+'>⏳ Pendiente</option>'
+        +'<option value="pagado" '+(estadoMes==='pagado'?'selected':'')+'>✅ Pagado</option>'
+        +'</select>'
+        +'</div></div></div></div>';
+    });
+  }
+
+  // Detalle semanal
+  html+='<div style="font-family:\'Playfair Display\',serif;font-size:1rem;color:var(--white);margin:24px 0 6px;">💳 Detalle por semana — '+guia+'</div>'
+    +'<div style="font-size:0.76rem;color:var(--muted);margin-bottom:16px;">Suma automática lun–dom.</div>';
+
+  var semanasOrdenadas=Object.keys(semanaMap).sort();
+  if(!semanasOrdenadas.length){
+    html+='<div class="empty-state" style="padding:30px 20px"><div class="ei" style="font-size:1.5rem">📊</div>Los totales aparecerán cuando haya créditos.</div>';
+  }else{
+    semanasOrdenadas.forEach(function(sk){
+      var sw=semanaMap[sk];
+      var pagoExistente=pagos.find(function(p){return p.semana===sk;});
+      var estado=pagoExistente?pagoExistente.estado:'pendiente';
+      var selectStyle2='background:var(--graphite);border:1px solid var(--smoke);border-radius:6px;color:var(--white);font-family:\'DM Sans\',sans-serif;font-size:0.8rem;padding:6px 10px;outline:none;cursor:pointer;width:auto;';
+      html+='<div class="dossier-semana-block">'
+        +'<div class="dsb-header">'
+        +'<div><div class="dsb-title">Semana del '+formatDate(sw.inicio)+' al '+formatDate(sw.fin)+'</div><div class="dsb-range">'+sw.inicio+' → '+sw.fin+'</div></div>'
+        +'<div style="text-align:right">'
+        +'<div class="dsb-total">'+sw.creditos+' créditos</div>'
+        +'<div class="dsb-estado" style="margin-top:6px">'
+        +'<select class="'+estado+'" onchange="updatePagoEstado(\''+escH(guia)+'\',\''+sk+'\',\''+sw.inicio+'\',\''+sw.fin+'\','+sw.creditos+',this.value,this)" style="'+selectStyle2+'">'
+        +'<option value="pendiente" '+(estado==='pendiente'?'selected':'')+'>⏳ Pendiente</option>'
+        +'<option value="pagado" '+(estado==='pagado'?'selected':'')+'>✅ Pagado</option>'
+        +'</select>'
+        +'</div></div></div></div>';
     });
   }
   html+='</div>';
   el.innerHTML=html;
 }
-
 
 async function updateDossierField(guia,id,campo,valor){
   var entries=dossierEntries[guia]||[];var entry=entries.find(function(e){return e.id===id;});if(!entry)return;
