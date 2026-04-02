@@ -281,7 +281,14 @@ textarea{resize:vertical;min-height:70px;}
 .dsb-estado select.pagado{border-color:var(--green);color:var(--green);}
 .dsb-estado select.pendiente{border-color:var(--gold);color:var(--gold);}
 
-/* ── MEJORA 2: Listados por tour ── */
+/* ── MEJORA 1+2: Listados por tour ── */
+/* Grupo con reservas nuevas */
+.listado-grupo-nueva{border-color:rgba(201,168,76,0.55)!important;background:linear-gradient(180deg,rgba(201,168,76,0.07) 0%,var(--charcoal) 60%);}
+.listado-grupo-nueva .listado-grupo-header{border-bottom-color:rgba(201,168,76,0.2);}
+/* Fila de pasajero con reserva nueva */
+.listado-pax-nueva .listado-pax-name{color:var(--gold);}
+.listado-pax-nueva{background:rgba(201,168,76,0.05);border-radius:4px;}
+/* Base */
 .listado-grupo{background:var(--charcoal);border:1px solid var(--graphite);border-radius:10px;margin-bottom:14px;overflow:hidden;}
 .listado-grupo-header{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--graphite);}
 .listado-grupo-info{flex:1;}
@@ -944,6 +951,14 @@ async function renderListados(){
       reservas=(Array.isArray(raw)?raw:[]).map(r=>({...r,fecha:normalizarFecha(r.fecha),horario:normalizarHorario(r.horario)}));
     }catch(e){container.innerHTML='<div class="empty-state"><div class="ei">⚠️</div>Error cargando. Intenta de nuevo.</div>';return;}
   }
+  // MEJORA 2: construir set de jornadas ya gestionadas en Dossier (fecha|tourNombre)
+  const gestionadas=new Set();
+  Object.values(dossierEntries).forEach(entries=>{
+    (entries||[]).forEach(e=>{
+      if(e.fecha&&e.tourNombre)gestionadas.add(normalizarFecha(e.fecha)+'|'+String(e.tourNombre).trim().toLowerCase());
+    });
+  });
+
   // Usar reservas confirmadas
   let lista=reservas.filter(r=>r.estado!=='cancelada');
   if(filtro)lista=lista.filter(r=>r.fecha===filtro);
@@ -958,10 +973,15 @@ async function renderListados(){
   });
 
   // Ordenar por fecha asc, luego horario asc
-  const sorted=Object.values(grupos).sort((a,b)=>{
+  let sorted=Object.values(grupos).sort((a,b)=>{
     if(a.fecha!==b.fecha)return a.fecha>b.fecha?1:-1;
     return(a.horario||'')>(b.horario||'')?1:-1;
   });
+
+  // MEJORA 2: filtrar grupos ya gestionados en Dossier
+  sorted=sorted.filter(g=>!gestionadas.has(normalizarFecha(g.fecha)+'|'+String(g.tourNombre||'').trim().toLowerCase()));
+
+  if(!sorted.length){container.innerHTML='<div class="empty-state"><div class="ei">✅</div>Todos los listados están gestionados.'+(filtro?' (o no hay reservas para esta fecha)':'')+'</div>';return;}
 
   // Guardar en registro global para acceso seguro desde onclick
   _listadosGrupos=sorted;
@@ -969,17 +989,21 @@ async function renderListados(){
   container.innerHTML=sorted.map((g,idx)=>{
     const totalPax=g.reservas.reduce((s,r)=>(parseInt(r.adultos)||0)+(parseInt(r.menores)||0)+s,0);
     const totalRes=g.reservas.length;
-    const paxRows=g.reservas.map(r=>`
-      <div class="listado-pax-row">
-        <div class="listado-pax-name">${escH(r.nombre||'—')}</div>
+    // MEJORA 1: detectar si hay reservas nuevas (vista !== 'si') en el grupo
+    const tieneNuevas=g.reservas.some(r=>String(r.vista)!=='si'&&r.estado!=='cancelada');
+    const paxRows=g.reservas.map(r=>{
+      const esNueva=String(r.vista)!=='si'&&r.estado!=='cancelada';
+      return`<div class="listado-pax-row${esNueva?' listado-pax-nueva':''}">
+        <div class="listado-pax-name">${escH(r.nombre||'—')}${esNueva?' <span class="badge b-new" style="font-size:0.6rem">NUEVA</span>':''}</div>
         <div class="listado-pax-detail">${r.adultos||0}A ${r.menores||0}M</div>
         <a href="https://wa.me/${String(r.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold);font-size:0.76rem;text-decoration:none">📱 ${escH(r.whatsapp||'')}</a>
-      </div>`).join('');
+      </div>`;
+    }).join('');
 
-    return`<div class="listado-grupo">
+    return`<div class="listado-grupo${tieneNuevas?' listado-grupo-nueva':''}">
       <div class="listado-grupo-header">
         <div class="listado-grupo-info">
-          <div class="listado-grupo-title">🎯 ${escH(g.tourNombre||'—')}</div>
+          <div class="listado-grupo-title">🎯 ${escH(g.tourNombre||'—')}${tieneNuevas?' <span class="badge b-new" style="font-size:0.68rem;vertical-align:middle;margin-left:6px">NUEVA</span>':''}</div>
           <div class="listado-grupo-meta">📅 ${formatDate(g.fecha)} · 🕐 ${g.horario||'--'}</div>
         </div>
         <div class="listado-grupo-stats">
