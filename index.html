@@ -291,25 +291,6 @@ textarea{resize:vertical;min-height:70px;}
 .dossier-mes-block.pagado .dmb-total{color:var(--green);}
 
 /* ── MEJORA 1+2: Listados por tour ── */
-/* Acordeón header */
-.listado-acord-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 18px;cursor:pointer;user-select:none;transition:background 0.15s;}
-.listado-acord-header:hover{background:rgba(255,255,255,0.03);}
-.listado-acord-arrow{font-size:0.72rem;color:var(--muted);transition:transform 0.2s;flex-shrink:0;}
-.listado-acord-arrow.open{transform:rotate(180deg);}
-.listado-acord-body{border-top:1px solid var(--graphite);display:none;}
-.listado-acord-body.open{display:block;}
-/* Pax rows in Lista Reservas */
-.lr-pax-row{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:10px;padding:8px 18px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.82rem;}
-.lr-pax-row:last-child{border-bottom:none;}
-.lr-pax-info{display:flex;align-items:center;gap:7px;min-width:0;}
-.lr-pax-name{color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.lr-pax-meta{color:var(--muted);font-size:0.76rem;white-space:nowrap;}
-.lr-wa{color:var(--gold);font-size:0.76rem;text-decoration:none;white-space:nowrap;}
-.lr-pax-actions{display:flex;gap:5px;justify-content:flex-end;}
-@media(max-width:600px){
-  .lr-pax-row{grid-template-columns:1fr auto;grid-template-rows:auto auto;}
-  .lr-pax-meta{display:none;}
-}
 /* Grupo con reservas nuevas */
 .listado-grupo-nueva{border-color:rgba(201,168,76,0.55)!important;background:linear-gradient(180deg,rgba(201,168,76,0.07) 0%,var(--charcoal) 60%);}
 .listado-grupo-nueva .listado-grupo-header{border-bottom-color:rgba(201,168,76,0.2);}
@@ -366,13 +347,15 @@ textarea{resize:vertical;min-height:70px;}
     <div class="nav-group-sep"></div>
     <div class="nav-item" onclick="nav('tours')" data-sec="tours"><span class="ni">🗺</span><span class="nav-text"> Tours</span></div>
     <div class="nav-item" onclick="nav('bloqueos')" data-sec="bloqueos"><span class="ni">🚫</span><span class="nav-text"> Bloqueos</span></div>
-    <div class="nav-item" onclick="nav('listareservas')" data-sec="listareservas"><span class="ni">📋</span><span class="nav-text"> Lista Reservas</span></div>
+    <div class="nav-item" onclick="nav('reservas')" data-sec="reservas"><span class="ni">📋</span><span class="nav-text"> Reservas</span></div>
     <div class="nav-group-sep"></div>
     <div class="nav-item" onclick="nav('civitatis')" data-sec="civitatis"><span class="ni">🟡</span><span class="nav-text"> Civitatis</span><span class="nav-badge nb-mock">MOCK</span></div>
     <div class="nav-item disabled"><span class="ni">🟣</span><span class="nav-text"> Guruwalk</span><span class="nav-badge nb-soon">Próx.</span></div>
     <div class="nav-group-sep"></div>
     <div class="nav-item" onclick="nav('ops')" data-sec="ops"><span class="ni">👥</span><span class="nav-text"> Tour Manager</span></div>
     <div class="nav-item" onclick="nav('dossier')" data-sec="dossier"><span class="ni">📁</span><span class="nav-text"> Dossier</span></div>
+    <!-- MEJORA 2: nueva sección listados -->
+    <div class="nav-item" onclick="nav('listados')" data-sec="listados"><span class="ni">📆</span><span class="nav-text"> Listados</span></div>
   </nav>
   <div class="topbar-right">
     <div class="sync-wrap"><div class="sync-dot" id="syncDot"></div><span id="syncText">Conectando...</span></div>
@@ -422,7 +405,22 @@ textarea{resize:vertical;min-height:70px;}
       <div class="bloqueos-grid" id="bloqueosGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div>
     </div>
 
-
+    <!-- RESERVAS -->
+    <div class="section" id="sec-reservas">
+      <div class="sec-header">
+        <h1 class="sec-title">Reservas</h1>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="exportarCSV()">⬇ CSV</button>
+          <button class="btn btn-ghost btn-sm" onclick="loadReservas()">↻ Actualizar</button>
+        </div>
+      </div>
+      <div id="bannerLimpieza"></div>
+      <div class="filter-bar">
+        <input type="date" id="filtroFecha" onchange="renderReservas()">
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('filtroFecha').value='';renderReservas()">Ver todas</button>
+      </div>
+      <div class="table-wrap" id="reservasContainer"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div>
+    </div>
 
     <!-- CIVITATIS -->
     <div class="section" id="sec-civitatis">
@@ -514,21 +512,17 @@ textarea{resize:vertical;min-height:70px;}
       <div id="dossierContent"><div class="empty-state"><div class="ei">📁</div>Selecciona un guía.</div></div>
     </div>
 
-    <!-- LISTA RESERVAS (unificado) -->
-    <div class="section" id="sec-listareservas">
+    <!-- MEJORA 2: LISTADOS POR TOUR/FECHA -->
+    <div class="section" id="sec-listados">
       <div class="sec-header">
-        <h1 class="sec-title">Lista Reservas</h1>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <button class="btn btn-ghost btn-sm" onclick="exportarCSV()">⬇ CSV</button>
-          <button class="btn btn-ghost btn-sm" onclick="renderListareservas()">↻ Actualizar</button>
-        </div>
+        <h1 class="sec-title">Listados por Fecha</h1>
+        <button class="btn btn-ghost btn-sm" onclick="renderListados()">↻ Actualizar</button>
       </div>
-      <div id="bannerLimpieza"></div>
       <div class="filter-bar">
-        <input type="date" id="filtroListadoFecha" onchange="renderListareservas()">
-        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('filtroListadoFecha').value='';renderListareservas()">Ver todas</button>
+        <input type="date" id="filtroListadoFecha" onchange="renderListados()">
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('filtroListadoFecha').value='';renderListados()">Ver todas</button>
       </div>
-      <div id="listadosContainer"><div class="empty-state"><div class="ei">📋</div>Cargando...</div></div>
+      <div id="listadosContainer"><div class="empty-state"><div class="ei">📆</div>Cargando...</div></div>
     </div>
 
   </div><!-- /content -->
@@ -595,6 +589,29 @@ textarea{resize:vertical;min-height:70px;}
   </div>
 </div>
 
+<!-- Modal registro manual dossier -->
+<div class="modal-overlay" id="manualDossierModal">
+  <div class="modal">
+    <div class="modal-title">➕ Agregar registro manual</div>
+    <input type="hidden" id="manualDossierGuia">
+    <div class="form-group"><label>Nombre del tour</label><input type="text" id="manualTourNombre" placeholder="Ej: Le Marais a la Bastilla"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Fecha</label><input type="date" id="manualFecha"></div>
+      <div class="form-group"><label>Horario</label><input type="time" id="manualHorario"></div>
+    </div>
+    <div class="form-group"><label>Idioma</label><input type="text" id="manualIdioma" placeholder="ESP/ENG/FRA"></div>
+    <div class="form-row">
+      <div class="form-group"><label>PAX total</label><input type="number" min="0" id="manualPax" placeholder="0"></div>
+      <div class="form-group"><label>Asistentes</label><input type="number" min="0" id="manualAsistentes" placeholder="0"></div>
+    </div>
+    <div class="form-group"><label>Créditos</label><input type="number" min="0" id="manualCreditos" placeholder="0"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeManualDossierModal()">Cancelar</button>
+      <button class="btn btn-gold" onclick="saveManualDossierEntry()">💾 Guardar registro</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal nuevo guía -->
 <div class="modal-overlay" id="newGuiaModal">
   <div class="modal">
@@ -638,17 +655,18 @@ let civData=null;
 let dossierGuias=[],dossierActivo=null,dossierEntries={},pagosEntries={};
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
-const SECTION_TITLES={dash:'Dashboard',tours:'Tours',bloqueos:'Bloqueos',listareservas:'Lista Reservas',civitatis:'Civitatis',ops:'Tour Manager',dossier:'Dossier de Guías'};
+const SECTION_TITLES={dash:'Dashboard',tours:'Tours',bloqueos:'Bloqueos',reservas:'Reservas',civitatis:'Civitatis',ops:'Tour Manager',dossier:'Dossier de Guías',listados:'Listados por Fecha'};
 function nav(sec){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));
   document.getElementById('sec-'+sec).classList.add('active');
   document.querySelector(`[data-sec="${sec}"]`)?.classList.add('active');
-  if(sec==='listareservas')renderListareservas();
+  if(sec==='reservas')loadReservas();
   if(sec==='civitatis')renderCivitatis();
   if(sec==='ops'){renderOpsList();renderTourCatalogChecks();}
   if(sec==='dash')updateDashboard();
   if(sec==='dossier')initDossier();
+  if(sec==='listados')renderListados();
 }
 
 // ─── UTILS ───────────────────────────────────────────────────────────────────
@@ -670,6 +688,7 @@ function normalizarFecha(val){if(!val)return'';const s=String(val);if(/^\d{4}-\d
 function normalizarHorario(val){if(!val)return'';const s=String(val);if(/^\d{1,2}:\d{2}$/.test(s))return s;try{const d=new Date(s);if(!isNaN(d.getTime()))return`${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`;}catch(e){}return s;}
 function formatDate(str){if(!str)return'';const s=normalizarFecha(String(str));if(!s)return String(str);const[y,m,d]=s.split('-');const months=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];const mn=months[parseInt(m)-1];if(!mn||isNaN(parseInt(d)))return s;return`${parseInt(d)} ${mn} ${y}`;}
 function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function formatDateDDMMYYYY(str){if(!str)return'';const s=normalizarFecha(String(str));if(!s)return String(str);const[y,m,d]=s.split('-');if(isNaN(parseInt(d)))return s;return`${String(parseInt(d)).padStart(2,'0')}/${String(parseInt(m)).padStart(2,'0')}/${y}`;}
 function getSemanaKey(fechaStr){const d=new Date(fechaStr+'T00:00:00');const dow=d.getDay();const diff=dow===0?-6:1-dow;const lun=new Date(d);lun.setDate(d.getDate()+diff);const dom=new Date(lun);dom.setDate(lun.getDate()+6);const fmt=x=>`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;return{key:fmt(lun)+'_'+fmt(dom),inicio:fmt(lun),fin:fmt(dom)};}
 
 // ─── CACHE ───────────────────────────────────────────────────────────────────
@@ -838,7 +857,53 @@ async function deleteBloqueo(id){
 }
 
 // ─── RESERVAS (con MEJORA 1) ──────────────────────────────────────────────────
-// loadReservas deprecated — use renderListareservas()
+async function loadReservas(){
+  setSyncStatus('loading','Actualizando...');
+  try{
+    const raw=await apiCall({action:'getReservas'});
+    reservas=(Array.isArray(raw)?raw:[]).map(r=>({...r,fecha:normalizarFecha(r.fecha),horario:normalizarHorario(r.horario)}));
+    renderReservas();evaluarLimpieza();setSyncStatus('ok','Sincronizado');updateDashboard();
+  }catch(e){setSyncStatus('error','Error');showToast('Error cargando reservas','error');}
+}
+function renderReservas(){
+  const filtro=document.getElementById('filtroFecha').value;
+  const lista=filtro?reservas.filter(r=>r.fecha===filtro):reservas;
+  const container=document.getElementById('reservasContainer');
+  if(!lista.length){container.innerHTML=`<div class="empty-state"><div class="ei">📋</div>No hay reservas${filtro?' para esta fecha.':' todavía.'}</div>`;return;}
+  const sorted=[...lista].sort((a,b)=>b.timestamp>a.timestamp?1:-1);
+  // MEJORA 1: contar no vistas
+  const noVistas=sorted.filter(r=>String(r.vista)!=='si'&&r.estado!=='cancelada').length;
+  let html='';
+  if(noVistas>0){
+    html+=`<div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:0.82rem;color:var(--gold);display:flex;align-items:center;gap:10px;">
+      <span>✨</span><span>${noVistas} reserva${noVistas!==1?'s':''} nueva${noVistas!==1?'s':''} sin ver</span>
+      <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="marcarTodasVistas()">Marcar todas como vistas</button>
+    </div>`;
+  }
+  html+=`<table><thead><tr><th>Fecha</th><th>Tour</th><th>Horario</th><th>Cliente</th><th>WhatsApp</th><th>Pax</th><th>Total</th><th>Estado</th><th></th></tr></thead><tbody>`;
+  html+=sorted.map(r=>{
+    const cancelada=r.estado==='cancelada';
+    // MEJORA 1: detectar si es nueva (vista !== 'si')
+    const esNueva=!cancelada&&String(r.vista)!=='si';
+    return`<tr class="${cancelada?'cancelled':''}${esNueva?' res-nueva':''}">
+      <td>${formatDate(r.fecha)}</td>
+      <td>${r.tourNombre||''}</td>
+      <td>${r.horario||''}</td>
+      <td>${r.nombre||''}${esNueva?' <span class="badge b-new" style="font-size:0.6rem">NUEVA</span>':''}</td>
+      <td><a href="https://wa.me/${r.whatsapp}" target="_blank" style="color:var(--gold);text-decoration:none">📱 ${r.whatsapp}</a></td>
+      <td>${r.adultos||0}A ${r.menores||0}M</td>
+      <td><span class="total-tag">${r.total||0}€</span></td>
+      <td>${cancelada?'<span class="badge b-muted">Cancelada</span>':'<span class="badge b-green">Confirmada</span>'}</td>
+      <td style="white-space:nowrap">
+        ${esNueva?`<button class="btn btn-ghost btn-sm" title="Marcar como vista" onclick="marcarVista('${r.id}')">👁</button>`:''}
+        ${!cancelada?`<button class="btn btn-cancel-res btn-sm" onclick="cancelarReserva('${r.id}','${r.nombre}','${r.whatsapp}','${r.fecha}','${r.tourNombre}')">✕</button>`:''}
+        <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="eliminarReserva('${r.id}')">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+  html+='</tbody></table>';
+  container.innerHTML=html;
+}
 
 // MEJORA 1: marcar vista en Sheets
 async function marcarVista(id){
@@ -847,6 +912,7 @@ async function marcarVista(id){
     // Actualizar estado local sin recargar
     const r=reservas.find(x=>x.id===id);
     if(r)r.vista='si';
+    renderReservas();
     showToast('Marcada como vista ✓');
   }catch(e){showToast('Error al marcar','error');}
 }
@@ -857,13 +923,14 @@ async function marcarTodasVistas(){
     try{await apiCall({action:'marcarVista',id:r.id});r.vista='si';}catch(e){}
   }
   hideLoading();
+  renderReservas();
   showToast('Todas marcadas como vistas ✓');
 }
 
-async function eliminarReserva(id){if(!confirm('¿Eliminar?'))return;showLoading();try{await apiCall({action:'deleteReserva',id});reservas=reservas.filter(r=>r.id!==id);await renderListareservas();showToast('Eliminada ✓');}catch(e){showToast('Error','error');}hideLoading();}
+async function eliminarReserva(id){if(!confirm('¿Eliminar?'))return;showLoading();try{await apiCall({action:'deleteReserva',id});await loadReservas();showToast('Eliminada ✓');}catch(e){showToast('Error','error');}hideLoading();}
 async function cancelarReserva(id,nombre,whatsapp,fecha,tourNombre){
   if(!confirm(`¿Cancelar reserva de ${nombre}?`))return;showLoading();
-  try{await apiCall({action:'cancelReserva',id});await renderListareservas();showToast('Cancelada ✓');
+  try{await apiCall({action:'cancelReserva',id});await loadReservas();showToast('Cancelada ✓');
   const msg=encodeURIComponent(`Hola ${nombre} 👋\n\nTe escribimos desde *Gente de París* para informarte que tu reserva ha sido *cancelada*:\n\n📅 Fecha: ${formatDate(fecha)}\n🎯 Tour: ${tourNombre}\n\nLamentamos los inconvenientes. ¡Hasta pronto! 🗼`);
   window.open(`https://wa.me/${whatsapp.replace(/[^0-9]/g,'')}?text=${msg}`,'_blank');}
   catch(e){showToast('Error','error');}hideLoading();
@@ -889,7 +956,7 @@ async function borrarReservasAntiguas(){const antiguas=getReservasAntiguas();let
 async function accionDescargarYLimpiar(){
   const antiguas=getReservasAntiguas();if(!antiguas.length){showToast('No hay antiguas','error');return;}
   exportarCSV(true);
-  setTimeout(async()=>{if(!confirm(`CSV descargado. ¿Confirmar eliminación de ${antiguas.length} reservas?`))return;showLoading();const errores=await borrarReservasAntiguas();hideLoading();if(!errores){setLimpiezaState({ultimaLimpieza:new Date().toISOString()});await renderListareservas();showToast(`${antiguas.length} reservas archivadas ✓`);}else showToast('Algunas no pudieron eliminarse','error');},800);
+  setTimeout(async()=>{if(!confirm(`CSV descargado. ¿Confirmar eliminación de ${antiguas.length} reservas?`))return;showLoading();const errores=await borrarReservasAntiguas();hideLoading();if(!errores){setLimpiezaState({ultimaLimpieza:new Date().toISOString()});await loadReservas();document.getElementById('bannerLimpieza').innerHTML='';showToast(`${antiguas.length} reservas archivadas ✓`);}else showToast('Algunas no pudieron eliminarse','error');},800);
 }
 function evaluarLimpieza(){
   const antiguas=getReservasAntiguas();if(!antiguas.length)return;
@@ -902,21 +969,20 @@ function evaluarLimpieza(){
   else{banner.innerHTML=`<div class="banner-lim aviso"><div class="banner-icon">🗂</div><div class="banner-body"><div class="banner-title" style="color:var(--gold)">Hay reservas para archivar</div><div class="banner-text">${antiguas.length} reservas con más de ${DIAS_AVISO} días.</div><div class="banner-acts"><button class="btn btn-gold btn-sm" onclick="accionDescargarYLimpiar()">⬇ Descargar y limpiar</button><button class="btn btn-ghost btn-sm" onclick="document.getElementById('bannerLimpieza').innerHTML=''">Luego</button></div></div></div>`;}
 }
 
-// ─── LISTA RESERVAS (unificado) ─────────────────────────────────────────────
+// ─── MEJORA 2: LISTADOS POR TOUR/FECHA ───────────────────────────────────────
+// Registro global para evitar problemas de escaping JSON en onclick inline
 let _listadosGrupos=[];
 
-async function renderListareservas(){
+async function renderListados(){
   const filtro=document.getElementById('filtroListadoFecha').value;
   const container=document.getElementById('listadosContainer');
+  // Siempre recargar reservas para tener el campo 'vista' actualizado
   container.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando reservas...</div>';
   try{
     const raw=await apiCall({action:'getReservas'});
     reservas=(Array.isArray(raw)?raw:[]).map(r=>({...r,fecha:normalizarFecha(r.fecha),horario:normalizarHorario(r.horario)}));
   }catch(e){container.innerHTML='<div class="empty-state"><div class="ei">⚠️</div>Error cargando. Intenta de nuevo.</div>';return;}
-
-  evaluarLimpieza();
-
-  // FILTRO: excluir grupos ya gestionados en Dossier
+  // MEJORA 2: construir set de jornadas ya gestionadas en Dossier (fecha|tourNombre)
   const gestionadas=new Set();
   Object.values(dossierEntries).forEach(entries=>{
     (entries||[]).forEach(e=>{
@@ -924,8 +990,10 @@ async function renderListareservas(){
     });
   });
 
+  // Usar reservas confirmadas
   let lista=reservas.filter(r=>r.estado!=='cancelada');
   if(filtro)lista=lista.filter(r=>r.fecha===filtro);
+  if(!lista.length){container.innerHTML='<div class="empty-state"><div class="ei">📆</div>No hay reservas'+(filtro?' para esta fecha.':' activas.')+'</div>';return;}
 
   // Agrupar por fecha + tourId + horario
   const grupos={};
@@ -935,63 +1003,36 @@ async function renderListareservas(){
     grupos[key].reservas.push(r);
   });
 
-  // También incluir canceladas en su grupo si el grupo existe (para gestión)
-  reservas.filter(r=>r.estado==='cancelada').forEach(r=>{
-    const key=`${r.fecha}|${r.tourId||r.tourNombre}|${r.horario}`;
-    if(grupos[key])grupos[key].reservas.push(r);
-  });
-
+  // Ordenar por fecha asc, luego horario asc
   let sorted=Object.values(grupos).sort((a,b)=>{
     if(a.fecha!==b.fecha)return a.fecha>b.fecha?1:-1;
     return(a.horario||'')>(b.horario||'')?1:-1;
   });
 
-  // Filtrar grupos gestionados en Dossier
+  // MEJORA 2: filtrar grupos ya gestionados en Dossier
   sorted=sorted.filter(g=>!gestionadas.has(normalizarFecha(g.fecha)+'|'+String(g.tourNombre||'').trim().toLowerCase()));
 
-  if(!sorted.length){
-    container.innerHTML='<div class="empty-state"><div class="ei">✅</div>'+(filtro?'No hay reservas para esta fecha.':'Todos los listados están gestionados.')+'</div>';
-    return;
-  }
+  if(!sorted.length){container.innerHTML='<div class="empty-state"><div class="ei">✅</div>Todos los listados están gestionados.'+(filtro?' (o no hay reservas para esta fecha)':'')+'</div>';return;}
 
+  // Guardar en registro global para acceso seguro desde onclick
   _listadosGrupos=sorted;
 
   container.innerHTML=sorted.map((g,idx)=>{
-    const confirmadas=g.reservas.filter(r=>r.estado!=='cancelada');
-    const canceladas=g.reservas.filter(r=>r.estado==='cancelada');
-    const totalPax=confirmadas.reduce((s,r)=>(parseInt(r.adultos)||0)+(parseInt(r.menores)||0)+s,0);
-    const totalRes=confirmadas.length;
-    const tieneNuevas=confirmadas.some(r=>String(r.vista)!=='si');
-
-    const paxRows=confirmadas.map(r=>{
-      const esNueva=String(r.vista)!=='si';
-      return`<div class="lr-pax-row${esNueva?' listado-pax-nueva':''}">
-        <div class="lr-pax-info">
-          <span class="lr-pax-name">${escH(r.nombre||'—')}</span>
-          ${esNueva?'<span class="badge b-new" style="font-size:0.6rem">NUEVA</span>':''}
-        </div>
-        <div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div>
-        <a href="https://wa.me/${String(r.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="lr-wa">📱 ${escH(r.whatsapp||'')}</a>
-        <div class="lr-pax-actions">
-          ${esNueva?`<button class="btn btn-ghost btn-sm" title="Marcar vista" onclick="event.stopPropagation();marcarVistaIndividual('${r.id}',${idx})">👁</button>`:''}
-          <button class="btn btn-cancel-res btn-sm" title="Cancelar" onclick="event.stopPropagation();cancelarReserva('${r.id}','${escH(r.nombre||'')}','${r.whatsapp||''}','${r.fecha}','${escH(r.tourNombre||'')}')">✕</button>
-          <button class="btn btn-danger btn-sm" title="Eliminar" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${idx})">🗑</button>
-        </div>
+    const totalPax=g.reservas.reduce((s,r)=>(parseInt(r.adultos)||0)+(parseInt(r.menores)||0)+s,0);
+    const totalRes=g.reservas.length;
+    // MEJORA 1: detectar si hay reservas nuevas (vista !== 'si') en el grupo
+    const tieneNuevas=g.reservas.some(r=>String(r.vista)!=='si'&&r.estado!=='cancelada');
+    const paxRows=g.reservas.map(r=>{
+      const esNueva=String(r.vista)!=='si'&&r.estado!=='cancelada';
+      return`<div class="listado-pax-row${esNueva?' listado-pax-nueva':''}">
+        <div class="listado-pax-name">${escH(r.nombre||'—')}${esNueva?' <span class="badge b-new" style="font-size:0.6rem">NUEVA</span>':''}</div>
+        <div class="listado-pax-detail">${r.adultos||0}A ${r.menores||0}M</div>
+        <a href="https://wa.me/${String(r.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold);font-size:0.76rem;text-decoration:none">📱 ${escH(r.whatsapp||'')}</a>
       </div>`;
     }).join('');
 
-    const canceladasRows=canceladas.length?`<div style="padding:6px 0 2px;font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em">Canceladas</div>`+canceladas.map(r=>`
-      <div class="lr-pax-row" style="opacity:0.45">
-        <div class="lr-pax-info"><span class="lr-pax-name" style="text-decoration:line-through">${escH(r.nombre||'—')}</span></div>
-        <div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div>
-        <div class="lr-wa" style="color:var(--muted)">${escH(r.whatsapp||'')}</div>
-        <div class="lr-pax-actions">
-          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${idx})">🗑</button>
-        </div>
-      </div>`).join(''):'';
-
-    return`<div class="listado-grupo${tieneNuevas?' listado-grupo-nueva':''}" id="grupo-${idx}">
-      <div class="listado-acord-header" onclick="toggleListadoGrupo(${idx})">
+    return`<div class="listado-grupo${tieneNuevas?' listado-grupo-nueva':''}">
+      <div class="listado-grupo-header">
         <div class="listado-grupo-info">
           <div class="listado-grupo-title">🎯 ${escH(g.tourNombre||'—')}${tieneNuevas?' <span class="badge b-new" style="font-size:0.68rem;vertical-align:middle;margin-left:6px">NUEVA</span>':''}</div>
           <div class="listado-grupo-meta">📅 ${formatDate(g.fecha)} · 🕐 ${g.horario||'--'}</div>
@@ -999,106 +1040,12 @@ async function renderListareservas(){
         <div class="listado-grupo-stats">
           <span class="badge b-gold">${totalPax} PAX</span>
           <span class="badge b-muted">${totalRes} res.</span>
-          <span class="listado-acord-arrow">▼</span>
-          <button class="btn btn-terra btn-sm" onclick="event.stopPropagation();precargarJornada(${idx})">→ Crear jornada</button>
+          <button class="btn btn-terra btn-sm" onclick="precargarJornada(${idx})">→ Crear jornada</button>
         </div>
       </div>
-      <div class="listado-acord-body" id="acord-body-${idx}">
-        <div class="listado-grupo-body">${paxRows}${canceladasRows}</div>
-      </div>
+      <div class="listado-grupo-body">${paxRows}</div>
     </div>`;
   }).join('');
-}
-
-
-// Toggle acordeón Lista Reservas + marcar reservas nuevas como vistas al abrir
-async function toggleListadoGrupo(idx){
-  const body=document.getElementById('acord-body-'+idx);
-  const grupoEl=document.getElementById('grupo-'+idx);
-  const header=grupoEl?.querySelector('.listado-acord-header');
-  if(!body)return;
-
-  const isOpen=body.classList.contains('open');
-
-  // Cerrar todos
-  document.querySelectorAll('.listado-acord-body').forEach(b=>b.classList.remove('open'));
-  document.querySelectorAll('.listado-acord-arrow').forEach(a=>a.classList.remove('open'));
-
-  if(!isOpen){
-    body.classList.add('open');
-    header?.querySelector('.listado-acord-arrow')?.classList.add('open');
-    // Marcar todas las nuevas del grupo como vistas
-    const g=_listadosGrupos[idx];
-    if(g){
-      const nuevas=g.reservas.filter(r=>String(r.vista)!=='si'&&r.estado!=='cancelada');
-      if(nuevas.length){
-        nuevas.forEach(r=>{
-          r.vista='si';
-          apiCall({action:'marcarVista',id:r.id}).catch(()=>{});
-        });
-        grupoEl?.classList.remove('listado-grupo-nueva');
-        grupoEl?.querySelectorAll('.badge.b-new').forEach(b=>b.remove());
-        grupoEl?.querySelectorAll('.listado-pax-nueva').forEach(row=>{
-          row.classList.remove('listado-pax-nueva');
-        });
-      }
-    }
-  }
-}
-
-// Marcar vista individual desde dentro del acordeón
-async function marcarVistaIndividual(id,grupoIdx){
-  const r=reservas.find(x=>x.id===id);
-  if(r){r.vista='si';apiCall({action:'marcarVista',id}).catch(()=>{});}
-  // Refresh visual del grupo
-  const g=_listadosGrupos[grupoIdx];
-  const grupoEl=document.getElementById('grupo-'+grupoIdx);
-  if(g&&grupoEl){
-    const aunNuevas=g.reservas.some(r=>String(r.vista)!=='si'&&r.estado!=='cancelada');
-    if(!aunNuevas){
-      grupoEl.classList.remove('listado-grupo-nueva');
-      grupoEl.querySelectorAll('.badge.b-new').forEach(b=>b.remove());
-    }
-    // Re-render solo el cuerpo del acordeón
-    const confirmadas=g.reservas.filter(r=>r.estado!=='cancelada');
-    const bodyEl=document.getElementById('acord-body-'+grupoIdx);
-    if(bodyEl){
-      const paxRows=confirmadas.map(r=>{
-        const esNueva=String(r.vista)!=='si';
-        return`<div class="lr-pax-row${esNueva?' listado-pax-nueva':''}">
-          <div class="lr-pax-info"><span class="lr-pax-name">${escH(r.nombre||'—')}</span>${esNueva?'<span class="badge b-new" style="font-size:0.6rem">NUEVA</span>':''}</div>
-          <div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div>
-          <a href="https://wa.me/${String(r.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="lr-wa">📱 ${escH(r.whatsapp||'')}</a>
-          <div class="lr-pax-actions">
-            ${esNueva?`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();marcarVistaIndividual('${r.id}',${grupoIdx})">👁</button>`:''}
-            <button class="btn btn-cancel-res btn-sm" onclick="event.stopPropagation();cancelarReserva('${r.id}','${escH(r.nombre||'')}','${r.whatsapp||''}','${r.fecha}','${escH(r.tourNombre||'')}')">✕</button>
-            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${grupoIdx})">🗑</button>
-          </div>
-        </div>`;
-      }).join('');
-      bodyEl.querySelector('.listado-grupo-body').innerHTML=paxRows;
-    }
-  }
-}
-
-// Eliminar reserva desde Lista Reservas y re-render del grupo
-async function eliminarReservaLista(id,grupoIdx){
-  if(!confirm('¿Eliminar esta reserva?'))return;
-  showLoading();
-  try{
-    await apiCall({action:'deleteReserva',id});
-    reservas=reservas.filter(r=>r.id!==id);
-    const g=_listadosGrupos[grupoIdx];
-    if(g)g.reservas=g.reservas.filter(r=>r.id!==id);
-    // Si el grupo quedó vacío, quitarlo del DOM
-    if(g&&!g.reservas.filter(r=>r.estado!=='cancelada').length){
-      document.getElementById('grupo-'+grupoIdx)?.remove();
-    }else{
-      await renderListareservas();
-    }
-    showToast('Eliminada ✓');
-  }catch(e){showToast('Error','error');}
-  hideLoading();
 }
 
 // MEJORA 2: precarga Tour Manager con datos del grupo (recibe índice del registro global)
@@ -1317,7 +1264,7 @@ async function initDossier(){
 function renderDossierTabs(){const el=document.getElementById('dossierTabs');if(!dossierGuias.length){el.innerHTML='<div style="color:var(--muted);font-size:0.82rem">No hay guías aún.</div>';return;}el.innerHTML=dossierGuias.map(g=>`<div class="dossier-tab ${dossierActivo===g?'active':''}" onclick="selectDossierGuia('${escH(g)}')">${g}</div>`).join('');}
 async function selectDossierGuia(guia){dossierActivo=guia;renderDossierTabs();showLoading();await loadDossierGuia(guia);hideLoading();}
 async function loadDossierGuia(guia){
-  try{const entries=await apiCall({action:'getDossier',guia});dossierEntries[guia]=Array.isArray(entries)?entries:[];}catch(e){dossierEntries[guia]=[];}
+  try{const entries=await apiCall({action:'getDossier',guia});dossierEntries[guia]=(Array.isArray(entries)?entries:[]).map(e=>({...e,fecha:normalizarFecha(e.fecha),horario:normalizarHorario(e.horario)}));}catch(e){dossierEntries[guia]=[];}
   try{const pagos=await apiCall({action:'getPagosSemana',guia});pagosEntries[guia]=(Array.isArray(pagos)?pagos:[]).map(p=>({...p,fechaInicio:normalizarFecha(p.fechaInicio),fechaFin:normalizarFecha(p.fechaFin)}));}catch(e){pagosEntries[guia]=[];}
   renderDossierContent(guia);
 }
@@ -1334,15 +1281,16 @@ function renderDossierContent(guia){
   });
   const months=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   const monthName=key=>{const[y,m]=key.split('-');const mn=months[parseInt(m)-1];return(mn?mn.toUpperCase():'???')+' '+(y||'');};
-
-  let html=`<div style="margin-bottom:24px;"><div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--white);margin-bottom:6px;">📋 Planing & Créditos — ${guia}</div><div style="font-size:0.76rem;color:var(--muted);margin-bottom:16px;">Edita los campos aquí. Se sincronizan con Sheets.</div>`;
-  if(!entries.length){html+=`<div class="empty-state"><div class="ei">📭</div>Sin registros. Se crean al guardar jornadas.</div>`;}
+  const semanaMap={};
+  entries.forEach(e=>{if(!e.fecha)return;const fn=normalizarFecha(e.fecha);if(!fn)return;const si=getSemanaKey(fn);if(!semanaMap[si.key]){semanaMap[si.key]={inicio:si.inicio,fin:si.fin,creditos:0};}semanaMap[si.key].creditos+=parseInt(e.creditos)||0;});
+  let html=`<div style="margin-bottom:24px;"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:6px;"><div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--white);">📋 Planing & Créditos — ${guia}</div><div style="display:flex;gap:8px;"><button class="btn btn-ghost btn-sm" onclick="downloadDossierPublic('${escH(guia)}')">📤 Vista pública</button><button class="btn btn-gold btn-sm" onclick="openManualDossierEntry('${escH(guia)}')">+ Agregar registro</button></div></div><div style="font-size:0.76rem;color:var(--muted);margin-bottom:16px;">Edita los campos aquí. Se sincronizan con Sheets.</div>`;
+  if(!entries.length){html+=`<div class="empty-state"><div class="ei">📭</div>Sin registros. Se crean al guardar jornadas o añadiendo uno manual.</div>`;}
   else{
-    html+=`<div class="dossier-row dossier-row-header"><span>Tour</span><span>Fecha / Hora</span><span>Idioma</span><span>PAX / Asist.</span><span style="text-align:center">Créd.</span><span></span></div>`;
+    html+=`<div class="dossier-row dossier-row-header"><span>Tour</span><span>Fecha + Hora</span><span>Idioma</span><span>PAX / Asist.</span><span style="text-align:center">Créd.</span><span></span></div>`;
     Object.keys(byMonth).sort().forEach(mk=>{
       html+=`<div class="dossier-month-sep">/////// ${monthName(mk)} ///////</div>`;
       byMonth[mk].sort((a,b)=>a.fecha>b.fecha?1:-1).forEach(e=>{
-        html+=`<div class="dossier-row"><div><div class="dr-tour">${escH(e.tourNombre||'')}</div><div class="dr-date">${formatDate(e.fecha)}</div></div><div class="dr-date">${e.horario||'--'}</div><div class="dr-field"><input type="text" placeholder="ESP/ENG/FRA" value="${escH(e.idioma||'')}" onchange="updateDossierField('${escH(guia)}','${escH(e.id)}','idioma',this.value)"></div><div class="dr-field" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><input type="number" min="0" placeholder="PAX" value="${e.paxTotal||''}" onchange="updateDossierField('${escH(guia)}','${escH(e.id)}','paxTotal',this.value)" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.82rem;padding:6px 9px;outline:none;width:100%"><input type="number" min="0" placeholder="Asist." value="${e.asistentes||''}" onchange="updateDossierField('${escH(guia)}','${escH(e.id)}','asistentes',this.value)" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.82rem;padding:6px 9px;outline:none;width:100%"></div><div class="dr-field"><input type="number" min="0" placeholder="0" value="${e.creditos||''}" onchange="updateDossierField('${escH(guia)}','${escH(e.id)}','creditos',this.value)" style="background:var(--graphite);border:1px solid rgba(201,168,76,0.4);border-radius:5px;color:var(--gold);font-family:'Playfair Display',serif;font-size:1rem;padding:6px 9px;outline:none;width:100%;text-align:center"></div><div style="text-align:right"><button class="btn btn-danger btn-sm" onclick="deleteDossierEntry('${escH(guia)}','${escH(e.id)}')">🗑</button></div></div>`;
+        html+=`<div class="dossier-row"><div class="dr-tour">${escH(e.tourNombre||'')}</div><div class="dr-date" style="font-size:0.78rem;line-height:1.4">${formatDateDDMMYYYY(e.fecha)}${e.horario?' + '+e.horario:''}</div><div class="dr-field"><input type="text" placeholder="ESP/ENG/FRA" value="${escH(e.idioma||'')}" onchange="updateDossierField('${escH(guia)}','${escH(e.id)}','idioma',this.value)"></div><div class="dr-field" style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><input type="number" min="0" placeholder="PAX" value="${e.paxTotal||''}" onchange="updateDossierField('${escH(guia)}','${escH(e.id)}','paxTotal',this.value)" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.82rem;padding:6px 9px;outline:none;width:100%"><input type="number" min="0" placeholder="Asist." value="${e.asistentes||''}" onchange="updateDossierField('${escH(guia)}','${escH(e.id)}','asistentes',this.value)" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.82rem;padding:6px 9px;outline:none;width:100%"></div><div class="dr-field"><input type="number" min="0" placeholder="0" value="${e.creditos||''}" onchange="updateDossierField('${escH(guia)}','${escH(e.id)}','creditos',this.value)" style="background:var(--graphite);border:1px solid rgba(201,168,76,0.4);border-radius:5px;color:var(--gold);font-family:'Playfair Display',serif;font-size:1rem;padding:6px 9px;outline:none;width:100%;text-align:center"></div><div style="text-align:right"><button class="btn btn-danger btn-sm" onclick="deleteDossierEntry('${escH(guia)}','${escH(e.id)}')">🗑</button></div></div>`;
       });
     });
   }
@@ -1393,6 +1341,11 @@ function renderDossierContent(guia){
       </div>`;
     });
   }
+  // ── Bloque semanas (detalle) ──
+  html+=`<div style="font-family:'Playfair Display',serif;font-size:1rem;color:var(--white);margin:24px 0 6px;">💳 Detalle por semana — ${guia}</div><div style="font-size:0.76rem;color:var(--muted);margin-bottom:16px;">Suma automática lun–dom.</div>`;
+  const semanasOrdenadas=Object.keys(semanaMap).sort();
+  if(!semanasOrdenadas.length){html+=`<div class="empty-state" style="padding:20px"><div class="ei" style="font-size:1.5rem">📊</div>Los totales aparecerán cuando haya créditos.</div>`;}
+  else{semanasOrdenadas.forEach(sk=>{const sw=semanaMap[sk];const pagoExistente=pagos.find(p=>p.semana===sk);const estado=pagoExistente?pagoExistente.estado:'pendiente';html+=`<div class="dossier-semana-block"><div class="dsb-header"><div><div class="dsb-title">Semana del ${formatDate(sw.inicio)} al ${formatDate(sw.fin)}</div><div class="dsb-range">${sw.inicio} → ${sw.fin}</div></div><div style="text-align:right"><div class="dsb-total">${sw.creditos} créditos</div><div class="dsb-estado" style="margin-top:6px"><select class="${estado}" onchange="updatePagoEstado('${escH(guia)}','${sk}','${sw.inicio}','${sw.fin}',${sw.creditos},this.value,this)" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:6px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.8rem;padding:6px 10px;outline:none;cursor:pointer;width:auto;"><option value="pendiente" ${estado==='pendiente'?'selected':''}>⏳ Pendiente</option><option value="pagado" ${estado==='pagado'?'selected':''}>✅ Pagado</option></select></div></div></div></div>`;});}
   html+=`</div>`;
   el.innerHTML=html;
 }
@@ -1414,6 +1367,178 @@ async function updatePagoEstado(guia,semana,fechaInicio,fechaFin,totalCreditos,e
 }
 function openNewGuiaPrompt(){document.getElementById('newGuiaName').value='';document.getElementById('newGuiaModal').classList.add('open');}
 function closeNewGuiaModal(){document.getElementById('newGuiaModal').classList.remove('open');}
+
+// ─── REGISTRO MANUAL DOSSIER ─────────────────────────────────────────────────
+function openManualDossierEntry(guia){
+  document.getElementById('manualDossierGuia').value=guia;
+  document.getElementById('manualTourNombre').value='';
+  document.getElementById('manualFecha').value=new Date().toISOString().slice(0,10);
+  document.getElementById('manualHorario').value='';
+  document.getElementById('manualIdioma').value='';
+  document.getElementById('manualPax').value='';
+  document.getElementById('manualAsistentes').value='';
+  document.getElementById('manualCreditos').value='';
+  document.getElementById('manualDossierModal').classList.add('open');
+}
+function closeManualDossierModal(){document.getElementById('manualDossierModal').classList.remove('open');}
+async function saveManualDossierEntry(){
+  const guia=document.getElementById('manualDossierGuia').value;
+  const tourNombre=document.getElementById('manualTourNombre').value.trim();
+  const fecha=document.getElementById('manualFecha').value;
+  if(!tourNombre){showToast('Escribe el nombre del tour','error');return;}
+  if(!fecha){showToast('Selecciona una fecha','error');return;}
+  const horario=document.getElementById('manualHorario').value||'';
+  const idioma=document.getElementById('manualIdioma').value.trim();
+  const paxTotal=parseInt(document.getElementById('manualPax').value)||0;
+  const asistentes=parseInt(document.getElementById('manualAsistentes').value)||0;
+  const creditos=parseInt(document.getElementById('manualCreditos').value)||0;
+  const semInfo=getSemanaKey(fecha);
+  const entry={id:'dos_man_'+guia.replace(/\s+/g,'')+'_'+Date.now(),guia,fecha,tourNombre,horario,idioma,paxTotal,asistentes,creditos,semana:semInfo.key,timestamp:new Date().toISOString()};
+  showLoading();
+  try{
+    await apiCall({action:'saveDossierEntry',guia,data:entry});
+    if(!dossierEntries[guia])dossierEntries[guia]=[];
+    dossierEntries[guia].push(entry);
+    closeManualDossierModal();
+    renderDossierContent(guia);
+    showToast('Registro añadido ✓');
+  }catch(e){showToast('Error guardando registro','error');}
+  hideLoading();
+}
+
+// ─── VISTA PÚBLICA DOSSIER (descargable, llama API en vivo) ──────────────────
+function downloadDossierPublic(guia){
+  const html=buildDossierPublicHTML(guia);
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`dossier-${guia.replace(/\s+/g,'-').toLowerCase()}.html`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  showToast(`Vista pública de ${guia} descargada ✓`);
+}
+function buildDossierPublicHTML(guia){
+  const apiUrl=API;
+  return`<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escH(guia)} · Dossier · Gente de París</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--noir:#0f0f0f;--charcoal:#1a1a1a;--graphite:#2c2c2c;--smoke:#3d3d3d;--muted:#888;--light:#c8c8c8;--white:#f5f2ec;--gold:#c9a84c;--gold-l:#e8c97a;--green:#27ae60;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--noir);color:var(--white);font-family:'DM Sans',sans-serif;font-weight:300;min-height:100vh;}
+.header{background:#1B2B4B;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+.header-title{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--white);}
+.header-sub{font-size:0.78rem;color:rgba(255,255,255,0.6);margin-top:3px;}
+.btn-refresh{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:6px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.08);color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.84rem;cursor:pointer;transition:all 0.18s;}
+.btn-refresh:hover{background:rgba(255,255,255,0.15);}
+.btn-refresh.loading{opacity:0.6;pointer-events:none;}
+.content{max-width:900px;margin:0 auto;padding:22px 18px;}
+.section-title{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--white);margin-bottom:6px;}
+.section-sub{font-size:0.74rem;color:var(--muted);margin-bottom:16px;}
+.month-sep{font-size:0.7rem;letter-spacing:0.15em;color:var(--gold);padding:10px 0 6px;border-bottom:1px solid rgba(201,168,76,0.18);margin-bottom:8px;}
+.entry-card{background:var(--charcoal);border:1px solid var(--graphite);border-radius:8px;padding:13px 16px;margin-bottom:8px;display:grid;grid-template-columns:2fr 1.4fr 0.8fr 0.8fr 0.6fr;gap:10px;align-items:center;}
+@media(max-width:600px){.entry-card{grid-template-columns:1fr 1fr;gap:8px;}}
+.entry-tour{font-family:'Playfair Display',serif;font-size:0.92rem;color:var(--white);}
+.entry-fecha{font-size:0.78rem;color:var(--light);}
+.entry-label{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:2px;}
+.entry-val{font-size:0.85rem;color:var(--light);}
+.entry-cred{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--gold);font-weight:600;}
+.mes-block{background:var(--graphite);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:15px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+.mes-nombre{font-family:'Playfair Display',serif;font-size:1rem;color:var(--white);}
+.mes-range{font-size:0.72rem;color:var(--muted);margin-top:2px;}
+.mes-cred{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--gold);font-weight:600;}
+.mes-estado{font-size:0.76rem;margin-top:3px;}
+.estado-pendiente{color:#f39c12;}
+.estado-pagado{color:var(--green);}
+.divider{height:1px;background:var(--graphite);margin:26px 0;}
+.empty{text-align:center;padding:40px;color:var(--muted);font-size:0.88rem;}
+.spinner{width:32px;height:32px;border:3px solid var(--graphite);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin:40px auto;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);background:#1B2B4B;color:white;padding:10px 20px;border-radius:20px;font-size:0.82rem;opacity:0;pointer-events:none;transition:all 0.3s;z-index:99;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <div class="header-title">📁 Dossier — ${escH(guia)}</div>
+    <div class="header-sub" id="lastUpdate">Cargando datos...</div>
+  </div>
+  <button class="btn-refresh" id="btnRefresh" onclick="loadData()">↻ Actualizar</button>
+</div>
+<div class="content" id="mainContent"><div class="spinner"></div></div>
+<div class="toast" id="toast"></div>
+<script>
+const API='${apiUrl}';
+const GUIA='${escH(guia)}';
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function normFecha(val){if(!val)return'';const s=String(val);if(/^\\d{4}-\\d{2}-\\d{2}$/.test(s))return s;try{const d=new Date(s);if(!isNaN(d.getTime()))return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}catch(e){}return s;}
+function normHorario(val){if(!val)return'';const s=String(val);if(/^\\d{1,2}:\\d{2}$/.test(s))return s;try{const d=new Date(s);if(!isNaN(d.getTime()))return String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0');}catch(e){}return s;}
+function fmtDDMMYYYY(str){if(!str)return'';const s=normFecha(str);if(!s)return str;const[y,m,d]=s.split('-');return String(parseInt(d)).padStart(2,'0')+'/'+String(parseInt(m)).padStart(2,'0')+'/'+y;}
+function fmtDate(str){if(!str)return'';const s=normFecha(str);if(!s)return str;const[y,m,d]=s.split('-');const mn=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];return parseInt(d)+' '+(mn[parseInt(m)-1]||'')+ ' '+y;}
+async function apiCall(params){const url=new URL(API);Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,typeof v==='object'?JSON.stringify(v):v));const res=await fetch(url.toString());const txt=await res.text();let r;try{r=JSON.parse(txt);}catch(e){throw new Error('No JSON');}if(r&&r.error)throw new Error(r.error);return r;}
+async function loadData(){
+  const btn=document.getElementById('btnRefresh');
+  btn.classList.add('loading');btn.textContent='↻ Cargando...';
+  try{
+    const[entries,pagos]=await Promise.all([
+      apiCall({action:'getDossier',guia:GUIA}),
+      apiCall({action:'getPagosSemana',guia:GUIA})
+    ]);
+    const ents=(Array.isArray(entries)?entries:[]).map(e=>({...e,fecha:normFecha(e.fecha),horario:normHorario(e.horario)}));
+    const pags=(Array.isArray(pagos)?pagos:[]);
+    render(ents,pags);
+    document.getElementById('lastUpdate').textContent='Última actualización: '+new Date().toLocaleTimeString('es-ES');
+    showToast('Datos actualizados ✓');
+  }catch(e){document.getElementById('mainContent').innerHTML='<div class="empty">Error al cargar datos.<br>Comprueba tu conexión.</div>';}
+  btn.classList.remove('loading');btn.textContent='↻ Actualizar';
+}
+function render(entries,pagos){
+  const el=document.getElementById('mainContent');
+  if(!entries.length){el.innerHTML='<div class="empty">No hay registros aún.</div>';return;}
+  const byMonth={};
+  entries.filter(e=>e.fecha).forEach(e=>{const[y,m]=e.fecha.split('-');const mk=y+'-'+m;if(!byMonth[mk])byMonth[mk]=[];byMonth[mk].push(e);});
+  const months=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const mName=mk=>{const[y,m]=mk.split('-');return(months[parseInt(m)-1]||'').toUpperCase()+' '+y;};
+  let html='<div class="section-title">📋 Planing & Créditos</div><div class="section-sub">Historial de tours operados.</div>';
+  Object.keys(byMonth).sort().forEach(mk=>{
+    html+='<div class="month-sep">/////// '+mName(mk)+' ///////</div>';
+    byMonth[mk].sort((a,b)=>a.fecha>b.fecha?1:-1).forEach(e=>{
+      html+='<div class="entry-card">'
+        +'<div class="entry-tour">'+e.tourNombre+'</div>'
+        +'<div class="entry-fecha">'+fmtDDMMYYYY(e.fecha)+(e.horario?' + '+e.horario:'')+'</div>'
+        +'<div><div class="entry-label">Idioma</div><div class="entry-val">'+(e.idioma||'—')+'</div></div>'
+        +'<div><div class="entry-label">PAX / Asist.</div><div class="entry-val">'+(e.paxTotal||0)+' / '+(e.asistentes||0)+'</div></div>'
+        +'<div><div class="entry-label">Créd.</div><div class="entry-cred">'+(e.creditos||0)+'</div></div>'
+        +'</div>';
+    });
+  });
+  // Score mensual
+  const mesMap={};
+  entries.forEach(e=>{if(!e.fecha)return;const[y,m]=e.fecha.split('-');const mk=y+'-'+m;if(!mesMap[mk]){const last=new Date(parseInt(y),parseInt(m),0).getDate();mesMap[mk]={inicio:y+'-'+m+'-01',fin:y+'-'+m+'-'+String(last).padStart(2,'0'),creditos:0};}mesMap[mk].creditos+=parseInt(e.creditos)||0;});
+  const mnFull=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  html+='<div class="divider"></div><div class="section-title">📅 Score mensual</div><div class="section-sub">Total de créditos por mes calendario.</div>';
+  Object.keys(mesMap).sort().forEach(mk=>{
+    const sm=mesMap[mk];const[y,m]=mk.split('-');
+    const pg=pagos.find(p=>p.semana==='mes_'+mk);
+    const est=pg?pg.estado:'pendiente';
+    html+='<div class="mes-block">'
+      +'<div><div class="mes-nombre">📅 '+mnFull[parseInt(m)-1]+' '+y+'</div>'
+      +'<div class="mes-range">'+fmtDate(sm.inicio)+' → '+fmtDate(sm.fin)+'</div></div>'
+      +'<div style="text-align:right"><div class="mes-cred">'+sm.creditos+' créditos</div>'
+      +'<div class="mes-estado '+'estado-'+est+'">'+(est==='pagado'?'✅ Pagado':'⏳ Pendiente')+'</div></div>'
+      +'</div>';
+  });
+  el.innerHTML=html;
+}
+loadData();
+</script>
+</body>
+</html>`;
+}
 async function createNewGuia(){
   const nombre=document.getElementById('newGuiaName').value.trim();if(!nombre){showToast('Escribe el nombre','error');return;}
   if(dossierGuias.includes(nombre)){showToast('Ya existe','warning');closeNewGuiaModal();return;}
