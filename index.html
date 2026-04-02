@@ -687,8 +687,8 @@ function showToast(msg,type='success',duration=3500){const t=document.getElement
 function normalizarFecha(val){if(!val)return'';const s=String(val);if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;try{const d=new Date(s);if(!isNaN(d.getTime()))return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}catch(e){}return s;}
 function normalizarHorario(val){if(!val)return'';const s=String(val);if(/^\d{1,2}:\d{2}$/.test(s))return s;try{const d=new Date(s);if(!isNaN(d.getTime()))return`${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}`;}catch(e){}return s;}
 function formatDate(str){if(!str)return'';const s=normalizarFecha(String(str));if(!s)return String(str);const[y,m,d]=s.split('-');const months=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];const mn=months[parseInt(m)-1];if(!mn||isNaN(parseInt(d)))return s;return`${parseInt(d)} ${mn} ${y}`;}
-function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function formatDateDDMMYYYY(str){if(!str)return'';const s=normalizarFecha(String(str));if(!s)return String(str);const[y,m,d]=s.split('-');if(isNaN(parseInt(d)))return s;return`${String(parseInt(d)).padStart(2,'0')}/${String(parseInt(m)).padStart(2,'0')}/${y}`;}
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function getSemanaKey(fechaStr){const d=new Date(fechaStr+'T00:00:00');const dow=d.getDay();const diff=dow===0?-6:1-dow;const lun=new Date(d);lun.setDate(d.getDate()+diff);const dom=new Date(lun);dom.setDate(lun.getDate()+6);const fmt=x=>`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;return{key:fmt(lun)+'_'+fmt(dom),inicio:fmt(lun),fin:fmt(dom)};}
 
 // ─── CACHE ───────────────────────────────────────────────────────────────────
@@ -1406,138 +1406,119 @@ async function saveManualDossierEntry(){
   hideLoading();
 }
 
-// ─── VISTA PÚBLICA DOSSIER (descargable, llama API en vivo) ──────────────────
+// ─── VISTA PÚBLICA DOSSIER ────────────────────────────────────────────────────
 function downloadDossierPublic(guia){
   const html=buildDossierPublicHTML(guia);
   const blob=new Blob([html],{type:'text/html;charset=utf-8'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
-  a.href=url;a.download=`dossier-${guia.replace(/\s+/g,'-').toLowerCase()}.html`;
+  a.href=url;a.download='dossier-'+guia.replace(/\s+/g,'-').toLowerCase()+'.html';
   document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-  showToast(`Vista pública de ${guia} descargada ✓`);
+  showToast('Vista pública de '+guia+' descargada ✓');
 }
 function buildDossierPublicHTML(guia){
-  const apiUrl=API;
-  return`<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${escH(guia)} · Dossier · Gente de París</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-:root{--noir:#0f0f0f;--charcoal:#1a1a1a;--graphite:#2c2c2c;--smoke:#3d3d3d;--muted:#888;--light:#c8c8c8;--white:#f5f2ec;--gold:#c9a84c;--gold-l:#e8c97a;--green:#27ae60;}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--noir);color:var(--white);font-family:'DM Sans',sans-serif;font-weight:300;min-height:100vh;}
-.header{background:#1B2B4B;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
-.header-title{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--white);}
-.header-sub{font-size:0.78rem;color:rgba(255,255,255,0.6);margin-top:3px;}
-.btn-refresh{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:6px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.08);color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.84rem;cursor:pointer;transition:all 0.18s;}
-.btn-refresh:hover{background:rgba(255,255,255,0.15);}
-.btn-refresh.loading{opacity:0.6;pointer-events:none;}
-.content{max-width:900px;margin:0 auto;padding:22px 18px;}
-.section-title{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--white);margin-bottom:6px;}
-.section-sub{font-size:0.74rem;color:var(--muted);margin-bottom:16px;}
-.month-sep{font-size:0.7rem;letter-spacing:0.15em;color:var(--gold);padding:10px 0 6px;border-bottom:1px solid rgba(201,168,76,0.18);margin-bottom:8px;}
-.entry-card{background:var(--charcoal);border:1px solid var(--graphite);border-radius:8px;padding:13px 16px;margin-bottom:8px;display:grid;grid-template-columns:2fr 1.4fr 0.8fr 0.8fr 0.6fr;gap:10px;align-items:center;}
-@media(max-width:600px){.entry-card{grid-template-columns:1fr 1fr;gap:8px;}}
-.entry-tour{font-family:'Playfair Display',serif;font-size:0.92rem;color:var(--white);}
-.entry-fecha{font-size:0.78rem;color:var(--light);}
-.entry-label{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:2px;}
-.entry-val{font-size:0.85rem;color:var(--light);}
-.entry-cred{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--gold);font-weight:600;}
-.mes-block{background:var(--graphite);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:15px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
-.mes-nombre{font-family:'Playfair Display',serif;font-size:1rem;color:var(--white);}
-.mes-range{font-size:0.72rem;color:var(--muted);margin-top:2px;}
-.mes-cred{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--gold);font-weight:600;}
-.mes-estado{font-size:0.76rem;margin-top:3px;}
-.estado-pendiente{color:#f39c12;}
-.estado-pagado{color:var(--green);}
-.divider{height:1px;background:var(--graphite);margin:26px 0;}
-.empty{text-align:center;padding:40px;color:var(--muted);font-size:0.88rem;}
-.spinner{width:32px;height:32px;border:3px solid var(--graphite);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin:40px auto;}
-@keyframes spin{to{transform:rotate(360deg)}}
-.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);background:#1B2B4B;color:white;padding:10px 20px;border-radius:20px;font-size:0.82rem;opacity:0;pointer-events:none;transition:all 0.3s;z-index:99;}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-</style>
-</head>
-<body>
-<div class="header">
-  <div>
-    <div class="header-title">📁 Dossier — ${escH(guia)}</div>
-    <div class="header-sub" id="lastUpdate">Cargando datos...</div>
-  </div>
-  <button class="btn-refresh" id="btnRefresh" onclick="loadData()">↻ Actualizar</button>
-</div>
-<div class="content" id="mainContent"><div class="spinner"></div></div>
-<div class="toast" id="toast"></div>
-<script>
-const API='${apiUrl}';
-const GUIA='${escH(guia)}';
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
-function normFecha(val){if(!val)return'';const s=String(val);if(/^\\d{4}-\\d{2}-\\d{2}$/.test(s))return s;try{const d=new Date(s);if(!isNaN(d.getTime()))return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}catch(e){}return s;}
-function normHorario(val){if(!val)return'';const s=String(val);if(/^\\d{1,2}:\\d{2}$/.test(s))return s;try{const d=new Date(s);if(!isNaN(d.getTime()))return String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0');}catch(e){}return s;}
-function fmtDDMMYYYY(str){if(!str)return'';const s=normFecha(str);if(!s)return str;const[y,m,d]=s.split('-');return String(parseInt(d)).padStart(2,'0')+'/'+String(parseInt(m)).padStart(2,'0')+'/'+y;}
-function fmtDate(str){if(!str)return'';const s=normFecha(str);if(!s)return str;const[y,m,d]=s.split('-');const mn=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];return parseInt(d)+' '+(mn[parseInt(m)-1]||'')+ ' '+y;}
-async function apiCall(params){const url=new URL(API);Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,typeof v==='object'?JSON.stringify(v):v));const res=await fetch(url.toString());const txt=await res.text();let r;try{r=JSON.parse(txt);}catch(e){throw new Error('No JSON');}if(r&&r.error)throw new Error(r.error);return r;}
-async function loadData(){
-  const btn=document.getElementById('btnRefresh');
-  btn.classList.add('loading');btn.textContent='↻ Cargando...';
-  try{
-    const[entries,pagos]=await Promise.all([
-      apiCall({action:'getDossier',guia:GUIA}),
-      apiCall({action:'getPagosSemana',guia:GUIA})
-    ]);
-    const ents=(Array.isArray(entries)?entries:[]).map(e=>({...e,fecha:normFecha(e.fecha),horario:normHorario(e.horario)}));
-    const pags=(Array.isArray(pagos)?pagos:[]);
-    render(ents,pags);
-    document.getElementById('lastUpdate').textContent='Última actualización: '+new Date().toLocaleTimeString('es-ES');
-    showToast('Datos actualizados ✓');
-  }catch(e){document.getElementById('mainContent').innerHTML='<div class="empty">Error al cargar datos.<br>Comprueba tu conexión.</div>';}
-  btn.classList.remove('loading');btn.textContent='↻ Actualizar';
-}
-function render(entries,pagos){
-  const el=document.getElementById('mainContent');
-  if(!entries.length){el.innerHTML='<div class="empty">No hay registros aún.</div>';return;}
-  const byMonth={};
-  entries.filter(e=>e.fecha).forEach(e=>{const[y,m]=e.fecha.split('-');const mk=y+'-'+m;if(!byMonth[mk])byMonth[mk]=[];byMonth[mk].push(e);});
-  const months=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-  const mName=mk=>{const[y,m]=mk.split('-');return(months[parseInt(m)-1]||'').toUpperCase()+' '+y;};
-  let html='<div class="section-title">📋 Planing & Créditos</div><div class="section-sub">Historial de tours operados.</div>';
-  Object.keys(byMonth).sort().forEach(mk=>{
-    html+='<div class="month-sep">/////// '+mName(mk)+' ///////</div>';
-    byMonth[mk].sort((a,b)=>a.fecha>b.fecha?1:-1).forEach(e=>{
-      html+='<div class="entry-card">'
-        +'<div class="entry-tour">'+e.tourNombre+'</div>'
-        +'<div class="entry-fecha">'+fmtDDMMYYYY(e.fecha)+(e.horario?' + '+e.horario:'')+'</div>'
-        +'<div><div class="entry-label">Idioma</div><div class="entry-val">'+(e.idioma||'—')+'</div></div>'
-        +'<div><div class="entry-label">PAX / Asist.</div><div class="entry-val">'+(e.paxTotal||0)+' / '+(e.asistentes||0)+'</div></div>'
-        +'<div><div class="entry-label">Créd.</div><div class="entry-cred">'+(e.creditos||0)+'</div></div>'
-        +'</div>';
-    });
-  });
-  // Score mensual
-  const mesMap={};
-  entries.forEach(e=>{if(!e.fecha)return;const[y,m]=e.fecha.split('-');const mk=y+'-'+m;if(!mesMap[mk]){const last=new Date(parseInt(y),parseInt(m),0).getDate();mesMap[mk]={inicio:y+'-'+m+'-01',fin:y+'-'+m+'-'+String(last).padStart(2,'0'),creditos:0};}mesMap[mk].creditos+=parseInt(e.creditos)||0;});
-  const mnFull=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  html+='<div class="divider"></div><div class="section-title">📅 Score mensual</div><div class="section-sub">Total de créditos por mes calendario.</div>';
-  Object.keys(mesMap).sort().forEach(mk=>{
-    const sm=mesMap[mk];const[y,m]=mk.split('-');
-    const pg=pagos.find(p=>p.semana==='mes_'+mk);
-    const est=pg?pg.estado:'pendiente';
-    html+='<div class="mes-block">'
-      +'<div><div class="mes-nombre">📅 '+mnFull[parseInt(m)-1]+' '+y+'</div>'
-      +'<div class="mes-range">'+fmtDate(sm.inicio)+' → '+fmtDate(sm.fin)+'</div></div>'
-      +'<div style="text-align:right"><div class="mes-cred">'+sm.creditos+' créditos</div>'
-      +'<div class="mes-estado '+'estado-'+est+'">'+(est==='pagado'?'✅ Pagado':'⏳ Pendiente')+'</div></div>'
-      +'</div>';
-  });
-  el.innerHTML=html;
-}
-loadData();
-</script>
-</body>
-</html>`;
+  var apiUrl=API;
+  var guiaSafe=guia.replace(/'/g,"\\'");
+  var parts=[];
+  parts.push('<!DOCTYPE html>');
+  parts.push('<html lang="es"><head>');
+  parts.push('<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">');
+  parts.push('<title>'+guia+' \u00b7 Dossier \u00b7 Gente de Par\u00eds<\/title>');
+  parts.push('<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">');
+  parts.push('<style>');
+  parts.push(':root{--noir:#0f0f0f;--charcoal:#1a1a1a;--graphite:#2c2c2c;--muted:#888;--light:#c8c8c8;--white:#f5f2ec;--gold:#c9a84c;--green:#27ae60;}');
+  parts.push('*{box-sizing:border-box;margin:0;padding:0;}body{background:var(--noir);color:var(--white);font-family:"DM Sans",sans-serif;font-weight:300;min-height:100vh;}');
+  parts.push('.header{background:#1B2B4B;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}');
+  parts.push('.header-title{font-family:"Playfair Display",serif;font-size:1.2rem;color:var(--white);}');
+  parts.push('.header-sub{font-size:0.78rem;color:rgba(255,255,255,0.6);margin-top:3px;}');
+  parts.push('.btn-refresh{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:6px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.08);color:var(--white);font-family:"DM Sans",sans-serif;font-size:0.84rem;cursor:pointer;transition:all 0.18s;}');
+  parts.push('.btn-refresh:hover{background:rgba(255,255,255,0.15);}.btn-refresh.loading{opacity:0.6;pointer-events:none;}');
+  parts.push('.content{max-width:900px;margin:0 auto;padding:22px 18px;}');
+  parts.push('.section-title{font-family:"Playfair Display",serif;font-size:1.05rem;color:var(--white);margin-bottom:6px;}');
+  parts.push('.section-sub{font-size:0.74rem;color:var(--muted);margin-bottom:16px;}');
+  parts.push('.month-sep{font-size:0.7rem;letter-spacing:0.15em;color:var(--gold);padding:10px 0 6px;border-bottom:1px solid rgba(201,168,76,0.18);margin-bottom:8px;}');
+  parts.push('.entry-card{background:var(--charcoal);border:1px solid var(--graphite);border-radius:8px;padding:13px 16px;margin-bottom:8px;display:grid;grid-template-columns:2fr 1.4fr 0.8fr 0.8fr 0.6fr;gap:10px;align-items:center;}');
+  parts.push('@media(max-width:600px){.entry-card{grid-template-columns:1fr 1fr;gap:8px;}}');
+  parts.push('.entry-tour{font-family:"Playfair Display",serif;font-size:0.92rem;color:var(--white);}');
+  parts.push('.entry-fecha{font-size:0.78rem;color:var(--light);}');
+  parts.push('.entry-label{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:2px;}');
+  parts.push('.entry-val{font-size:0.85rem;color:var(--light);}');
+  parts.push('.entry-cred{font-family:"Playfair Display",serif;font-size:1.1rem;color:var(--gold);font-weight:600;}');
+  parts.push('.mes-block{background:var(--graphite);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:15px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}');
+  parts.push('.mes-nombre{font-family:"Playfair Display",serif;font-size:1rem;color:var(--white);}');
+  parts.push('.mes-range{font-size:0.72rem;color:var(--muted);margin-top:2px;}');
+  parts.push('.mes-cred{font-family:"Playfair Display",serif;font-size:1.4rem;color:var(--gold);font-weight:600;}');
+  parts.push('.mes-estado{font-size:0.76rem;margin-top:3px;}.estado-pendiente{color:#f39c12;}.estado-pagado{color:var(--green);}');
+  parts.push('.divider{height:1px;background:var(--graphite);margin:26px 0;}');
+  parts.push('.empty{text-align:center;padding:40px;color:var(--muted);font-size:0.88rem;}');
+  parts.push('.spinner{width:32px;height:32px;border:3px solid var(--graphite);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin:40px auto;}');
+  parts.push('@keyframes spin{to{transform:rotate(360deg)}}');
+  parts.push('.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);background:#1B2B4B;color:white;padding:10px 20px;border-radius:20px;font-size:0.82rem;opacity:0;pointer-events:none;transition:all 0.3s;z-index:99;}');
+  parts.push('.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}');
+  parts.push('<\/style><\/head><body>');
+  parts.push('<div class="header"><div><div class="header-title">📁 Dossier \u2014 '+guia+'<\/div><div class="header-sub" id="lastUpdate">Cargando datos...<\/div><\/div><button class="btn-refresh" id="btnRefresh" onclick="loadData()">\u21bb Actualizar<\/button><\/div>');
+  parts.push('<div class="content" id="mainContent"><div class="spinner"><\/div><\/div>');
+  parts.push('<div class="toast" id="toast"><\/div>');
+  parts.push('<script>');
+  parts.push('var API="'+apiUrl+'";');
+  parts.push('var GUIA="'+guiaSafe+'";');
+  parts.push('function showToast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},2500);}');
+  parts.push('function normFecha(v){if(!v)return"";var s=String(v);if(/^\\d{4}-\\d{2}-\\d{2}$/.test(s))return s;try{var d=new Date(s);if(!isNaN(d.getTime()))return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}catch(e){}return s;}');
+  parts.push('function normHorario(v){if(!v)return"";var s=String(v);if(/^\\d{1,2}:\\d{2}$/.test(s))return s;try{var d=new Date(s);if(!isNaN(d.getTime()))return String(d.getUTCHours()).padStart(2,"0")+":"+String(d.getUTCMinutes()).padStart(2,"0");}catch(e){}return s;}');
+  parts.push('function fmtDDMMYYYY(str){if(!str)return"";var s=normFecha(str);if(!s)return str;var p=s.split("-");return String(parseInt(p[2])).padStart(2,"0")+"/"+String(parseInt(p[1])).padStart(2,"0")+"/"+p[0];}');
+  parts.push('function fmtDate(str){if(!str)return"";var s=normFecha(str);if(!s)return str;var p=s.split("-");var mn=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];return parseInt(p[2])+" "+(mn[parseInt(p[1])-1]||"")+" "+p[0];}');
+  parts.push('function apiCall(params){var url=new URL(API);Object.keys(params).forEach(function(k){url.searchParams.set(k,typeof params[k]==="object"?JSON.stringify(params[k]):params[k]);});return fetch(url.toString()).then(function(r){return r.text();}).then(function(txt){var r=JSON.parse(txt);if(r&&r.error)throw new Error(r.error);return r;});}');
+  parts.push('function loadData(){');
+  parts.push('  var btn=document.getElementById("btnRefresh");');
+  parts.push('  btn.classList.add("loading");btn.textContent="\u21bb Cargando...";');
+  parts.push('  Promise.all([apiCall({action:"getDossier",guia:GUIA}),apiCall({action:"getPagosSemana",guia:GUIA})]).then(function(results){');
+  parts.push('    var entries=(Array.isArray(results[0])?results[0]:[]).map(function(e){return Object.assign({},e,{fecha:normFecha(e.fecha),horario:normHorario(e.horario)});});');
+  parts.push('    var pagos=Array.isArray(results[1])?results[1]:[];');
+  parts.push('    render(entries,pagos);');
+  parts.push('    document.getElementById("lastUpdate").textContent="Última actualización: "+new Date().toLocaleTimeString("es-ES");');
+  parts.push('    showToast("Datos actualizados \u2713");');
+  parts.push('  }).catch(function(){document.getElementById("mainContent").innerHTML="<div class=\\"empty\\">Error al cargar datos.<br>Comprueba tu conexión.<\/div>";});');
+  parts.push('  btn.classList.remove("loading");btn.textContent="\u21bb Actualizar";');
+  parts.push('}');
+  parts.push('function render(entries,pagos){');
+  parts.push('  var el=document.getElementById("mainContent");');
+  parts.push('  if(!entries.length){el.innerHTML="<div class=\\"empty\\">No hay registros aún.<\/div>";return;}');
+  parts.push('  var byMonth={};');
+  parts.push('  entries.filter(function(e){return e.fecha;}).forEach(function(e){var p=e.fecha.split("-");var mk=p[0]+"-"+p[1];if(!byMonth[mk])byMonth[mk]=[];byMonth[mk].push(e);});');
+  parts.push('  var months=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];');
+  parts.push('  var mName=function(mk){var p=mk.split("-");return(months[parseInt(p[1])-1]||"").toUpperCase()+" "+p[0];};');
+  parts.push('  var html="<div class=\\"section-title\\">📋 Planing & Créditos<\/div><div class=\\"section-sub\\">Historial de tours operados.<\/div>";');
+  parts.push('  Object.keys(byMonth).sort().forEach(function(mk){');
+  parts.push('    html+="<div class=\\"month-sep\\">///////  "+mName(mk)+"  \/\/\/\/\/\/\/<\/div>";');
+  parts.push('    byMonth[mk].sort(function(a,b){return a.fecha>b.fecha?1:-1;}).forEach(function(e){');
+  parts.push('      html+="<div class=\\"entry-card\\">"');
+  parts.push('        +"<div class=\\"entry-tour\\">"+e.tourNombre+"<\/div>"');
+  parts.push('        +"<div class=\\"entry-fecha\\">"+fmtDDMMYYYY(e.fecha)+(e.horario?" + "+e.horario:"")+"<\/div>"');
+  parts.push('        +"<div><div class=\\"entry-label\\">Idioma<\/div><div class=\\"entry-val\\">"+(e.idioma||"\u2014")+"<\/div><\/div>"');
+  parts.push('        +"<div><div class=\\"entry-label\\">PAX \/ Asist.<\/div><div class=\\"entry-val\\">"+(e.paxTotal||0)+" \/ "+(e.asistentes||0)+"<\/div><\/div>"');
+  parts.push('        +"<div><div class=\\"entry-label\\">Créd.<\/div><div class=\\"entry-cred\\">"+(e.creditos||0)+"<\/div><\/div>"');
+  parts.push('        +"<\/div>";');
+  parts.push('    });');
+  parts.push('  });');
+  parts.push('  var mesMap={};');
+  parts.push('  entries.forEach(function(e){if(!e.fecha)return;var p=e.fecha.split("-");var mk=p[0]+"-"+p[1];if(!mesMap[mk]){var last=new Date(parseInt(p[0]),parseInt(p[1]),0).getDate();mesMap[mk]={inicio:p[0]+"-"+p[1]+"-01",fin:p[0]+"-"+p[1]+"-"+String(last).padStart(2,"0"),creditos:0};}mesMap[mk].creditos+=parseInt(e.creditos)||0;});');
+  parts.push('  var mnFull=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];');
+  parts.push('  html+="<div class=\\"divider\\"><\/div><div class=\\"section-title\\">📅 Score mensual<\/div><div class=\\"section-sub\\">Total de créditos por mes calendario.<\/div>";');
+  parts.push('  Object.keys(mesMap).sort().forEach(function(mk){');
+  parts.push('    var sm=mesMap[mk];var p=mk.split("-");');
+  parts.push('    var pg=pagos.find(function(x){return x.semana==="mes_"+mk;});');
+  parts.push('    var est=pg?pg.estado:"pendiente";');
+  parts.push('    html+="<div class=\\"mes-block\\">"');
+  parts.push('      +"<div><div class=\\"mes-nombre\\">📅 "+mnFull[parseInt(p[1])-1]+" "+p[0]+"<\/div>"');
+  parts.push('      +"<div class=\\"mes-range\\">"+fmtDate(sm.inicio)+" \u2192 "+fmtDate(sm.fin)+"<\/div><\/div>"');
+  parts.push('      +"<div style=\\"text-align:right\\"><div class=\\"mes-cred\\">"+sm.creditos+" créditos<\/div>"');
+  parts.push('      +"<div class=\\"mes-estado estado-"+est+"\\">"+( est==="pagado"?"\u2705 Pagado":"\u23f3 Pendiente")+"<\/div><\/div><\/div>";');
+  parts.push('  });');
+  parts.push('  el.innerHTML=html;');
+  parts.push('}');
+  parts.push('loadData();');
+  parts.push('<\/script><\/body><\/html>');
+  return parts.join('\n');
 }
 async function createNewGuia(){
   const nombre=document.getElementById('newGuiaName').value.trim();if(!nombre){showToast('Escribe el nombre','error');return;}
