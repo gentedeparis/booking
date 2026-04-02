@@ -930,6 +930,9 @@ function evaluarLimpieza(){
 }
 
 // ─── MEJORA 2: LISTADOS POR TOUR/FECHA ───────────────────────────────────────
+// Registro global para evitar problemas de escaping JSON en onclick inline
+let _listadosGrupos=[];
+
 function renderListados(){
   const filtro=document.getElementById('filtroListadoFecha').value;
   const container=document.getElementById('listadosContainer');
@@ -952,12 +955,12 @@ function renderListados(){
     return(a.horario||'')>(b.horario||'')?1:-1;
   });
 
-  container.innerHTML=sorted.map(g=>{
+  // Guardar en registro global para acceso seguro desde onclick
+  _listadosGrupos=sorted;
+
+  container.innerHTML=sorted.map((g,idx)=>{
     const totalPax=g.reservas.reduce((s,r)=>(parseInt(r.adultos)||0)+(parseInt(r.menores)||0)+s,0);
     const totalRes=g.reservas.length;
-    // Buscar tourId para precargar
-    const tourIdEnc=escH(g.tourId||'');
-    const fechaEnc=escH(g.fecha);
     const paxRows=g.reservas.map(r=>`
       <div class="listado-pax-row">
         <div class="listado-pax-name">${escH(r.nombre||'—')}</div>
@@ -974,7 +977,7 @@ function renderListados(){
         <div class="listado-grupo-stats">
           <span class="badge b-gold">${totalPax} PAX</span>
           <span class="badge b-muted">${totalRes} res.</span>
-          <button class="btn btn-terra btn-sm" onclick="precargarJornada('${tourIdEnc}','${fechaEnc}','${escH(g.tourNombre||'')}','${escH(g.horario||'')}',${JSON.stringify(g.reservas.map(r=>({name:r.nombre||'',adults:parseInt(r.adultos)||0,minors:parseInt(r.menores)||0,wa:r.whatsapp||''})))})">→ Crear jornada</button>
+          <button class="btn btn-terra btn-sm" onclick="precargarJornada(${idx})">→ Crear jornada</button>
         </div>
       </div>
       <div class="listado-grupo-body">${paxRows}</div>
@@ -982,8 +985,15 @@ function renderListados(){
   }).join('');
 }
 
-// MEJORA 2: precarga Tour Manager con datos del grupo
-function precargarJornada(tourId,fecha,tourNombre,horario,clientesJSON){
+// MEJORA 2: precarga Tour Manager con datos del grupo (recibe índice del registro global)
+function precargarJornada(idx){
+  const g=_listadosGrupos[idx];
+  if(!g){showToast('Grupo no encontrado','error');return;}
+  const tourId=g.tourId||'';
+  const fecha=g.fecha;
+  const tourNombre=g.tourNombre||'';
+  const horario=g.horario||'';
+  const clientes=g.reservas.map(r=>({name:r.nombre||'',adults:parseInt(r.adultos)||0,minors:parseInt(r.menores)||0,wa:r.whatsapp||''}));
   nav('ops');
   // Esperar a que la sección esté activa, luego precargar
   setTimeout(()=>{
@@ -1003,9 +1013,8 @@ function precargarJornada(tourId,fecha,tourNombre,horario,clientesJSON){
           // Limpiar fila vacía inicial
           wrap.querySelectorAll('.pax-card').forEach(p=>p.remove());
           // Añadir clientes reales
-          const clients=typeof clientesJSON==='string'?JSON.parse(clientesJSON):clientesJSON;
           const paxContainer=wrap.querySelector('.pax-inputs');
-          clients.forEach(c=>opsAddRowInAcord(paxContainer,c));
+          clientes.forEach(c=>opsAddRowInAcord(paxContainer,c));
           // Abrir acordeón
           const header=wrap.querySelector('.acord-header');
           if(header)toggleAcord(header);
