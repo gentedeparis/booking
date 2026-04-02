@@ -666,7 +666,7 @@ let civData=null;
 let dossierGuias=[],dossierActivo=null,dossierEntries={},pagosEntries={};
 
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
-const SECTION_TITLES={dash:'Dashboard',tours:'Tours',bloqueos:'Bloqueos',reservas:'Reservas',civitatis:'Civitatis',ops:'Tour Manager',dossier:'Dossier de Guías',listados:'Listados por Fecha'};
+const SECTION_TITLES={dash:'Dashboard',tours:'Tours',bloqueos:'Bloqueos',listareservas:'Lista Reservas',civitatis:'Civitatis',ops:'Tour Manager',dossier:'Dossier de Guías'};
 function nav(sec){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));
@@ -866,80 +866,20 @@ async function deleteBloqueo(id){
 }
 
 // ─── RESERVAS (con MEJORA 1) ──────────────────────────────────────────────────
-async function loadReservas(){
-  setSyncStatus('loading','Actualizando...');
-  try{
-    const raw=await apiCall({action:'getReservas'});
-    reservas=(Array.isArray(raw)?raw:[]).map(r=>({...r,fecha:normalizarFecha(r.fecha),horario:normalizarHorario(r.horario)}));
-    renderReservas();evaluarLimpieza();setSyncStatus('ok','Sincronizado');updateDashboard();
-  }catch(e){setSyncStatus('error','Error');showToast('Error cargando reservas','error');}
-}
-function renderReservas(){
-  const filtro=document.getElementById('filtroFecha').value;
-  const lista=filtro?reservas.filter(r=>r.fecha===filtro):reservas;
-  const container=document.getElementById('reservasContainer');
-  if(!lista.length){container.innerHTML=`<div class="empty-state"><div class="ei">📋</div>No hay reservas${filtro?' para esta fecha.':' todavía.'}</div>`;return;}
-  const sorted=[...lista].sort((a,b)=>b.timestamp>a.timestamp?1:-1);
-  // MEJORA 1: contar no vistas
-  const noVistas=sorted.filter(r=>String(r.vista)!=='si'&&r.estado!=='cancelada').length;
-  let html='';
-  if(noVistas>0){
-    html+=`<div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:0.82rem;color:var(--gold);display:flex;align-items:center;gap:10px;">
-      <span>✨</span><span>${noVistas} reserva${noVistas!==1?'s':''} nueva${noVistas!==1?'s':''} sin ver</span>
-      <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="marcarTodasVistas()">Marcar todas como vistas</button>
-    </div>`;
-  }
-  html+=`<table><thead><tr><th>Fecha</th><th>Tour</th><th>Horario</th><th>Cliente</th><th>WhatsApp</th><th>Pax</th><th>Total</th><th>Estado</th><th></th></tr></thead><tbody>`;
-  html+=sorted.map(r=>{
-    const cancelada=r.estado==='cancelada';
-    // MEJORA 1: detectar si es nueva (vista !== 'si')
-    const esNueva=!cancelada&&String(r.vista)!=='si';
-    return`<tr class="${cancelada?'cancelled':''}${esNueva?' res-nueva':''}">
-      <td>${formatDate(r.fecha)}</td>
-      <td>${r.tourNombre||''}</td>
-      <td>${r.horario||''}</td>
-      <td>${r.nombre||''}${esNueva?' <span class="badge b-new" style="font-size:0.6rem">NUEVA</span>':''}</td>
-      <td><a href="https://wa.me/${r.whatsapp}" target="_blank" style="color:var(--gold);text-decoration:none">📱 ${r.whatsapp}</a></td>
-      <td>${r.adultos||0}A ${r.menores||0}M</td>
-      <td><span class="total-tag">${r.total||0}€</span></td>
-      <td>${cancelada?'<span class="badge b-muted">Cancelada</span>':'<span class="badge b-green">Confirmada</span>'}</td>
-      <td style="white-space:nowrap">
-        ${esNueva?`<button class="btn btn-ghost btn-sm" title="Marcar como vista" onclick="marcarVista('${r.id}')">👁</button>`:''}
-        ${!cancelada?`<button class="btn btn-cancel-res btn-sm" onclick="cancelarReserva('${r.id}','${r.nombre}','${r.whatsapp}','${r.fecha}','${r.tourNombre}')">✕</button>`:''}
-        <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="eliminarReserva('${r.id}')">🗑</button>
-      </td>
-    </tr>`;
-  }).join('');
-  html+='</tbody></table>';
-  container.innerHTML=html;
-}
 
-// MEJORA 1: marcar vista en Sheets
+// Marcar reserva como vista en Sheets
 async function marcarVista(id){
   try{
     await apiCall({action:'marcarVista',id});
-    // Actualizar estado local sin recargar
     const r=reservas.find(x=>x.id===id);
     if(r)r.vista='si';
-    renderReservas();
-    showToast('Marcada como vista ✓');
-  }catch(e){showToast('Error al marcar','error');}
-}
-async function marcarTodasVistas(){
-  const noVistas=reservas.filter(r=>String(r.vista)!=='si'&&r.estado!=='cancelada');
-  showLoading();
-  for(const r of noVistas){
-    try{await apiCall({action:'marcarVista',id:r.id});r.vista='si';}catch(e){}
-  }
-  hideLoading();
-  renderReservas();
-  showToast('Todas marcadas como vistas ✓');
+  }catch(e){console.warn('Error marcarVista:',e);}
 }
 
-async function eliminarReserva(id){if(!confirm('¿Eliminar?'))return;showLoading();try{await apiCall({action:'deleteReserva',id});await loadReservas();showToast('Eliminada ✓');}catch(e){showToast('Error','error');}hideLoading();}
+async function eliminarReserva(id){if(!confirm('¿Eliminar?'))return;showLoading();try{await apiCall({action:'deleteReserva',id});reservas=reservas.filter(r=>r.id!==id);showToast('Eliminada ✓');}catch(e){showToast('Error','error');}hideLoading();}
 async function cancelarReserva(id,nombre,whatsapp,fecha,tourNombre){
   if(!confirm(`¿Cancelar reserva de ${nombre}?`))return;showLoading();
-  try{await apiCall({action:'cancelReserva',id});await loadReservas();showToast('Cancelada ✓');
+  try{await apiCall({action:'cancelReserva',id});reservas=(await apiCall({action:'getReservas'})).map(r=>({...r,fecha:normalizarFecha(r.fecha),horario:normalizarHorario(r.horario)}));showToast('Cancelada ✓');
   const msg=encodeURIComponent(`Hola ${nombre} 👋\n\nTe escribimos desde *Gente de París* para informarte que tu reserva ha sido *cancelada*:\n\n📅 Fecha: ${formatDate(fecha)}\n🎯 Tour: ${tourNombre}\n\nLamentamos los inconvenientes. ¡Hasta pronto! 🗼`);
   window.open(`https://wa.me/${whatsapp.replace(/[^0-9]/g,'')}?text=${msg}`,'_blank');}
   catch(e){showToast('Error','error');}hideLoading();
@@ -965,7 +905,7 @@ async function borrarReservasAntiguas(){const antiguas=getReservasAntiguas();let
 async function accionDescargarYLimpiar(){
   const antiguas=getReservasAntiguas();if(!antiguas.length){showToast('No hay antiguas','error');return;}
   exportarCSV(true);
-  setTimeout(async()=>{if(!confirm(`CSV descargado. ¿Confirmar eliminación de ${antiguas.length} reservas?`))return;showLoading();const errores=await borrarReservasAntiguas();hideLoading();if(!errores){setLimpiezaState({ultimaLimpieza:new Date().toISOString()});await loadReservas();document.getElementById('bannerLimpieza').innerHTML='';showToast(`${antiguas.length} reservas archivadas ✓`);}else showToast('Algunas no pudieron eliminarse','error');},800);
+  setTimeout(async()=>{if(!confirm(`CSV descargado. ¿Confirmar eliminación de ${antiguas.length} reservas?`))return;showLoading();const errores=await borrarReservasAntiguas();hideLoading();if(!errores){setLimpiezaState({ultimaLimpieza:new Date().toISOString()});const rawR=await apiCall({action:'getReservas'});reservas=(Array.isArray(rawR)?rawR:[]).map(r=>({...r,fecha:normalizarFecha(r.fecha),horario:normalizarHorario(r.horario)}));document.getElementById('bannerLimpieza').innerHTML='';showToast(`${antiguas.length} reservas archivadas ✓`);}else showToast('Algunas no pudieron eliminarse','error');},800);
 }
 function evaluarLimpieza(){
   const antiguas=getReservasAntiguas();if(!antiguas.length)return;
@@ -1576,12 +1516,7 @@ async function init(){
   if(cachedTours){tours=cachedTours;renderTours();populateTourSelect();renderTourCatalogChecks();setSyncStatus('ok','Desde caché');updateDashboard();}
   if(cachedBloqueos){bloqueos=cachedBloqueos;renderBloqueos();}
   refreshFromAPI();
-  // Cargar reservas en background para dashboard y listados
-  try{
-    const raw=await apiCall({action:'getReservas'});
-    reservas=(Array.isArray(raw)?raw:[]).map(r=>({...r,fecha:normalizarFecha(r.fecha),horario:normalizarHorario(r.horario)}));
-    updateDashboard();
-  }catch(e){}
+  // Reservas cargadas por refreshFromAPI en paralelo
 }
 init();
 </script>
