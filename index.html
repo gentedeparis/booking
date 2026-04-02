@@ -933,9 +933,17 @@ function evaluarLimpieza(){
 // Registro global para evitar problemas de escaping JSON en onclick inline
 let _listadosGrupos=[];
 
-function renderListados(){
+async function renderListados(){
   const filtro=document.getElementById('filtroListadoFecha').value;
   const container=document.getElementById('listadosContainer');
+  // Si no hay reservas cargadas, cargarlas primero
+  if(!reservas.length){
+    container.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando reservas...</div>';
+    try{
+      const raw=await apiCall({action:'getReservas'});
+      reservas=(Array.isArray(raw)?raw:[]).map(r=>({...r,fecha:normalizarFecha(r.fecha),horario:normalizarHorario(r.horario)}));
+    }catch(e){container.innerHTML='<div class="empty-state"><div class="ei">⚠️</div>Error cargando. Intenta de nuevo.</div>';return;}
+  }
   // Usar reservas confirmadas
   let lista=reservas.filter(r=>r.estado!=='cancelada');
   if(filtro)lista=lista.filter(r=>r.fecha===filtro);
@@ -991,40 +999,44 @@ function precargarJornada(idx){
   if(!g){showToast('Grupo no encontrado','error');return;}
   const tourId=g.tourId||'';
   const fecha=g.fecha;
-  const tourNombre=g.tourNombre||'';
-  const horario=g.horario||'';
   const clientes=g.reservas.map(r=>({name:r.nombre||'',adults:parseInt(r.adultos)||0,minors:parseInt(r.menores)||0,wa:r.whatsapp||''}));
-  nav('ops');
-  // Esperar a que la sección esté activa, luego precargar
+
+  // Navegar a Tour Manager manualmente (sin resetear checks)
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sec-ops').classList.add('active');
+  document.querySelector('[data-sec="ops"]')?.classList.add('active');
+
+  // Preparar el formulario de jornada
+  initOpsCreate();
+  renderOpsList();
+  renderTourCatalogChecks();
+  showOpsForm();
+  document.getElementById('ot-date').value=fecha;
+  document.getElementById('opsFormTitle').textContent='Nueva jornada — desde listado';
+
+  // Esperar a que el DOM del catálogo esté listo, luego marcar el tour
   setTimeout(()=>{
-    initOpsCreate();
-    showOpsForm();
-    document.getElementById('ot-date').value=fecha;
-    document.getElementById('opsFormTitle').textContent='Nueva jornada — desde listado';
-    // Marcar el check del tour correspondiente
     const checkEl=document.querySelector(`input[name="tourCheck"][value="${CSS.escape(tourId)}"]`);
     if(checkEl){
       checkEl.checked=true;
       onTourCheckChange();
-      // Esperar a que el acordeón se construya y añadir clientes
+      // Esperar a que el acordeón se construya
       setTimeout(()=>{
         const wrap=document.querySelector(`.acord-wrap[data-tourid="${CSS.escape(tourId)}"]`);
         if(wrap){
-          // Limpiar fila vacía inicial
           wrap.querySelectorAll('.pax-card').forEach(p=>p.remove());
-          // Añadir clientes reales
           const paxContainer=wrap.querySelector('.pax-inputs');
           clientes.forEach(c=>opsAddRowInAcord(paxContainer,c));
-          // Abrir acordeón
           const header=wrap.querySelector('.acord-header');
-          if(header)toggleAcord(header);
+          if(header&&!header.classList.contains('open'))toggleAcord(header);
+          showToast('Jornada precargada ✓ — asigna el guía y guarda');
         }
-      },150);
+      },100);
     }else{
-      // Tour no encontrado en catálogo, solo fecha
-      showToast('Selecciona el tour manualmente','warning');
+      showToast('Tour no encontrado en catálogo — selecciónalo manualmente','warning',5000);
     }
-  },200);
+  },150);
 }
 
 // ─── CIVITATIS ────────────────────────────────────────────────────────────────
