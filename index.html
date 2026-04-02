@@ -291,6 +291,12 @@ textarea{resize:vertical;min-height:70px;}
 .dossier-mes-block.pagado .dmb-total{color:var(--green);}
 
 /* ── MEJORA 1+2: Listados por tour ── */
+/* Acordeón header */
+.listado-acord-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 18px;cursor:pointer;user-select:none;transition:background 0.15s;}
+.listado-acord-header:hover{background:rgba(255,255,255,0.03);}
+.listado-acord-arrow{font-size:0.72rem;color:var(--muted);transition:transform 0.2s;flex-shrink:0;}
+.listado-acord-arrow.open{transform:rotate(180deg);}
+.listado-acord-body{border-top:1px solid var(--graphite);}
 /* Grupo con reservas nuevas */
 .listado-grupo-nueva{border-color:rgba(201,168,76,0.55)!important;background:linear-gradient(180deg,rgba(201,168,76,0.07) 0%,var(--charcoal) 60%);}
 .listado-grupo-nueva .listado-grupo-header{border-bottom-color:rgba(201,168,76,0.2);}
@@ -996,8 +1002,8 @@ async function renderListados(){
   container.innerHTML=sorted.map((g,idx)=>{
     const totalPax=g.reservas.reduce((s,r)=>(parseInt(r.adultos)||0)+(parseInt(r.menores)||0)+s,0);
     const totalRes=g.reservas.length;
-    // MEJORA 1: detectar si hay reservas nuevas (vista !== 'si') en el grupo
     const tieneNuevas=g.reservas.some(r=>String(r.vista)!=='si'&&r.estado!=='cancelada');
+    const grupoKey='gdp_visto_'+g.fecha+'_'+(g.tourId||g.tourNombre||'').replace(/\s+/g,'_');
     const paxRows=g.reservas.map(r=>{
       const esNueva=String(r.vista)!=='si'&&r.estado!=='cancelada';
       return`<div class="listado-pax-row${esNueva?' listado-pax-nueva':''}">
@@ -1007,8 +1013,8 @@ async function renderListados(){
       </div>`;
     }).join('');
 
-    return`<div class="listado-grupo${tieneNuevas?' listado-grupo-nueva':''}">
-      <div class="listado-grupo-header">
+    return`<div class="listado-grupo${tieneNuevas?' listado-grupo-nueva':''}" id="grupo-${idx}">
+      <div class="listado-acord-header" onclick="toggleListadoGrupo(${idx},'${grupoKey}')">
         <div class="listado-grupo-info">
           <div class="listado-grupo-title">🎯 ${escH(g.tourNombre||'—')}${tieneNuevas?' <span class="badge b-new" style="font-size:0.68rem;vertical-align:middle;margin-left:6px">NUEVA</span>':''}</div>
           <div class="listado-grupo-meta">📅 ${formatDate(g.fecha)} · 🕐 ${g.horario||'--'}</div>
@@ -1016,12 +1022,51 @@ async function renderListados(){
         <div class="listado-grupo-stats">
           <span class="badge b-gold">${totalPax} PAX</span>
           <span class="badge b-muted">${totalRes} res.</span>
-          <button class="btn btn-terra btn-sm" onclick="precargarJornada(${idx})">→ Crear jornada</button>
+          <span class="listado-acord-arrow">▼</span>
+          <button class="btn btn-terra btn-sm" onclick="event.stopPropagation();precargarJornada(${idx})">→ Crear jornada</button>
         </div>
       </div>
-      <div class="listado-grupo-body">${paxRows}</div>
+      <div class="listado-acord-body" id="acord-body-${idx}" style="display:none">
+        <div class="listado-grupo-body">${paxRows}</div>
+      </div>
     </div>`;
   }).join('');
+}
+
+// Toggle acordeón de grupo en Listados + marcar reservas nuevas como vistas
+async function toggleListadoGrupo(idx, grupoKey){
+  const body=document.getElementById('acord-body-'+idx);
+  const header=body?.previousElementSibling;
+  const grupoEl=document.getElementById('grupo-'+idx);
+  if(!body)return;
+
+  const isOpen=body.style.display!=='none';
+  // Cerrar todos los abiertos
+  document.querySelectorAll('.listado-acord-body').forEach(b=>b.style.display='none');
+  document.querySelectorAll('.listado-acord-arrow').forEach(a=>a.classList.remove('open'));
+
+  if(!isOpen){
+    body.style.display='block';
+    header?.querySelector('.listado-acord-arrow')?.classList.add('open');
+    // Si el grupo tenía reservas nuevas, marcarlas todas como vistas
+    const g=_listadosGrupos[idx];
+    if(g){
+      const nuevas=g.reservas.filter(r=>String(r.vista)!=='si'&&r.estado!=='cancelada');
+      if(nuevas.length){
+        // Marcar en API en paralelo (sin bloquear UI)
+        nuevas.forEach(r=>{
+          apiCall({action:'marcarVista',id:r.id})
+            .then(()=>{r.vista='si';})
+            .catch(()=>{});
+        });
+        // Quitar dorado del grupo inmediatamente en UI
+        grupoEl?.classList.remove('listado-grupo-nueva');
+        header?.querySelector('.badge.b-new')?.remove();
+        // Actualizar estado en memoria
+        nuevas.forEach(r=>r.vista='si');
+      }
+    }
+  }
 }
 
 // MEJORA 2: precarga Tour Manager con datos del grupo (recibe índice del registro global)
@@ -1257,8 +1302,7 @@ function renderDossierContent(guia){
   });
   const months=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   const monthName=key=>{const[y,m]=key.split('-');const mn=months[parseInt(m)-1];return(mn?mn.toUpperCase():'???')+' '+(y||'');};
-  const semanaMap={};
-  entries.forEach(e=>{if(!e.fecha)return;const fn=normalizarFecha(e.fecha);if(!fn)return;const si=getSemanaKey(fn);if(!semanaMap[si.key]){semanaMap[si.key]={inicio:si.inicio,fin:si.fin,creditos:0};}semanaMap[si.key].creditos+=parseInt(e.creditos)||0;});
+
   let html=`<div style="margin-bottom:24px;"><div style="font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--white);margin-bottom:6px;">📋 Planing & Créditos — ${guia}</div><div style="font-size:0.76rem;color:var(--muted);margin-bottom:16px;">Edita los campos aquí. Se sincronizan con Sheets.</div>`;
   if(!entries.length){html+=`<div class="empty-state"><div class="ei">📭</div>Sin registros. Se crean al guardar jornadas.</div>`;}
   else{
@@ -1317,11 +1361,6 @@ function renderDossierContent(guia){
       </div>`;
     });
   }
-  // ── Bloque semanas (detalle) ──
-  html+=`<div style="font-family:'Playfair Display',serif;font-size:1rem;color:var(--white);margin:24px 0 6px;">💳 Detalle por semana — ${guia}</div><div style="font-size:0.76rem;color:var(--muted);margin-bottom:16px;">Suma automática lun–dom.</div>`;
-  const semanasOrdenadas=Object.keys(semanaMap).sort();
-  if(!semanasOrdenadas.length){html+=`<div class="empty-state" style="padding:20px"><div class="ei" style="font-size:1.5rem">📊</div>Los totales aparecerán cuando haya créditos.</div>`;}
-  else{semanasOrdenadas.forEach(sk=>{const sw=semanaMap[sk];const pagoExistente=pagos.find(p=>p.semana===sk);const estado=pagoExistente?pagoExistente.estado:'pendiente';html+=`<div class="dossier-semana-block"><div class="dsb-header"><div><div class="dsb-title">Semana del ${formatDate(sw.inicio)} al ${formatDate(sw.fin)}</div><div class="dsb-range">${sw.inicio} → ${sw.fin}</div></div><div style="text-align:right"><div class="dsb-total">${sw.creditos} créditos</div><div class="dsb-estado" style="margin-top:6px"><select class="${estado}" onchange="updatePagoEstado('${escH(guia)}','${sk}','${sw.inicio}','${sw.fin}',${sw.creditos},this.value,this)" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:6px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:0.8rem;padding:6px 10px;outline:none;cursor:pointer;width:auto;"><option value="pendiente" ${estado==='pendiente'?'selected':''}>⏳ Pendiente</option><option value="pagado" ${estado==='pagado'?'selected':''}>✅ Pagado</option></select></div></div></div></div>`;});}
   html+=`</div>`;
   el.innerHTML=html;
 }
