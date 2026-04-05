@@ -1415,7 +1415,7 @@ function renderDossierContent(guia){
       var todoPagado=(pendiente===0&&sm.total>0);
       var p=mk.split('-');
       var nombreMes=monthNamesLong[parseInt(p[1])-1]+' '+p[0];
-      html+='<div class="dossier-mes-block '+(todoPagado?'pagado':'')+'" style="'+(todoPagado?'border-color:rgba(39,174,96,0.5)':''+'">')
+      html+='<div class="dossier-mes-block '+(todoPagado?'pagado':'')+'" style="'+(todoPagado?'border-color:rgba(39,174,96,0.5)':'')+'">')
         +'<div class="dmb-header">'
         +'<div>'
         +'<div class="dmb-title">📅 '+nombreMes+'</div>'
