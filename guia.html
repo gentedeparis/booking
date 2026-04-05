@@ -196,7 +196,7 @@ var REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutos
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
 var guiaNombre = '';
-var reservasData = [];
+var jornadasData = [];
 var dossierData = [];
 var pagosData = [];
 var walkins = {}; // { tourKey: [{nombre, adultos, menores, presente}] }
@@ -354,19 +354,22 @@ function logout() {
 function loadAll() {
   setStatus('loading', 'Cargando datos...');
   Promise.all([
-    apiCall({ action: 'getReservas' }),
+    apiCall({ action: 'getJornadasGuia', guia: guiaNombre }),
     apiCall({ action: 'getDossier', guia: guiaNombre }),
     apiCall({ action: 'getPagosSemana', guia: guiaNombre })
   ])
   .then(function(results) {
-    var rawReservas = Array.isArray(results[0]) ? results[0] : [];
-    reservasData = rawReservas.map(function(r) {
-      return Object.assign({}, r, {
-        fecha: normalizarFecha(r.fecha),
-        horario: normalizarHorario(r.horario)
+    var rawJornadas = Array.isArray(results[0]) ? results[0] : [];
+    jornadasData = rawJornadas.map(function(j) {
+      return Object.assign({}, j, {
+        fecha: normalizarFecha(j.fecha),
+        horario: normalizarHorario(j.horario),
+        clientes: typeof j.clientesJSON === 'string' ? JSON.parse(j.clientesJSON || '[]') : (j.clientes || [])
       });
     });
-    dossierData = Array.isArray(results[1]) ? results[1] : [];
+    dossierData = Array.isArray(results[1]) ? results[1].map(function(e){
+      return Object.assign({},e,{fecha:normalizarFecha(e.fecha),horario:normalizarHorario(e.horario)});
+    }) : [];
     pagosData = Array.isArray(results[2]) ? results[2] : [];
     setStatus('ok', 'Actualizado · ' + new Date().toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit'}));
     renderJornadas();
@@ -380,12 +383,13 @@ function loadAll() {
 
 function loadJornadas() {
   setStatus('loading', 'Actualizando...');
-  apiCall({ action: 'getReservas' })
+  apiCall({ action: 'getJornadasGuia', guia: guiaNombre })
     .then(function(raw) {
-      reservasData = (Array.isArray(raw) ? raw : []).map(function(r) {
-        return Object.assign({}, r, {
-          fecha: normalizarFecha(r.fecha),
-          horario: normalizarHorario(r.horario)
+      jornadasData = (Array.isArray(raw) ? raw : []).map(function(j) {
+        return Object.assign({}, j, {
+          fecha: normalizarFecha(j.fecha),
+          horario: normalizarHorario(j.horario),
+          clientes: typeof j.clientesJSON === 'string' ? JSON.parse(j.clientesJSON || '[]') : (j.clientes || [])
         });
       });
       setStatus('ok', 'Actualizado · ' + new Date().toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit'}));
@@ -413,37 +417,28 @@ function renderJornadas() {
   var el = document.getElementById('jornadasContent');
   var today = hoy();
 
-  // Filtrar reservas del guía asignado: buscar en opsTours o simplemente
-  // mostrar todas las reservas de HOY en adelante (el guía ve las próximas)
-  var confirmadas = reservasData.filter(function(r) {
-    return r.estado !== 'cancelada' && r.fecha >= today;
+  // Usar jornadasData — jornadas asignadas específicamente a este guía
+  var proximas = jornadasData.filter(function(j) {
+    return j.fecha >= today;
   });
 
-  if (!confirmadas.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div>No hay jornadas próximas asignadas.</div></div>';
+  if (!proximas.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">&#128203;</div><div>No hay jornadas próximas asignadas.</div><div style="font-size:0.76rem;color:var(--muted);margin-top:8px;">El administrador debe crear y guardar una jornada desde Tour Manager.</div></div>';
     return;
   }
 
-  // Agrupar por fecha + tour + horario
-  var grupos = {};
-  confirmadas.forEach(function(r) {
-    var key = r.fecha + '|' + (r.tourNombre||'') + '|' + (r.horario||'');
-    if (!grupos[key]) {
-      grupos[key] = { fecha: r.fecha, tourNombre: r.tourNombre||'', horario: r.horario||'', reservas: [] };
-    }
-    grupos[key].reservas.push(r);
-  });
-
-  var sorted = Object.values(grupos).sort(function(a,b) {
+  // Ordenar por fecha y horario
+  var sorted = proximas.slice().sort(function(a,b) {
     if (a.fecha !== b.fecha) return a.fecha > b.fecha ? 1 : -1;
     return (a.horario||'') > (b.horario||'') ? 1 : -1;
   });
 
   var html = '';
-  sorted.forEach(function(g, gi) {
-    var totalPax = g.reservas.reduce(function(s,r) { return s + (parseInt(r.adultos)||0) + (parseInt(r.menores)||0); }, 0);
-    var presentes = g.reservas.filter(function(r) { return presencia[r.id]; }).length;
-    var esHoy = g.fecha === today;
+  sorted.forEach(function(j, gi) {
+    var clientes = j.clientes || [];
+    var totalPax = clientes.reduce(function(s,c) { return s + (parseInt(c.adults)||0) + (parseInt(c.minors)||0); }, 0);
+    var presentes = clientes.filter(function(c) { return presencia[j.id+'_'+clientes.indexOf(c)]; }).length;
+    var esHoy = j.fecha === today;
     var wkeys = 'wi_' + gi;
     if (!walkins[wkeys]) walkins[wkeys] = [];
     var totalWalkin = walkins[wkeys].reduce(function(s,w) { return s + (w.adultos||0) + (w.menores||0); }, 0);
@@ -451,25 +446,26 @@ function renderJornadas() {
 
     html += '<div class="jornada-card" data-gi="'+gi+'">';
     html += '<div class="jornada-header">';
-    html += '<div class="jornada-title">&#127919; '+escH(g.tourNombre)+'</div>';
-    html += '<div class="jornada-meta">&#128197; '+formatDate(g.fecha)+(g.horario?' &middot; &#128336; '+g.horario+'h':'')+(esHoy?' <span style="background:rgba(201,168,76,0.3);color:var(--gold);padding:1px 7px;border-radius:10px;font-size:0.68rem;margin-left:6px">HOY</span>':'')+'</div>';
+    html += '<div class="jornada-title">&#127919; '+escH(j.tourNombre)+'</div>';
+    html += '<div class="jornada-meta">&#128197; '+formatDate(j.fecha)+(j.horario?' &middot; &#128336; '+j.horario+'h':'')+(esHoy?' <span style="background:rgba(201,168,76,0.3);color:var(--gold);padding:1px 7px;border-radius:10px;font-size:0.68rem;margin-left:6px">HOY</span>':'')+'</div>';
     html += '<div class="jornada-stats">';
-    html += '<div class="jornada-stat">Reservas: <span>'+g.reservas.length+'</span></div>';
+    html += '<div class="jornada-stat">Clientes: <span>'+clientes.length+'</span></div>';
     html += '<div class="jornada-stat">PAX: <span>'+totalPax+'</span></div>';
     html += '<div class="jornada-stat" id="stat-pres-'+gi+'">Presentes: <span>'+(presentes+presentesWalkin)+'/'+(totalPax+totalWalkin)+'</span></div>';
     html += '</div></div>';
 
-    // Lista de clientes
-    g.reservas.forEach(function(r, ri) {
-      var presente = !!presencia[r.id];
-      html += '<div class="cliente-row'+(presente?' presente-row':'')+'" data-rid="'+escH(r.id)+'" data-gi="'+gi+'">';
-      html += '<input type="checkbox" class="cliente-check" data-action="presencia" data-rid="'+escH(r.id)+'" data-gi="'+gi+'" '+(presente?'checked':'')+' >';
+    // Lista de clientes desde la jornada asignada
+    clientes.forEach(function(c, ci) {
+      var pkey = j.id+'_'+ci;
+      var presente = !!presencia[pkey];
+      html += '<div class="cliente-row'+(presente?' presente-row':'')+'" data-pkey="'+escH(pkey)+'" data-gi="'+gi+'">';
+      html += '<input type="checkbox" class="cliente-check" data-action="presencia" data-pkey="'+escH(pkey)+'" data-gi="'+gi+'" '+(presente?'checked':'')+' >';
       html += '<div class="cliente-info">';
-      html += '<div class="cliente-nombre'+(presente?' presente':'')+'">'+escH(r.nombre||'—')+'</div>';
-      html += '<div class="cliente-pax">'+(parseInt(r.adultos)||0)+' ad. '+(parseInt(r.menores)||0)+' men.</div>';
+      html += '<div class="cliente-nombre'+(presente?' presente':'')+'">'+escH(c.name||'—')+'</div>';
+      html += '<div class="cliente-pax">'+(parseInt(c.adults)||0)+' ad. '+(parseInt(c.minors)||0)+' men.</div>';
       html += '</div>';
-      if (r.whatsapp) {
-        html += '<a href="https://wa.me/'+String(r.whatsapp).replace(/[^0-9]/g,'')+'" target="_blank" class="cliente-wa">&#128241; WA</a>';
+      if (c.wa) {
+        html += '<a href="https://wa.me/'+String(c.wa).replace(/[^0-9]/g,'')+'" target="_blank" class="cliente-wa">&#128241; WA</a>';
       }
       html += '</div>';
     });
@@ -500,23 +496,16 @@ function renderJornadas() {
 }
 
 function updateStatPresentes(gi) {
-  // Recalcular presentes para un grupo
   var el = document.getElementById('stat-pres-'+gi);
   if (!el) return;
-  var checks = document.querySelectorAll('[data-action="presencia"][data-gi="'+gi+'"]');
-  var presentes = 0;
-  checks.forEach(function(c) { if (c.checked) presentes++; });
+  var checks = document.querySelectorAll('[data-action="presencia"][data-gi="'+gi+'"]:checked');
+  var presentes = checks.length;
   var wkeys = 'wi_' + gi;
   var wiList = walkins[wkeys] || [];
   var wPresentes = wiList.filter(function(w) { return w.presente; }).length;
-  var totalPax = 0;
-  checks.forEach(function(c) {
-    // contar pax de cada reserva
-    var rid = c.getAttribute('data-rid');
-    var r = reservasData.find(function(x) { return x.id === rid; });
-    if (r) totalPax += (parseInt(r.adultos)||0) + (parseInt(r.menores)||0);
-  });
-  var totalWalkin = wiList.reduce(function(s,w) { return s + (w.adultos||0) + (w.menores||0); }, 0);
+  var j = jornadasData[gi];
+  var totalPax = j ? (j.clientes||[]).reduce(function(s,c){return s+(parseInt(c.adults)||0)+(parseInt(c.minors)||0);},0) : 0;
+  var totalWalkin = wiList.reduce(function(s,w){return s+(parseInt(w.adultos)||0)+(parseInt(w.menores)||0);},0);
   el.innerHTML = 'Presentes: <span>'+(presentes+wPresentes)+'/'+(totalPax+totalWalkin)+'</span>';
 }
 
@@ -577,11 +566,20 @@ function renderDossier() {
   html += '</div>';
 
   // Historial por mes
+  var nowM = new Date();
+  var mesActualGuia = nowM.getFullYear()+'-'+String(nowM.getMonth()+1).padStart(2,'0');
   html += '<div style="font-family:Georgia,serif;font-size:1rem;color:var(--white);margin-bottom:14px;">&#128203; Historial de tours</div>';
   Object.keys(byMonth).sort().reverse().forEach(function(mkey) {
     var p = mkey.split('-');
     var nm = (monthsShort[parseInt(p[1])-1]||'').toUpperCase() + ' ' + p[0];
-    html += '<div class="mes-sep">/////// '+nm+' ///////</div>';
+    var isCurr = (mkey === mesActualGuia);
+    var acId = 'gm-'+mkey.replace('-','_');
+    html += '<div style="background:rgba(27,43,75,0.4);border:1px solid rgba(41,128,185,0.2);border-radius:8px;margin:10px 0 4px;cursor:pointer;" onclick="toggleGuiaMes(\''+acId+'\',this)">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 13px;">';
+    html += '<span style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;color:#7fa7d9;">/////// '+nm+' ///////</span>';
+    html += '<span id="garr-'+acId+'" style="font-size:0.7rem;color:var(--muted);">'+(isCurr?'&#9650;':'&#9660;')+'</span>';
+    html += '</div></div>';
+    html += '<div id="'+acId+'" style="display:'+(isCurr?'block':'none')+'">';
     byMonth[mkey].sort(function(a,b) { return a.fecha > b.fecha ? -1 : 1; }).forEach(function(e) {
       var ep = e.estadoPago || 'pendiente';
       var ip = (ep === 'pagado');
@@ -593,6 +591,7 @@ function renderDossier() {
       html += '<div class="dossier-entry-estado" style="color:'+(ip?'var(--green)':'var(--gold)')+'">'+(ip?'&#9989;':'&#9203;')+'</div></div>';
       html += '</div>';
     });
+    html += '</div>'; // cierre mes
   });
 
   el.innerHTML = html;
@@ -655,9 +654,9 @@ document.addEventListener('change', function(e) {
   var wkeys = 'wi_' + gi;
 
   if (action === 'presencia') {
-    var rid = el.getAttribute('data-rid');
-    presencia[rid] = el.checked;
-    // Visual: tachar nombre
+    var pkey = el.getAttribute('data-pkey') || el.getAttribute('data-rid');
+    presencia[pkey] = el.checked;
+
     var row = el.closest('.cliente-row');
     if (row) {
       row.classList.toggle('presente-row', el.checked);
@@ -692,6 +691,15 @@ document.addEventListener('keydown', function(e) {
     document.getElementById('loginError').textContent = '';
   }
 });
+
+function toggleGuiaMes(id, header) {
+  var body = document.getElementById(id);
+  if (!body) return;
+  var arr = document.getElementById('garr-'+id);
+  var isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if (arr) arr.innerHTML = isOpen ? '&#9660;' : '&#9650;';
+}
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 document.getElementById('appFechaHoy').textContent = formatHoy();
