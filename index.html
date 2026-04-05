@@ -1287,6 +1287,9 @@ async function registrarEnDossier(guide,date,toursData){
     var semInfo=getSemanaKey(date);
     var entry={id:'dos_'+guide.replace(/\s+/g,'')+'_'+date+'_'+tx.tourId,guia:guide,fecha:date,tourNombre:tx.tourNombre,horario:tx.horario||'',idioma:'',paxTotal:tx.clients.reduce(function(s,c){return s+(c.adults||0)+(c.minors||0);},0),asistentes:0,creditos:0,semana:semInfo.key,timestamp:new Date().toISOString()};
     try{await apiCall({action:'saveDossierEntry',guia:guide,data:entry});}catch(e){console.warn('Dossier save error:',e);}
+    // Guardar jornada en Sheets para app guía
+    var jornada={id:'jor_'+guide.replace(/\s+/g,'')+'_'+date+'_'+tx.tourId,guia:guide,fecha:date,tourId:tx.tourId||'',tourNombre:tx.tourNombre,horario:tx.horario||'',clientesJSON:JSON.stringify(tx.clients||[]),timestamp:new Date().toISOString()};
+    try{await apiCall({action:'saveJornada',data:jornada});}catch(e){console.warn('Jornada save error:',e);}
   }
 }
 function deleteOpsTour(){if(!editingOpsId||!confirm('¿Eliminar esta jornada?'))return;delete opsTours[editingOpsId];opsSave();editingOpsId=null;showToast('Jornada eliminada');showOpsList();}
@@ -1322,7 +1325,12 @@ function renderDossierTabs(){
 }
 async function selectDossierGuia(guia){dossierActivo=guia;renderDossierTabs();showLoading();await loadDossierGuia(guia);hideLoading();}
 async function loadDossierGuia(guia){
-  try{var entries=await apiCall({action:'getDossier',guia:guia});dossierEntries[guia]=Array.isArray(entries)?entries:[];}catch(e){dossierEntries[guia]=[];}
+  try{
+    var entries=await apiCall({action:'getDossier',guia:guia});
+    dossierEntries[guia]=(Array.isArray(entries)?entries:[]).map(function(e){
+      return Object.assign({},e,{fecha:normalizarFecha(e.fecha),horario:normalizarHorario(e.horario)});
+    });
+  }catch(e){dossierEntries[guia]=[];}
   try{var pagos=await apiCall({action:'getPagosSemana',guia:guia});pagosEntries[guia]=(Array.isArray(pagos)?pagos:[]).map(function(p){return Object.assign({},p,{fechaInicio:normalizarFecha(p.fechaInicio),fechaFin:normalizarFecha(p.fechaFin)});});}catch(e){pagosEntries[guia]=[];}
   renderDossierContent(guia);
 }
@@ -1333,101 +1341,133 @@ function renderDossierContent(guia){
   var byMonth={};
   entries.filter(function(e){return e.fecha&&String(e.fecha).trim()!='';}).forEach(function(e){
     e.fecha=normalizarFecha(e.fecha);
-    var d=e.fecha.split('-');var mk2=d[0]+'-'+d[1];
-    if(!byMonth[mk2])byMonth[mk2]=[];
-    byMonth[mk2].push(e);
+    var d=e.fecha.split('-');var mkey=d[0]+'-'+d[1];
+    if(!byMonth[mkey])byMonth[mkey]=[];
+    byMonth[mkey].push(e);
   });
   var months=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   var monthName=function(key){var p=key.split('-');var mn=months[parseInt(p[1])-1];return(mn?mn.toUpperCase():'???')+' '+(p[0]||'');};
   var mesMap={};
   entries.forEach(function(e){
     if(!e.fecha)return;var fn=normalizarFecha(e.fecha);if(!fn)return;
-    var p=fn.split('-');var mk2=p[0]+'-'+p[1];
-    if(!mesMap[mk2]){var lastDay=new Date(parseInt(p[0]),parseInt(p[1]),0).getDate();mesMap[mk2]={inicio:p[0]+'-'+p[1]+'-01',fin:p[0]+'-'+p[1]+'-'+String(lastDay).padStart(2,'0'),total:0,pagado:0};}
-    var cred=parseInt(e.creditos)||0;
-    mesMap[mk2].total+=cred;
-    if(e.estadoPago==='pagado')mesMap[mk2].pagado+=cred;
+    var p=fn.split('-');var mkey=p[0]+'-'+p[1];
+    if(!mesMap[mkey]){var lastDay=new Date(parseInt(p[0]),parseInt(p[1]),0).getDate();mesMap[mkey]={inicio:p[0]+'-'+p[1]+'-01',fin:p[0]+'-'+p[1]+'-'+String(lastDay).padStart(2,'0'),total:0,pagado:0};}
+    mesMap[mkey].total+=parseInt(e.creditos)||0;
+    if(e.estadoPago==='pagado')mesMap[mkey].pagado+=parseInt(e.creditos)||0;
   });
   var inputSt='background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);font-size:0.82rem;padding:6px 9px;outline:none;width:100%';
   var credSt='background:var(--graphite);border:1px solid rgba(201,168,76,0.4);border-radius:5px;font-family:\'Playfair Display\',serif;font-size:1rem;padding:6px 9px;outline:none;width:100%;text-align:center';
   var selSt='background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);font-size:0.74rem;padding:5px 7px;outline:none;cursor:pointer;width:100%';
-  var html='';
-  html+='<div style="margin-bottom:24px;">';
-  html+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:6px;">';
-  html+='<div style="font-family:\'Playfair Display\',serif;font-size:1.1rem;color:var(--white);">&#128203; Planing &amp; Créditos &#8212; '+guia+'</div>';
-  html+='<div style="display:flex;gap:8px;">';
-  html+='<button class="btn btn-ghost btn-sm" onclick="downloadDossierPublic(\''+escH(guia)+'\')">&#128228; Vista pública</button>';
-  html+='<button class="btn btn-gold btn-sm" onclick="openManualDossierEntry(\''+escH(guia)+'\')">+ Agregar registro</button>';
-  html+='</div></div>';
-  html+='<div style="font-size:0.76rem;color:var(--muted);margin-bottom:16px;">Edita los campos aquí. Los estados se guardan por registro.</div>';
+
+  // Mes actual
+  var now=new Date();
+  var mesActual=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+
+  var h='';
+  h+='<div style="margin-bottom:24px;">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:6px;">';
+  h+='<div style="font-family:\'Playfair Display\',serif;font-size:1.1rem;color:var(--white);">&#128203; Planing &amp; Créditos &#8212; '+escH(guia)+'</div>';
+  h+='<div style="display:flex;gap:8px;">';
+  h+='<button class="btn btn-ghost btn-sm" onclick="downloadDossierPublic(\''+escH(guia)+'\')">&#128228; Vista pública</button>';
+  h+='<button class="btn btn-gold btn-sm" onclick="openManualDossierEntry(\''+escH(guia)+'\')">+ Agregar registro</button>';
+  h+='</div></div>';
+  h+='<div style="font-size:0.76rem;color:var(--muted);margin-bottom:16px;">Edita los campos aquí. Los estados se guardan por registro.</div>';
+
   if(!entries.length){
-    html+='<div class="empty-state"><div class="ei">&#128269;</div>Sin registros. Se crean al guardar jornadas.</div>';
+    h+='<div class="empty-state"><div class="ei">&#128269;</div>Sin registros. Se crean al guardar jornadas.</div>';
   }else{
-    html+='<div class="dossier-row dossier-row-header"><span>Tour</span><span>Fecha / Hora</span><span>Idioma</span><span>PAX / Asist.</span><span style="text-align:center">Créd.</span><span>Estado</span><span></span></div>';
-    Object.keys(byMonth).sort().forEach(function(mk2){
-      html+='<div class="dossier-month-sep">/////// '+monthName(mk2)+' ///////</div>';
-      byMonth[mk2].sort(function(a,b){return a.fecha>b.fecha?1:-1;}).forEach(function(e){
+    h+='<div class="dossier-row dossier-row-header"><span>Tour</span><span>Fecha / Hora</span><span>Idioma</span><span>PAX / Asist.</span><span style="text-align:center">Créd.</span><span>Estado</span><span></span></div>';
+    // Meses en orden descendente (más reciente primero)
+    Object.keys(byMonth).sort().reverse().forEach(function(mkey){
+      var isActual=(mkey===mesActual);
+      var totalMes=mesMap[mkey]?mesMap[mkey].total:0;
+      var pagadoMes=mesMap[mkey]?mesMap[mkey].pagado:0;
+      var pendMes=totalMes-pagadoMes;
+      var acId='doss-acord-'+mkey.replace('-','_');
+      // Header acordeón mes
+      h+='<div style="background:rgba(27,43,75,0.5);border:1px solid rgba(27,43,75,0.8);border-radius:8px;margin:12px 0 4px;cursor:pointer;user-select:none;" onclick="toggleDossierMes(\''+acId+'\',this)">';
+      h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;">';
+      h+='<div style="display:flex;align-items:center;gap:10px;">';
+      h+='<span style="font-size:0.72rem;font-weight:700;letter-spacing:0.12em;color:#7fa7d9;">/////// '+monthName(mkey)+' ///////</span>';
+      if(isActual){h+='<span style="background:rgba(201,168,76,0.2);color:var(--gold);font-size:0.64rem;padding:1px 7px;border-radius:10px;font-weight:600;">MES ACTUAL</span>';}
+      h+='</div>';
+      h+='<div style="display:flex;align-items:center;gap:10px;">';
+      h+='<span style="font-size:0.76rem;color:var(--gold);">'+totalMes+' cr.</span>';
+      if(pendMes>0){h+='<span style="font-size:0.72rem;color:var(--muted);">&#9203; '+pendMes+' pend.</span>';}
+      h+='<span style="font-size:0.7rem;color:var(--muted);" id="arr-'+acId+'">'+(isActual?'&#9650;':'&#9660;')+'</span>';
+      h+='</div></div></div>';
+      // Body acordeón
+      h+='<div id="'+acId+'" style="display:'+(isActual?'block':'none')+'">';
+      // Tours más recientes primero
+      byMonth[mkey].sort(function(a,b){return a.fecha>b.fecha?-1:1;}).forEach(function(e){
         var ep=e.estadoPago||'pendiente';
         var ip=(ep==='pagado');
-        var gid=escH(guia);
-        var eid=escH(e.id);
-        html+='<div class="dossier-row" style="'+(ip?'opacity:0.7;':'')+'">';
-        html+='<div><div class="dr-tour">'+escH(e.tourNombre||'')+'</div><div class="dr-date">'+formatDateDDMMYYYY(e.fecha)+(e.horario?' + '+e.horario:'')+'</div></div>';
-        html+='<div class="dr-date">'+(e.horario||'--')+'</div>';
-        html+='<div class="dr-field"><input type="text" placeholder="ESP/ENG/FRA" value="'+escH(e.idioma||'')+'" onchange="updateDossierField(\''+gid+'\',\''+eid+'\',\'idioma\',this.value)"></div>';
-        html+='<div class="dr-field" style="display:grid;grid-template-columns:1fr 1fr;gap:6px">';
-        html+='<input type="number" min="0" placeholder="PAX" value="'+(e.paxTotal||'')+'" onchange="updateDossierField(\''+gid+'\',\''+eid+'\',\'paxTotal\',this.value)" style="'+inputSt+'">';
-        html+='<input type="number" min="0" placeholder="Asist." value="'+(e.asistentes||'')+'" onchange="updateDossierField(\''+gid+'\',\''+eid+'\',\'asistentes\',this.value)" style="'+inputSt+'">';
-        html+='</div>';
-        html+='<div class="dr-field"><input type="number" min="0" placeholder="0" value="'+(e.creditos||'')+'" onchange="updateDossierField(\''+gid+'\',\''+eid+'\',\'creditos\',this.value)" style="'+credSt+';color:'+(ip?'var(--green)':'var(--gold)')+'"></div>';
-        html+='<div class="dr-field"><select style="'+selSt+(ip?';border-color:var(--green);color:var(--green)':'')+'" onchange="updateDossierField(\''+gid+'\',\''+eid+'\',\'estadoPago\',this.value)">';
-        html+='<option value="pendiente" '+(ep==='pendiente'?'selected':'')+'>&#9203; Pendiente</option>';
-        html+='<option value="pagado" '+(ep==='pagado'?'selected':'')+'>&#9989; Pagado</option>';
-        html+='</select></div>';
-        html+='<div style="text-align:right"><button class="btn btn-danger btn-sm" onclick="deleteDossierEntry(\''+gid+'\',\''+eid+'\')">&#128465;</button></div>';
-        html+='</div>';
+        var gid=escH(guia);var eid=escH(e.id);
+        h+='<div class="dossier-row" style="'+(ip?'opacity:0.7;':'')+'">';
+        h+='<div><div class="dr-tour">'+escH(e.tourNombre||'')+'</div><div class="dr-date">'+formatDateDDMMYYYY(e.fecha)+(e.horario?' + '+e.horario:'')+'</div></div>';
+        h+='<div class="dr-date">'+(e.horario||'--')+'</div>';
+        h+='<div class="dr-field"><input type="text" placeholder="ESP/ENG/FRA" value="'+escH(e.idioma||'')+'" onchange="updateDossierField(\''+gid+'\',\''+eid+'\',\'idioma\',this.value)"></div>';
+        h+='<div class="dr-field" style="display:grid;grid-template-columns:1fr 1fr;gap:6px">';
+        h+='<input type="number" min="0" placeholder="PAX" value="'+(e.paxTotal||'')+'" onchange="updateDossierField(\''+gid+'\',\''+eid+'\',\'paxTotal\',this.value)" style="'+inputSt+'">';
+        h+='<input type="number" min="0" placeholder="Asist." value="'+(e.asistentes||'')+'" onchange="updateDossierField(\''+gid+'\',\''+eid+'\',\'asistentes\',this.value)" style="'+inputSt+'">';
+        h+='</div>';
+        h+='<div class="dr-field"><input type="number" min="0" placeholder="0" value="'+(e.creditos||'')+'" onchange="updateDossierField(\''+gid+'\',\''+eid+'\',\'creditos\',this.value)" style="'+credSt+';color:'+(ip?'var(--green)':'var(--gold)')+'"></div>';
+        h+='<div class="dr-field"><select style="'+selSt+(ip?';border-color:var(--green);color:var(--green)':'')+'" onchange="updateDossierField(\''+gid+'\',\''+eid+'\',\'estadoPago\',this.value)">';
+        h+='<option value="pendiente" '+(ep==='pendiente'?'selected':'')+'>&#9203; Pendiente</option>';
+        h+='<option value="pagado" '+(ep==='pagado'?'selected':'')+'>&#9989; Pagado</option>';
+        h+='</select></div>';
+        h+='<div style="text-align:right"><button class="btn btn-danger btn-sm" onclick="deleteDossierEntry(\''+gid+'\',\''+eid+'\')">&#128465;</button></div>';
+        h+='</div>';
       });
+      h+='</div>';
     });
   }
-  html+='</div>';
-  html+='<div style="margin-top:30px;">';
-  html+='<div style="font-family:\'Playfair Display\',serif;font-size:1.1rem;color:var(--white);margin-bottom:6px;">&#128197; Score mensual &#8212; '+guia+'</div>';
-  html+='<div style="font-size:0.76rem;color:var(--muted);margin-bottom:16px;">Saldo calculado automáticamente desde los registros.</div>';
-  var mos=Object.keys(mesMap).sort();
+  h+='</div>';
+
+  // Score mensual — acordeones también
+  h+='<div style="margin-top:30px;">';
+  h+='<div style="font-family:\'Playfair Display\',serif;font-size:1.1rem;color:var(--white);margin-bottom:6px;">&#128197; Score mensual &#8212; '+escH(guia)+'</div>';
+  h+='<div style="font-size:0.76rem;color:var(--muted);margin-bottom:16px;">Saldo calculado automáticamente desde los registros.</div>';
+  var mos=Object.keys(mesMap).sort().reverse();
   var mnl=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   if(!mos.length){
-    html+='<div class="empty-state" style="padding:20px"><div class="ei" style="font-size:1.5rem">&#128202;</div>Sin créditos aún.</div>';
+    h+='<div class="empty-state" style="padding:20px"><div class="ei" style="font-size:1.5rem">&#128202;</div>Sin créditos aún.</div>';
   }else{
-    mos.forEach(function(mk2){
-      var sm=mesMap[mk2];
+    mos.forEach(function(mkey){
+      var sm=mesMap[mkey];
       var pend=sm.total-sm.pagado;
       var todo=(pend===0&&sm.total>0);
-      var p2=mk2.split('-');
+      var p2=mkey.split('-');
       var nm=mnl[parseInt(p2[1])-1]+' '+p2[0];
-      html+='<div class="dossier-mes-block '+(todo?'pagado':'')+'" style="'+(todo?'border-color:rgba(39,174,96,0.5)':'')+'">';
-      html+='<div class="dmb-header">';
-      html+='<div>';
-      html+='<div class="dmb-title">&#128197; '+nm+'</div>';
-      html+='<div class="dmb-range">'+formatDate(sm.inicio)+' &#8594; '+formatDate(sm.fin)+'</div>';
-      html+='</div>';
-      html+='<div style="text-align:right;min-width:140px;">';
-      html+='<div class="dmb-total" style="color:'+(todo?'var(--green)':'var(--gold)')+'">'+sm.total+' créditos</div>';
-      if(todo){
-        html+='<div style="font-size:0.74rem;color:var(--green);margin-top:4px;">&#9989; Todo cobrado</div>';
-      }else{
-        html+='<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;font-size:0.78rem;">';
-        html+='<span style="color:var(--gold);">&#9203; '+pend+' pend.</span>';
-        if(sm.pagado>0){html+='<span style="color:var(--green);">&#9989; '+sm.pagado+' cob.</span>';}
-        html+='</div>';
+      h+='<div class="dossier-mes-block '+(todo?'pagado':'')+'" style="'+(todo?'border-color:rgba(39,174,96,0.5)':'')+'">';
+      h+='<div class="dmb-header">';
+      h+='<div><div class="dmb-title">&#128197; '+nm+'</div>';
+      h+='<div class="dmb-range">'+formatDate(sm.inicio)+' &#8594; '+formatDate(sm.fin)+'</div></div>';
+      h+='<div style="text-align:right;min-width:140px;">';
+      h+='<div class="dmb-total" style="color:'+(todo?'var(--green)':'var(--gold)')+'">'+sm.total+' créditos</div>';
+      if(todo){h+='<div style="font-size:0.74rem;color:var(--green);margin-top:4px;">&#9989; Todo cobrado</div>';}
+      else{
+        h+='<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px;font-size:0.78rem;">';
+        h+='<span style="color:var(--gold);">&#9203; '+pend+' pend.</span>';
+        if(sm.pagado>0){h+='<span style="color:var(--green);">&#9989; '+sm.pagado+' cob.</span>';}
+        h+='</div>';
       }
-      html+='</div>';
-      html+='</div>';
-      html+='</div>';
+      h+='</div></div></div>';
     });
   }
-  html+='</div>';
-  el.innerHTML=html;
+  h+='</div>';
+  el.innerHTML=h;
 }
+
+function toggleDossierMes(id,header){
+  var body=document.getElementById(id);
+  if(!body)return;
+  var arr=document.getElementById('arr-'+id);
+  var isOpen=body.style.display!=='none';
+  body.style.display=isOpen?'none':'block';
+  if(arr)arr.innerHTML=isOpen?'&#9660;':'&#9650;';
+}
+
 
 async function updateDossierField(guia,id,campo,valor){
   var entries=dossierEntries[guia]||[];var entry=entries.find(function(e){return e.id===id;});if(!entry)return;
