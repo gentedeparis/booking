@@ -1596,14 +1596,26 @@ var guiasData=[];
 var editingGuiaNombre=null;
 
 async function initGuias(){
+  var grid=document.getElementById('guiasGrid');
+  if(grid)grid.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando guías...</div>';
   showLoading();
   try{
     var resp=await apiCall({action:'getGuiasData'});
-    guiasData=Array.isArray(resp)?resp:[];
+    console.log('getGuiasData respuesta:',JSON.stringify(resp));
+    if(!Array.isArray(resp)){
+      if(grid)grid.innerHTML='<div class="empty-state"><div class="ei">⚠️</div>Respuesta inesperada: '+escH(JSON.stringify(resp).slice(0,100))+'</div>';
+      hideLoading();return;
+    }
+    guiasData=resp;
+    if(!guiasData.length){
+      if(grid)grid.innerHTML='<div class="empty-state"><div class="ei">👤</div>La API devolvió lista vacía.</div>';
+      hideLoading();return;
+    }
     renderGuias();
   }catch(e){
     console.error('initGuias error:',e);
-    showToast('Error cargando guías: '+String(e),'error',6000);
+    if(grid)grid.innerHTML='<div class="empty-state"><div class="ei">❌</div>Error: '+escH(String(e))+'</div>';
+    showToast('Error cargando guías','error',6000);
   }
   hideLoading();
 }
