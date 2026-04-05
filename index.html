@@ -1597,8 +1597,14 @@ var editingGuiaNombre=null;
 
 async function initGuias(){
   showLoading();
-  try{guiasData=await apiCall({action:'getGuiasData'});renderGuias();}
-  catch(e){showToast('Error cargando guías','error');}
+  try{
+    var resp=await apiCall({action:'getGuiasData'});
+    guiasData=Array.isArray(resp)?resp:[];
+    renderGuias();
+  }catch(e){
+    console.error('initGuias error:',e);
+    showToast('Error cargando guías: '+String(e),'error',6000);
+  }
   hideLoading();
 }
 
@@ -1607,10 +1613,10 @@ function renderGuias(){
   if(!guiasData||!guiasData.length){grid.innerHTML='<div class="empty-state"><div class="ei">&#128100;</div>No hay guías aún.</div>';return;}
   var rows=[];
   guiasData.forEach(function(g){
-    var activo=g.activo==='true';
+    var activo=String(g.activo).toLowerCase()==='true';
     var nombre=escH(g.nombre);
     var pinVal=escH(g.pin);
-    var activoStr=String(g.activo);
+    var activoStr=String(g.activo).toLowerCase();
     var row='<div class="guia-card '+(activo?'':'inactivo')+'">';
     row+='<div>';
     row+='<div class="guia-nombre">'+nombre+'</div>';
@@ -1689,7 +1695,7 @@ async function toggleGuiaActivo(nombre,activoActual){
   var g=guiasData.find(function(x){return x.nombre===nombre;});if(!g)return;
   showLoading();
   try{
-    await apiCall({action:'saveGuia',data:{nombre:g.nombre,pin:g.pin,activo:activoActual==='true'?'false':'true'}});
+    await apiCall({action:'saveGuia',data:{nombre:g.nombre,pin:g.pin,activo:String(activoActual).toLowerCase()==='true'?'false':'true'}});
     await initGuias();showToast('Estado actualizado ✓');
   }catch(e){showToast('Error','error');}
   hideLoading();
