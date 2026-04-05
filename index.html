@@ -1622,32 +1622,38 @@ async function initGuias(){
 
 function renderGuias(){
   var grid=document.getElementById('guiasGrid');
-  if(!guiasData||!guiasData.length){grid.innerHTML='<div class="empty-state"><div class="ei">&#128100;</div>No hay guías aún.</div>';return;}
+  if(!guiasData||!guiasData.length){
+    grid.innerHTML='<div class="empty-state"><div class="ei">&#128100;</div>No hay guías aún.</div>';
+    return;
+  }
   var rows=[];
   guiasData.forEach(function(g){
     var activo=String(g.activo).toLowerCase()==='true';
     var nombre=escH(g.nombre);
     var pinVal=escH(g.pin);
     var activoStr=String(g.activo).toLowerCase();
-    var row='<div class="guia-card '+(activo?'':'inactivo')+'">';
+    var row='<div class="guia-card '+(activo?'':'inactivo')+'" data-nombre="'+nombre+'">';
     row+='<div>';
     row+='<div class="guia-nombre">'+nombre+'</div>';
     row+='<div class="guia-pin">PIN: ';
-    row+='<span class="pin-dots" id="pd-'+nombre+'"><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span></span>';
-    row+=' <button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:0.7rem;" data-pin="'+pinVal+'" data-target="pd-'+nombre+'" onclick="toggleVerPin(this)">Ver</button>';
+    row+='<span class="pin-dots" id="pd-'+nombre+'">';
+    row+='<span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>';
+    row+='</span>';
+    row+=' <button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:0.7rem;" data-action="verpin" data-pin="'+pinVal+'" data-target="pd-'+nombre+'">Ver</button>';
     row+='</div>';
     row+='<div style="margin-top:6px"><span class="badge '+(activo?'b-green':'b-muted')+'">'+(activo?'&#9989; Activo':'&#9208; Inactivo')+'</span></div>';
     row+='</div>';
     row+='<div class="guia-actions">';
-    row+='<button class="btn btn-ghost btn-sm" onclick="openGuiaModal(\''+nombre+'\')">&#9999;&#65039; Editar</button>';
-    row+='<button class="btn btn-ghost btn-sm" onclick="toggleGuiaActivo(\''+nombre+'\',\''+activoStr+'\')">&#9208; '+(activo?'Desactivar':'Activar')+'</button>';
-    row+='<button class="btn btn-danger btn-sm" onclick="eliminarGuia(\''+nombre+'\')">&#128465;</button>';
+    row+='<button class="btn btn-ghost btn-sm" data-action="editar" data-nombre="'+nombre+'">&#9999;&#65039; Editar</button>';
+    row+='<button class="btn btn-ghost btn-sm" data-action="toggle" data-nombre="'+nombre+'" data-activo="'+activoStr+'">&#9208; '+(activo?'Desactivar':'Activar')+'</button>';
+    row+='<button class="btn btn-danger btn-sm" data-action="eliminar" data-nombre="'+nombre+'">&#128465;</button>';
     row+='</div>';
     row+='</div>';
     rows.push(row);
   });
   grid.innerHTML=rows.join('');
 }
+
 
 function toggleVerPin(btn){
   var pin=btn.getAttribute('data-pin');
@@ -1741,6 +1747,19 @@ async function init(){
   refreshFromAPI();
 }
 init();
+
+// Event delegation para sección Guías (evita CSP con onclick inline)
+document.addEventListener('click',function(e){
+  var btn=e.target.closest('[data-action]');
+  if(!btn)return;
+  var grid=document.getElementById('guiasGrid');
+  if(!grid||!grid.contains(btn))return;
+  var action=btn.getAttribute('data-action');
+  if(action==='verpin'){toggleVerPin(btn);}
+  else if(action==='editar'){openGuiaModal(btn.getAttribute('data-nombre'));}
+  else if(action==='toggle'){toggleGuiaActivo(btn.getAttribute('data-nombre'),btn.getAttribute('data-activo'));}
+  else if(action==='eliminar'){eliminarGuia(btn.getAttribute('data-nombre'));}
+});
 </script>
 </body>
 </html>
