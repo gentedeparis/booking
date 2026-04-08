@@ -1,136 +1,709 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gente de París · Guía</title>
-    <style>
-        :root {
-            --navy: #1B2B4B; --gold: #c9a84c; --noir: #0f0f0f;
-            --charcoal: #1a1a1a; --white: #f5f2ec; --green: #27ae60;
-        }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--noir); color: var(--white); margin: 0; }
-        .login-screen, .app-screen { display: none; padding: 20px; flex-direction: column; align-items: center; min-height: 100vh; }
-        .active { display: flex; }
-        
-        /* Login */
-        .card { background: var(--charcoal); padding: 30px; border-radius: 15px; width: 100%; max-width: 300px; text-align: center; border: 1px solid #333; }
-        input { width: 100%; padding: 15px; margin: 10px 0; border-radius: 8px; border: none; font-size: 1.2rem; text-align: center; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background: var(--gold); color: var(--noir); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        
-        /* App Layout */
-        header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .jornada-card { background: var(--charcoal); width: 100%; border-radius: 12px; margin-bottom: 15px; overflow: hidden; border: 1px solid #333; }
-        .jornada-header { background: var(--navy); padding: 15px; }
-        .cliente-row { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #222; gap: 15px; }
-        .cliente-info { flex: 1; }
-        .cliente-nombre.tachado { text-decoration: line-through; opacity: 0.5; }
-        .check-btn { width: 30px; height: 30px; accent-color: var(--green); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GDP Guía">
+<meta name="theme-color" content="#1B2B4B">
+<title>Gente de París · Guía</title>
+<style>
+:root{
+  --noir:#0f0f0f;--charcoal:#1a1a1a;--graphite:#2c2c2c;--smoke:#3d3d3d;
+  --muted:#888;--light:#c8c8c8;--white:#f5f2ec;
+  --gold:#c9a84c;--gold-l:#e8c97a;
+  --green:#27ae60;--red:#c0392b;--blue:#2980b9;
+  --terra:#C4622D;--navy:#1B2B4B;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans-serif;font-weight:300;min-height:100vh;}
+
+/* ── LOGIN ── */
+.login-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.login-brand{font-family:Georgia,serif;font-size:1.6rem;color:var(--gold);letter-spacing:0.05em;margin-bottom:6px;text-align:center;}
+.login-sub{font-size:0.82rem;color:var(--muted);margin-bottom:36px;text-align:center;}
+.login-card{background:var(--charcoal);border:1px solid var(--graphite);border-radius:14px;padding:28px 24px;width:100%;max-width:340px;}
+.login-title{font-family:Georgia,serif;font-size:1.1rem;color:var(--white);margin-bottom:6px;text-align:center;}
+.login-hint{font-size:0.76rem;color:var(--muted);text-align:center;margin-bottom:20px;}
+.pin-input{width:100%;background:var(--graphite);border:2px solid var(--smoke);border-radius:10px;color:var(--white);font-size:2rem;font-weight:700;padding:16px;text-align:center;letter-spacing:0.3em;outline:none;transition:border-color 0.2s;font-family:monospace;}
+.pin-input:focus{border-color:var(--gold);}
+.pin-input.error{border-color:var(--red);}
+.login-btn{width:100%;margin-top:14px;padding:14px;background:var(--gold);color:var(--noir);border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;transition:opacity 0.2s;font-family:'Segoe UI',Arial,sans-serif;}
+.login-btn:hover{opacity:0.88;}
+.login-btn:disabled{opacity:0.5;cursor:default;}
+.login-error{margin-top:12px;text-align:center;font-size:0.82rem;color:var(--red);min-height:20px;}
+
+/* ── APP ── */
+.app-wrap{display:none;flex-direction:column;min-height:100vh;}
+.app-wrap.visible{display:flex;}
+
+/* Header */
+.app-header{background:var(--navy);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0;}
+.app-header-info{flex:1;}
+.app-header-name{font-family:Georgia,serif;font-size:1.1rem;color:var(--white);}
+.app-header-sub{font-size:0.72rem;color:rgba(255,255,255,0.55);margin-top:2px;}
+.app-header-actions{display:flex;align-items:center;gap:8px;}
+.btn-refresh-app{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:var(--white);font-size:0.8rem;padding:7px 12px;cursor:pointer;}
+.btn-logout{background:transparent;border:1px solid rgba(255,255,255,0.25);border-radius:6px;color:rgba(255,255,255,0.6);font-size:0.76rem;padding:7px 10px;cursor:pointer;}
+
+/* Tabs */
+.app-tabs{display:flex;background:var(--charcoal);border-bottom:1px solid var(--graphite);flex-shrink:0;}
+.app-tab{flex:1;padding:14px 8px;text-align:center;font-size:0.84rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.18s;user-select:none;}
+.app-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+
+/* Content */
+.app-content{flex:1;padding:18px;max-width:700px;width:100%;margin:0 auto;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* Status bar */
+.status-bar{display:flex;align-items:center;gap:8px;font-size:0.72rem;color:var(--muted);margin-bottom:16px;}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;}
+.status-dot.ok{background:var(--green);}
+.status-dot.loading{background:var(--gold);animation:pulse 1s infinite;}
+.status-dot.error{background:var(--red);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* Jornadas */
+.jornada-card{background:var(--charcoal);border:1px solid var(--graphite);border-radius:12px;margin-bottom:14px;overflow:hidden;}
+.jornada-header{background:var(--navy);padding:14px 16px;}
+.jornada-title{font-family:Georgia,serif;font-size:1rem;color:var(--white);margin-bottom:3px;}
+.jornada-meta{font-size:0.75rem;color:rgba(255,255,255,0.55);}
+.jornada-stats{display:flex;gap:10px;margin-top:8px;}
+.jornada-stat{background:rgba(255,255,255,0.08);border-radius:6px;padding:5px 10px;font-size:0.72rem;color:rgba(255,255,255,0.7);}
+.jornada-stat span{color:var(--gold);font-weight:700;font-size:0.9rem;}
+
+/* Clientes */
+.cliente-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.05);}
+.cliente-row:last-child{border-bottom:none;}
+.cliente-check{width:22px;height:22px;accent-color:var(--terra);cursor:pointer;flex-shrink:0;}
+.cliente-info{flex:1;min-width:0;}
+.cliente-nombre{font-size:0.88rem;color:var(--white);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cliente-nombre.presente{text-decoration:line-through;opacity:0.5;}
+.cliente-pax{font-size:0.72rem;color:var(--muted);margin-top:2px;}
+.cliente-wa{color:var(--gold);font-size:0.72rem;text-decoration:none;flex-shrink:0;}
+.cliente-row.presente-row{background:rgba(39,174,96,0.05);}
+
+/* Walk-ins */
+.walkin-section{padding:12px 16px;border-top:1px solid var(--graphite);}
+.walkin-title{font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:10px;}
+.walkin-form{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.walkin-input{background:var(--graphite);border:1px solid var(--smoke);border-radius:6px;color:var(--white);font-size:0.84rem;padding:8px 11px;outline:none;flex:1;min-width:120px;}
+.walkin-num{width:60px;text-align:center;}
+.walkin-btn{background:var(--terra);color:var(--white);border:none;border-radius:6px;padding:8px 14px;font-size:0.82rem;cursor:pointer;white-space:nowrap;}
+.walkin-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+.walkin-row:last-child{border-bottom:none;}
+
+/* Dossier */
+.dossier-mes{background:var(--charcoal);border:1px solid var(--graphite);border-radius:10px;padding:16px;margin-bottom:12px;}
+.dossier-mes.pagado{border-color:rgba(39,174,96,0.4);background:rgba(39,174,96,0.04);}
+.dossier-mes-title{font-family:Georgia,serif;font-size:1rem;color:var(--white);margin-bottom:3px;}
+.dossier-mes-range{font-size:0.72rem;color:var(--muted);margin-bottom:10px;}
+.dossier-mes-cred{font-family:Georgia,serif;font-size:1.6rem;font-weight:700;}
+.dossier-mes-estado{font-size:0.76rem;margin-top:4px;}
+.dossier-entry{background:var(--graphite);border-radius:8px;padding:11px 13px;margin-bottom:8px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;}
+.dossier-entry-tour{font-size:0.86rem;color:var(--white);font-weight:500;}
+.dossier-entry-fecha{font-size:0.72rem;color:var(--muted);margin-top:2px;}
+.dossier-entry-cred{font-family:Georgia,serif;font-size:1.1rem;color:var(--gold);font-weight:600;text-align:right;}
+.dossier-entry-estado{font-size:0.68rem;text-align:right;margin-top:2px;}
+.mes-sep{font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:#7fa7d9;padding:10px 0 6px;border-bottom:1px solid rgba(41,128,185,0.2);margin-bottom:8px;}
+
+/* Empty / Loading */
+.empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty-icon{font-size:2.4rem;margin-bottom:10px;opacity:0.6;}
+.spinner-wrap{text-align:center;padding:40px;}
+.spinner{width:34px;height:34px;border:3px solid var(--graphite);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Toast */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--navy);color:var(--white);padding:11px 20px;border-radius:24px;font-size:0.82rem;font-weight:600;opacity:0;pointer-events:none;transition:all 0.3s;z-index:999;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* Loading overlay */
+.loading-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;}
+.loading-overlay.open{display:flex;}
+
+/* Responsive */
+@media(max-width:500px){
+  .app-content{padding:12px;}
+  .jornada-stats{flex-wrap:wrap;}
+}
+</style>
 </head>
 <body>
 
-    <div id="loginScreen" class="login-screen active">
-        <h1 style="color: var(--gold)">Gente de París</h1>
-        <div class="card">
-            <p>Introduce tu PIN</p>
-            <input type="password" id="pinInput" placeholder="****" maxlength="4" inputmode="numeric">
-            <button onclick="intentarLogin()">Entrar</button>
-            <p id="loginError" style="color: #e74c3c; font-size: 0.8rem;"></p>
-        </div>
+<!-- ══════════ LOGIN ══════════ -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-brand">Gente de París</div>
+  <div class="login-sub">Portal de Guías</div>
+  <div class="login-card">
+    <div class="login-title">Acceso</div>
+    <div class="login-hint">Introduce tu PIN de 4 dígitos</div>
+    <input class="pin-input" type="password" id="pinInput" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="····" autocomplete="off">
+    <button class="login-btn" id="loginBtn">Entrar</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ══════════ APP ══════════ -->
+<div class="app-wrap" id="appWrap">
+  <header class="app-header">
+    <div class="app-header-info">
+      <div class="app-header-name" id="appGuiaNombre">—</div>
+      <div class="app-header-sub" id="appFechaHoy"></div>
+    </div>
+    <div class="app-header-actions">
+      <button class="btn-refresh-app" id="btnRefresh">↻ Actualizar</button>
+      <button class="btn-logout" id="btnLogout">Salir</button>
+    </div>
+  </header>
+
+  <div class="app-tabs">
+    <div class="app-tab active" data-tab="jornadas">📋 Mis Jornadas</div>
+    <div class="app-tab" data-tab="dossier">📁 Mi Dossier</div>
+  </div>
+
+  <div class="app-content">
+    <div class="status-bar">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Conectando...</span>
     </div>
 
-    <div id="appScreen" class="app-screen">
-        <header>
-            <span id="guiaNombre" style="color: var(--gold); font-weight: bold;">Nombre</span>
-            <button onclick="location.reload()" style="width: auto; padding: 5px 10px; font-size: 0.7rem;">Cerrar Sesión</button>
-        </header>
-
-        <h3 style="align-self: flex-start;">📋 Mis Jornadas de Hoy</h3>
-        <div id="listaJornadas" style="width: 100%;">
-            </div>
+    <!-- JORNADAS -->
+    <div class="tab-panel active" id="panel-jornadas">
+      <div id="jornadasContent">
+        <div class="spinner-wrap"><div class="spinner"></div></div>
+      </div>
     </div>
 
-    <script>
-        // 1. PEGA TU URL DE IMPLEMENTACIÓN AQUÍ:
-        var API = 'TU_URL_AQUÍ';
-        
-        var guiaActual = "";
+    <!-- DOSSIER -->
+    <div class="tab-panel" id="panel-dossier">
+      <div id="dossierContent">
+        <div class="spinner-wrap"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
 
-        async function apiCall(params) {
-            // Para obtener datos usamos GET (query params)
-            const url = new URL(API);
-            Object.keys(params).forEach(key => url.searchParams.set(key, params[key]));
-            const response = await fetch(url);
-            return await response.json();
-        }
+<div class="toast" id="toast"></div>
+<div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
 
-        async function intentarLogin() {
-            const pin = document.getElementById('pinInput').value;
-            const btn = document.querySelector('#loginScreen button');
-            btn.innerText = "Verificando...";
-            
-            try {
-                const res = await apiCall({ action: 'verificarPIN', pin: pin });
-                if (res.ok) {
-                    guiaActual = res.guia;
-                    document.getElementById('guiaNombre').innerText = "👋 " + guiaActual;
-                    document.getElementById('loginScreen').classList.remove('active');
-                    document.getElementById('appScreen').classList.add('active');
-                    cargarJornadas();
-                } else {
-                    document.getElementById('loginError').innerText = "PIN incorrecto o guía inactivo";
-                }
-            } catch (e) {
-                alert("Error de conexión");
-            } finally {
-                btn.innerText = "Entrar";
-            }
-        }
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+var API = 'https://script.google.com/macros/s/AKfycbzublsoEo4DlJ0QIEbuH86iC-Ztjzxuj6UO4Z1YMmHBqDcAaQsVdOr1a5pE2rS_06gk/exec';
+var REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutos
 
-        async function cargarJornadas() {
-            const container = document.getElementById('listaJornadas');
-            container.innerHTML = "<p>Cargando lista...</p>";
+// ── STATE ─────────────────────────────────────────────────────────────────────
+var guiaNombre = '';
+var jornadasData = [];
+var dossierData = [];
+var pagosData = [];
+var walkins = {}; // { tourKey: [{nombre, adultos, menores, presente}] }
+var presencia = {}; // { reservaId: true/false }
+var refreshTimer = null;
+var activeTab = 'jornadas';
 
-            try {
-                const jornadas = await apiCall({ action: 'getJornadasGuia', guia: guiaActual });
-                
-                if (jornadas.length === 0) {
-                    container.innerHTML = "<p style='opacity:0.5'>No tienes jornadas para hoy.</p>";
-                    return;
-                }
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function apiCall(params) {
+  var url = new URL(API);
+  Object.keys(params).forEach(function(k) {
+    url.searchParams.set(k, typeof params[k] === 'object' ? JSON.stringify(params[k]) : params[k]);
+  });
+  return fetch(url.toString())
+    .then(function(r) { return r.text(); })
+    .then(function(txt) {
+      var result = JSON.parse(txt);
+      if (result && result.error) throw new Error(result.error);
+      return result;
+    });
+}
 
-                container.innerHTML = ""; // Limpiar
-                jornadas.forEach(j => {
-                    const clientes = JSON.parse(j.clientesJSON || "[]");
-                    let htmlClientes = "";
-                    
-                    clientes.forEach((c, idx) => {
-                        htmlClientes += `
-                            <div class="cliente-row">
-                                <input type="checkbox" class="check-btn" onchange="this.nextElementSibling.firstElementChild.classList.toggle('tachado')">
-                                <div class="cliente-info">
-                                    <div class="cliente-nombre">${c.nombre || c.name || 'Sin nombre'}</div>
-                                    <div style="font-size: 0.7rem; color: var(--gold)">${c.adultos || c.adults || 0} AD / ${c.menores || c.minors || 0} MN</div>
-                                </div>
-                            </div>
-                        `;
-                    });
+function escH(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 
-                    container.innerHTML += `
-                        <div class="jornada-card">
-                            <div class="jornada-header">
-                                <strong>${j.tourNombre}</strong><br>
-                                <small>🕒 ${j.horario}h · 📅 ${j.fecha}</small>
-                            </div>
-                            ${htmlClientes || '<p style="padding:15px">No hay clientes registrados.</p>'}
-                        </div>
-                    `;
-                });
-            } catch (e) {
-                container.innerHTML = "<p>Error al cargar datos.</p>";
-            }
-        }
-    </script>
+function normalizarFecha(val) {
+  if (!val) return '';
+  var s = String(val);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  try {
+    var d = new Date(s);
+    if (!isNaN(d.getTime())) return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  } catch(e) {}
+  return s;
+}
+
+function normalizarHorario(val) {
+  if (!val) return '';
+  var s = String(val);
+  if (/^\d{1,2}:\d{2}$/.test(s)) return s;
+  try {
+    var d = new Date(s);
+    if (!isNaN(d.getTime())) return String(d.getUTCHours()).padStart(2,'0') + ':' + String(d.getUTCMinutes()).padStart(2,'0');
+  } catch(e) {}
+  return s;
+}
+
+function formatDate(str) {
+  if (!str) return '';
+  var s = normalizarFecha(String(str));
+  if (!s) return String(str);
+  var p = s.split('-');
+  var months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  var mn = months[parseInt(p[1])-1];
+  if (!mn) return s;
+  return parseInt(p[2]) + ' ' + mn + ' ' + p[0];
+}
+
+function formatDateDDMMYYYY(str) {
+  if (!str) return '';
+  var s = normalizarFecha(String(str));
+  if (!s) return String(str);
+  var p = s.split('-');
+  if (isNaN(parseInt(p[2]))) return s;
+  return String(parseInt(p[2])).padStart(2,'0') + '/' + String(parseInt(p[1])).padStart(2,'0') + '/' + p[0];
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2500);
+}
+
+function setStatus(state, text) {
+  document.getElementById('statusDot').className = 'status-dot ' + state;
+  document.getElementById('statusText').textContent = text;
+}
+
+function showLoading() { document.getElementById('loadingOverlay').classList.add('open'); }
+function hideLoading() { document.getElementById('loadingOverlay').classList.remove('open'); }
+
+function hoy() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function formatHoy() {
+  var d = new Date();
+  var months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var days = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  return days[d.getDay()] + ', ' + d.getDate() + ' de ' + months[d.getMonth()];
+}
+
+// ── LOGIN ─────────────────────────────────────────────────────────────────────
+function doLogin() {
+  var pin = document.getElementById('pinInput').value.trim();
+  var errEl = document.getElementById('loginError');
+  var btn = document.getElementById('loginBtn');
+  if (!/^[0-9]{4}$/.test(pin)) {
+    errEl.textContent = 'El PIN debe tener 4 dígitos';
+    document.getElementById('pinInput').classList.add('error');
+    return;
+  }
+  errEl.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+  apiCall({ action: 'verificarPIN', pin: pin })
+    .then(function(resp) {
+      if (resp && resp.ok) {
+        guiaNombre = resp.guia;
+        enterApp();
+      } else {
+        document.getElementById('pinInput').classList.add('error');
+        errEl.textContent = 'PIN incorrecto. Inténtalo de nuevo.';
+        document.getElementById('pinInput').value = '';
+        document.getElementById('pinInput').focus();
+      }
+    })
+    .catch(function(e) {
+      errEl.textContent = 'Error de conexión. Inténtalo de nuevo.';
+    })
+    .finally(function() {
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
+    });
+}
+
+function enterApp() {
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('appWrap').classList.add('visible');
+  document.getElementById('appGuiaNombre').textContent = '👋 ' + guiaNombre;
+  document.getElementById('appFechaHoy').textContent = formatHoy();
+  loadAll();
+  startAutoRefresh();
+}
+
+function logout() {
+  guiaNombre = '';
+  reservasData = [];
+  dossierData = [];
+  pagosData = [];
+  walkins = {};
+  presencia = {};
+  stopAutoRefresh();
+  document.getElementById('appWrap').classList.remove('visible');
+  document.getElementById('loginWrap').style.display = 'flex';
+  document.getElementById('pinInput').value = '';
+  document.getElementById('pinInput').classList.remove('error');
+  document.getElementById('loginError').textContent = '';
+}
+
+// ── DATA LOADING ──────────────────────────────────────────────────────────────
+function loadAll() {
+  setStatus('loading', 'Cargando datos...');
+  Promise.all([
+    apiCall({ action: 'getJornadasGuia', guia: guiaNombre }),
+    apiCall({ action: 'getDossier', guia: guiaNombre }),
+    apiCall({ action: 'getPagosSemana', guia: guiaNombre })
+  ])
+  .then(function(results) {
+    var rawJornadas = Array.isArray(results[0]) ? results[0] : [];
+    jornadasData = rawJornadas.map(function(j) {
+      return Object.assign({}, j, {
+        fecha: normalizarFecha(j.fecha),
+        horario: normalizarHorario(j.horario),
+        clientes: typeof j.clientesJSON === 'string' ? JSON.parse(j.clientesJSON || '[]') : (j.clientes || [])
+      });
+    });
+    dossierData = Array.isArray(results[1]) ? results[1].map(function(e){
+      return Object.assign({},e,{fecha:normalizarFecha(e.fecha),horario:normalizarHorario(e.horario)});
+    }) : [];
+    pagosData = Array.isArray(results[2]) ? results[2] : [];
+    setStatus('ok', 'Actualizado · ' + new Date().toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit'}));
+    renderJornadas();
+    renderDossier();
+  })
+  .catch(function(e) {
+    setStatus('error', 'Error al cargar');
+    showToast('Error de conexión');
+  });
+}
+
+function loadJornadas() {
+  setStatus('loading', 'Actualizando...');
+  apiCall({ action: 'getJornadasGuia', guia: guiaNombre })
+    .then(function(raw) {
+      jornadasData = (Array.isArray(raw) ? raw : []).map(function(j) {
+        return Object.assign({}, j, {
+          fecha: normalizarFecha(j.fecha),
+          horario: normalizarHorario(j.horario),
+          clientes: typeof j.clientesJSON === 'string' ? JSON.parse(j.clientesJSON || '[]') : (j.clientes || [])
+        });
+      });
+      setStatus('ok', 'Actualizado · ' + new Date().toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit'}));
+      renderJornadas();
+    })
+    .catch(function() {
+      setStatus('error', 'Error al actualizar');
+    });
+}
+
+// ── AUTO REFRESH ──────────────────────────────────────────────────────────────
+function startAutoRefresh() {
+  stopAutoRefresh();
+  refreshTimer = setInterval(function() {
+    if (activeTab === 'jornadas') loadJornadas();
+  }, REFRESH_INTERVAL);
+}
+
+function stopAutoRefresh() {
+  if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+}
+
+// ── RENDER JORNADAS ───────────────────────────────────────────────────────────
+function renderJornadas() {
+  var el = document.getElementById('jornadasContent');
+  var today = hoy();
+
+  // Usar jornadasData — jornadas asignadas específicamente a este guía
+  var proximas = jornadasData.filter(function(j) {
+    return j.fecha >= today;
+  });
+
+  if (!proximas.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">&#128203;</div><div>No hay jornadas próximas asignadas.</div><div style="font-size:0.76rem;color:var(--muted);margin-top:8px;">El administrador debe crear y guardar una jornada desde Tour Manager.</div></div>';
+    return;
+  }
+
+  // Ordenar por fecha y horario
+  var sorted = proximas.slice().sort(function(a,b) {
+    if (a.fecha !== b.fecha) return a.fecha > b.fecha ? 1 : -1;
+    return (a.horario||'') > (b.horario||'') ? 1 : -1;
+  });
+
+  var html = '';
+  sorted.forEach(function(j, gi) {
+    var clientes = j.clientes || [];
+    var totalPax = clientes.reduce(function(s,c) { return s + (parseInt(c.adults)||0) + (parseInt(c.minors)||0); }, 0);
+    var presentes = clientes.filter(function(c) { return presencia[j.id+'_'+clientes.indexOf(c)]; }).length;
+    var esHoy = j.fecha === today;
+    var wkeys = 'wi_' + gi;
+    if (!walkins[wkeys]) walkins[wkeys] = [];
+    var totalWalkin = walkins[wkeys].reduce(function(s,w) { return s + (w.adultos||0) + (w.menores||0); }, 0);
+    var presentesWalkin = walkins[wkeys].filter(function(w) { return w.presente; }).length;
+
+    html += '<div class="jornada-card" data-gi="'+gi+'">';
+    html += '<div class="jornada-header">';
+    html += '<div class="jornada-title">&#127919; '+escH(j.tourNombre)+'</div>';
+    html += '<div class="jornada-meta">&#128197; '+formatDate(j.fecha)+(j.horario?' &middot; &#128336; '+j.horario+'h':'')+(esHoy?' <span style="background:rgba(201,168,76,0.3);color:var(--gold);padding:1px 7px;border-radius:10px;font-size:0.68rem;margin-left:6px">HOY</span>':'')+'</div>';
+    html += '<div class="jornada-stats">';
+    html += '<div class="jornada-stat">Clientes: <span>'+clientes.length+'</span></div>';
+    html += '<div class="jornada-stat">PAX: <span>'+totalPax+'</span></div>';
+    html += '<div class="jornada-stat" id="stat-pres-'+gi+'">Presentes: <span>'+(presentes+presentesWalkin)+'/'+(totalPax+totalWalkin)+'</span></div>';
+    html += '</div></div>';
+
+    // Lista de clientes desde la jornada asignada
+    clientes.forEach(function(c, ci) {
+      var pkey = j.id+'_'+ci;
+      var presente = !!presencia[pkey];
+      html += '<div class="cliente-row'+(presente?' presente-row':'')+'" data-pkey="'+escH(pkey)+'" data-gi="'+gi+'">';
+      html += '<input type="checkbox" class="cliente-check" data-action="presencia" data-pkey="'+escH(pkey)+'" data-gi="'+gi+'" '+(presente?'checked':'')+' >';
+      html += '<div class="cliente-info">';
+      html += '<div class="cliente-nombre'+(presente?' presente':'')+'">'+escH(c.name||'—')+'</div>';
+      html += '<div class="cliente-pax">'+(parseInt(c.adults)||0)+' ad. '+(parseInt(c.minors)||0)+' men.</div>';
+      html += '</div>';
+      if (c.wa) {
+        html += '<a href="https://wa.me/'+String(c.wa).replace(/[^0-9]/g,'')+'" target="_blank" class="cliente-wa">&#128241; WA</a>';
+      }
+      html += '</div>';
+    });
+
+    // Walk-ins
+    html += '<div class="walkin-section">';
+    html += '<div class="walkin-title">Walk-ins</div>';
+    html += '<div class="walkin-form">';
+    html += '<input type="text" class="walkin-input" id="wi-nombre-'+gi+'" placeholder="Nombre walk-in">';
+    html += '<input type="number" class="walkin-input walkin-num" id="wi-ad-'+gi+'" placeholder="Ad." min="0" value="1">';
+    html += '<input type="number" class="walkin-input walkin-num" id="wi-men-'+gi+'" placeholder="Men." min="0" value="0">';
+    html += '<button class="walkin-btn" data-action="addwalkin" data-gi="'+gi+'">+ Añadir</button>';
+    html += '</div>';
+    html += '<div id="walkin-list-'+gi+'">';
+    walkins[wkeys].forEach(function(w, wi) {
+      html += '<div class="walkin-row" id="wr-'+gi+'-'+wi+'">';
+      html += '<input type="checkbox" class="cliente-check" data-action="walkinpres" data-gi="'+gi+'" data-wi="'+wi+'" '+(w.presente?'checked':'')+' >';
+      html += '<div class="cliente-info"><div class="cliente-nombre'+(w.presente?' presente':'')+'">'+escH(w.nombre)+'</div>';
+      html += '<div class="cliente-pax">'+w.adultos+' ad. '+w.menores+' men.</div></div>';
+      html += '<button class="btn-logout" style="font-size:0.7rem;padding:4px 8px;" data-action="removewalkin" data-gi="'+gi+'" data-wi="'+wi+'">&#10005;</button>';
+      html += '</div>';
+    });
+    html += '</div></div>';
+    html += '</div>';
+  });
+
+  el.innerHTML = html;
+}
+
+function updateStatPresentes(gi) {
+  var el = document.getElementById('stat-pres-'+gi);
+  if (!el) return;
+  var checks = document.querySelectorAll('[data-action="presencia"][data-gi="'+gi+'"]:checked');
+  var presentes = checks.length;
+  var wkeys = 'wi_' + gi;
+  var wiList = walkins[wkeys] || [];
+  var wPresentes = wiList.filter(function(w) { return w.presente; }).length;
+  var j = jornadasData[gi];
+  var totalPax = j ? (j.clientes||[]).reduce(function(s,c){return s+(parseInt(c.adults)||0)+(parseInt(c.minors)||0);},0) : 0;
+  var totalWalkin = wiList.reduce(function(s,w){return s+(parseInt(w.adultos)||0)+(parseInt(w.menores)||0);},0);
+  el.innerHTML = 'Presentes: <span>'+(presentes+wPresentes)+'/'+(totalPax+totalWalkin)+'</span>';
+}
+
+// ── RENDER DOSSIER ────────────────────────────────────────────────────────────
+function renderDossier() {
+  var el = document.getElementById('dossierContent');
+  if (!dossierData.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">&#128202;</div><div>Sin registros aún.</div></div>';
+    return;
+  }
+
+  // Agrupar por mes
+  var byMonth = {};
+  var mesMap = {};
+  dossierData.forEach(function(e) {
+    if (!e.fecha) return;
+    var fn = normalizarFecha(e.fecha);
+    if (!fn) return;
+    var p = fn.split('-');
+    var mkey = p[0] + '-' + p[1];
+    if (!byMonth[mkey]) byMonth[mkey] = [];
+    byMonth[mkey].push(e);
+    if (!mesMap[mkey]) {
+      var lastDay = new Date(parseInt(p[0]), parseInt(p[1]), 0).getDate();
+      mesMap[mkey] = { inicio: p[0]+'-'+p[1]+'-01', fin: p[0]+'-'+p[1]+'-'+String(lastDay).padStart(2,'0'), total: 0, pagado: 0 };
+    }
+    mesMap[mkey].total += parseInt(e.creditos) || 0;
+    if (e.estadoPago === 'pagado') mesMap[mkey].pagado += parseInt(e.creditos) || 0;
+  });
+
+  var monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var monthsShort = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  var html = '';
+
+  // Score mensual
+  html += '<div style="margin-bottom:24px;">';
+  html += '<div style="font-family:Georgia,serif;font-size:1rem;color:var(--white);margin-bottom:14px;">&#128197; Score mensual</div>';
+  Object.keys(mesMap).sort().reverse().forEach(function(mkey) {
+    var sm = mesMap[mkey];
+    var pend = sm.total - sm.pagado;
+    var todo = (pend === 0 && sm.total > 0);
+    var p = mkey.split('-');
+    var nm = monthNames[parseInt(p[1])-1] + ' ' + p[0];
+    html += '<div class="dossier-mes'+(todo?' pagado':'')+'">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;">';
+    html += '<div><div class="dossier-mes-title">'+nm+'</div>';
+    html += '<div class="dossier-mes-range">'+formatDate(sm.inicio)+' &#8594; '+formatDate(sm.fin)+'</div></div>';
+    html += '<div style="text-align:right;">';
+    html += '<div class="dossier-mes-cred" style="color:'+(todo?'var(--green)':'var(--gold)')+'">'+sm.total+' cr.</div>';
+    if (todo) {
+      html += '<div class="dossier-mes-estado" style="color:var(--green);">&#9989; Todo cobrado</div>';
+    } else {
+      html += '<div class="dossier-mes-estado" style="color:var(--gold);">&#9203; '+pend+' pend.</div>';
+      if (sm.pagado > 0) html += '<div class="dossier-mes-estado" style="color:var(--green);">&#9989; '+sm.pagado+' cob.</div>';
+    }
+    html += '</div></div></div>';
+  });
+  html += '</div>';
+
+  // Historial por mes
+  var nowM = new Date();
+  var mesActualGuia = nowM.getFullYear()+'-'+String(nowM.getMonth()+1).padStart(2,'0');
+  html += '<div style="font-family:Georgia,serif;font-size:1rem;color:var(--white);margin-bottom:14px;">&#128203; Historial de tours</div>';
+  Object.keys(byMonth).sort().reverse().forEach(function(mkey) {
+    var p = mkey.split('-');
+    var nm = (monthsShort[parseInt(p[1])-1]||'').toUpperCase() + ' ' + p[0];
+    var isCurr = (mkey === mesActualGuia);
+    var acId = 'gm-'+mkey.replace('-','_');
+    html += '<div style="background:rgba(27,43,75,0.4);border:1px solid rgba(41,128,185,0.2);border-radius:8px;margin:10px 0 4px;cursor:pointer;" onclick="toggleGuiaMes(\''+acId+'\',this)">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 13px;">';
+    html += '<span style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;color:#7fa7d9;">/////// '+nm+' ///////</span>';
+    html += '<span id="garr-'+acId+'" style="font-size:0.7rem;color:var(--muted);">'+(isCurr?'&#9650;':'&#9660;')+'</span>';
+    html += '</div></div>';
+    html += '<div id="'+acId+'" style="display:'+(isCurr?'block':'none')+'">';
+    byMonth[mkey].sort(function(a,b) { return a.fecha > b.fecha ? -1 : 1; }).forEach(function(e) {
+      var ep = e.estadoPago || 'pendiente';
+      var ip = (ep === 'pagado');
+      html += '<div class="dossier-entry">';
+      html += '<div><div class="dossier-entry-tour">'+escH(e.tourNombre||'—')+'</div>';
+      html += '<div class="dossier-entry-fecha">'+formatDateDDMMYYYY(normalizarFecha(e.fecha))+(e.horario?' · '+e.horario:'')+'</div>';
+      html += '<div class="dossier-entry-fecha" style="margin-top:3px;">PAX: '+(e.paxTotal||0)+' · Asist: '+(e.asistentes||0)+'</div></div>';
+      html += '<div><div class="dossier-entry-cred" style="color:'+(ip?'var(--green)':'var(--gold)')+'">'+(e.creditos||0)+'</div>';
+      html += '<div class="dossier-entry-estado" style="color:'+(ip?'var(--green)':'var(--gold)')+'">'+(ip?'&#9989;':'&#9203;')+'</div></div>';
+      html += '</div>';
+    });
+    html += '</div>'; // cierre mes
+  });
+
+  el.innerHTML = html;
+}
+
+// ── EVENT HANDLERS ────────────────────────────────────────────────────────────
+document.addEventListener('click', function(e) {
+  // Login
+  if (e.target.id === 'loginBtn') { doLogin(); return; }
+  if (e.target.id === 'btnLogout') { if (confirm('¿Cerrar sesión?')) logout(); return; }
+  if (e.target.id === 'btnRefresh') { loadAll(); return; }
+
+  // Tabs
+  var tab = e.target.closest('.app-tab');
+  if (tab) {
+    var tabName = tab.getAttribute('data-tab');
+    document.querySelectorAll('.app-tab').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+    tab.classList.add('active');
+    document.getElementById('panel-'+tabName).classList.add('active');
+    activeTab = tabName;
+    return;
+  }
+
+  // Add walkin
+  var btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  var action = btn.getAttribute('data-action');
+  var gi = btn.getAttribute('data-gi');
+  var wkeys = 'wi_' + gi;
+
+  if (action === 'addwalkin') {
+    var nombreEl = document.getElementById('wi-nombre-'+gi);
+    var adEl = document.getElementById('wi-ad-'+gi);
+    var menEl = document.getElementById('wi-men-'+gi);
+    var nombre = nombreEl ? nombreEl.value.trim() : '';
+    if (!nombre) { showToast('Escribe el nombre del walk-in'); return; }
+    if (!walkins[wkeys]) walkins[wkeys] = [];
+    walkins[wkeys].push({ nombre: nombre, adultos: parseInt(adEl.value)||1, menores: parseInt(menEl.value)||0, presente: false });
+    renderJornadas();
+    showToast('Walk-in añadido ✓');
+    return;
+  }
+
+  if (action === 'removewalkin') {
+    var wi = parseInt(btn.getAttribute('data-wi'));
+    if (!walkins[wkeys]) return;
+    walkins[wkeys].splice(wi, 1);
+    renderJornadas();
+    return;
+  }
+});
+
+// Checkboxes presencia
+document.addEventListener('change', function(e) {
+  var el = e.target;
+  if (!el.classList.contains('cliente-check')) return;
+  var action = el.getAttribute('data-action');
+  var gi = el.getAttribute('data-gi');
+  var wkeys = 'wi_' + gi;
+
+  if (action === 'presencia') {
+    var pkey = el.getAttribute('data-pkey') || el.getAttribute('data-rid');
+    presencia[pkey] = el.checked;
+
+    var row = el.closest('.cliente-row');
+    if (row) {
+      row.classList.toggle('presente-row', el.checked);
+      var nombreEl = row.querySelector('.cliente-nombre');
+      if (nombreEl) nombreEl.classList.toggle('presente', el.checked);
+    }
+    updateStatPresentes(gi);
+  }
+
+  if (action === 'walkinpres') {
+    var wi = parseInt(el.getAttribute('data-wi'));
+    if (walkins[wkeys] && walkins[wkeys][wi]) {
+      walkins[wkeys][wi].presente = el.checked;
+      var row2 = el.closest('.walkin-row');
+      if (row2) {
+        var nombreEl2 = row2.querySelector('.cliente-nombre');
+        if (nombreEl2) nombreEl2.classList.toggle('presente', el.checked);
+      }
+      updateStatPresentes(gi);
+    }
+  }
+});
+
+// Enter en PIN
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && document.getElementById('loginWrap').style.display !== 'none') {
+    doLogin();
+  }
+  // Limpiar error al escribir PIN
+  if (document.getElementById('pinInput') === document.activeElement) {
+    document.getElementById('pinInput').classList.remove('error');
+    document.getElementById('loginError').textContent = '';
+  }
+});
+
+function toggleGuiaMes(id, header) {
+  var body = document.getElementById(id);
+  if (!body) return;
+  var arr = document.getElementById('garr-'+id);
+  var isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if (arr) arr.innerHTML = isOpen ? '&#9660;' : '&#9650;';
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+document.getElementById('appFechaHoy').textContent = formatHoy();
+document.getElementById('pinInput').focus();
+</script>
 </body>
 </html>
