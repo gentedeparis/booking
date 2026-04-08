@@ -1,135 +1,425 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reserva tu Tour - Gente de París</title>
-    <style>
-        :root { --navy: #1B2B4B; --gold: #c9a84c; --white: #ffffff; --bg: #f4f4f9; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 600px; margin: auto; }
-        .tour-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; shadow: 0 4px 6px rgba(0,0,0,0.1); border-left: 5px solid var(--gold); }
-        h1 { text-align: center; color: var(--navy); }
-        .price { font-weight: bold; color: var(--gold); font-size: 1.2rem; }
-        .btn-reserva { background: var(--navy); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        
-        /* Modal de reserva */
-        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-    </style>
-</head>
-<body>
+const SHEET_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
 
-<div class="container">
-    <h1>🇫🇷 Gente de París</h1>
-    <p style="text-align:center">Elige tu experiencia inolvidable</p>
-    
-    <div id="catalogo">
-        <p style="text-align:center">Cargando tours...</p>
-    </div>
-</div>
+function doGet(e) {
+  return handleRequest(e.parameter);
+}
 
-<div id="modalReserva" class="modal">
-    <div class="modal-content">
-        <h3 id="modalTitulo">Reserva</h3>
-        <input type="hidden" id="tourId">
-        <input type="text" id="nombre" placeholder="Tu Nombre Completo">
-        <input type="tel" id="whatsapp" placeholder="WhatsApp (con código de país)">
-        <input type="date" id="fecha">
-        <div style="display:flex; gap:10px">
-            <input type="number" id="adultos" placeholder="Adultos" min="1">
-            <input type="number" id="menores" placeholder="Niños" min="0">
-        </div>
-        <button class="btn-reserva" onclick="enviarReserva()">Confirmar Reserva</button>
-        <button onclick="cerrarModal()" style="background:none; border:none; color:grey; width:100%; margin-top:10px; cursor:pointer">Cancelar</button>
-    </div>
-</div>
+function doPost(e) {
+  let params = {};
+  try { params = JSON.parse(e.postData.contents); } catch(err) {}
+  if (params.data && typeof params.data === 'string') {
+    try { params.data = JSON.parse(params.data); } catch(err) {}
+  }
+  return handleRequest(params);
+}
 
-<script>
-    // 1. TU URL DE APPS SCRIPT AQUÍ:
-    var API = 'TU_URL_AQUÍ';
+function handleRequest(params) {
+  const action = params.action;
+  let data = params.data;
+  if (data && typeof data === 'string') {
+    try { data = JSON.parse(data); } catch(err) {}
+  }
 
-    // Cargar Catálogo al iniciar
-    window.onload = cargarTours;
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  let result = {};
 
-    async function apiCall(params) {
-        // Para lectura usamos GET
-        const url = new URL(API);
-        Object.keys(params).forEach(k => url.searchParams.set(k, params[k]));
-        const response = await fetch(url);
-        return await response.json();
+  try {
+
+    // ── TOURS CATÁLOGO ──────────────────────────────────────────────────────
+    if (action === 'getTours') {
+      const sheet = ss.getSheetByName('tours');
+      const values = sheet.getDataRange().getValues();
+      const headers = values[0];
+      result = values.slice(1).filter(r => r[0]).map(row => {
+        let obj = {}; headers.forEach((h,i) => obj[h] = row[i]); return obj;
+      });
+    }
+    else if (action === 'saveTour') {
+      const tour = data;
+      const sheet = ss.getSheetByName('tours');
+      const values = sheet.getDataRange().getValues();
+      const headers = values[0];
+      ['descripcionAmpliada','videoUrl','interno'].forEach(col => {
+        if (!headers.includes(col)) {
+          const newCol = headers.length + 1;
+          sheet.getRange(1, newCol).setValue(col);
+          headers.push(col);
+        }
+      });
+      const ids = values.slice(1).map(r => String(r[0]));
+      const idx = ids.indexOf(String(tour.id));
+      const row = headers.map(h => tour[h] !== undefined ? tour[h] : '');
+      if (idx === -1) { sheet.appendRow(row); }
+      else { sheet.getRange(idx+2,1,1,row.length).setValues([row]); }
+      result = { ok: true };
     }
 
-    async function postCall(params) {
-        // Para escritura usamos POST
-        const response = await fetch(API, {
-            method: 'POST',
-            body: JSON.stringify(params)
+    // ── BLOQUEOS ────────────────────────────────────────────────────────────
+    else if (action === 'getBloqueos') {
+      const sheet = ss.getSheetByName('bloqueos');
+      const values = sheet.getDataRange().getValues();
+      const headers = values[0];
+      result = values.slice(1).filter(r => r[0]).map(row => {
+        let obj = {}; headers.forEach((h,i) => obj[h] = row[i]); return obj;
+      });
+    }
+    else if (action === 'saveBloqueo') {
+      const b = data;
+      const sheet = ss.getSheetByName('bloqueos');
+      sheet.appendRow([b.id, b.fecha, b.tourId, b.motivo, b.timestamp]);
+      result = { ok: true };
+    }
+    else if (action === 'deleteBloqueo') {
+      const sheet = ss.getSheetByName('bloqueos');
+      const values = sheet.getDataRange().getValues();
+      const ids = values.slice(1).map(r => String(r[0]));
+      const idx = ids.indexOf(String(params.id));
+      if (idx !== -1) sheet.deleteRow(idx + 2);
+      result = { ok: true };
+    }
+
+    // ── RESERVAS ────────────────────────────────────────────────────────────
+    else if (action === 'getReservas') {
+      const sheet = ss.getSheetByName('reservas');
+      const values = sheet.getDataRange().getValues();
+      const headers = values[0];
+      if (!headers.includes('vista')) {
+        sheet.getRange(1, headers.length + 1).setValue('vista');
+        headers.push('vista');
+      }
+      result = values.slice(1).filter(r => r[0]).map(row => {
+        let obj = {}; headers.forEach((h,i) => obj[h] = row[i]); return obj;
+      });
+    }
+    else if (action === 'saveReserva') {
+      const r = data;
+      const sheet = ss.getSheetByName('reservas');
+      const headers = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+      if (!headers.includes('vista')) {
+        sheet.getRange(1, headers.length + 1).setValue('vista');
+      }
+      sheet.appendRow([
+        r.id, r.fecha, r.tourId, r.tourNombre, r.horario,
+        r.nombre, r.whatsapp, r.adultos, r.menores, r.total,
+        r.timestamp, r.estado || '', 'no'
+      ]);
+      result = { ok: true };
+    }
+    else if (action === 'deleteReserva') {
+      const sheet = ss.getSheetByName('reservas');
+      const values = sheet.getDataRange().getValues();
+      const ids = values.slice(1).map(r => String(r[0]));
+      const idx = ids.indexOf(String(params.id));
+      if (idx !== -1) sheet.deleteRow(idx + 2);
+      result = { ok: true };
+    }
+    else if (action === 'cancelReserva') {
+      const sheet = ss.getSheetByName('reservas');
+      const values = sheet.getDataRange().getValues();
+      const headers = values[0];
+      const ids = values.slice(1).map(r => String(r[0]));
+      const idx = ids.indexOf(String(params.id));
+      if (idx !== -1) {
+        let estadoCol = headers.indexOf('estado');
+        if (estadoCol === -1) {
+          estadoCol = headers.length;
+          sheet.getRange(1, estadoCol + 1).setValue('estado');
+        }
+        sheet.getRange(idx + 2, estadoCol + 1).setValue('cancelada');
+      }
+      result = { ok: true };
+    }
+    else if (action === 'marcarVista') {
+      const sheet = ss.getSheetByName('reservas');
+      const values = sheet.getDataRange().getValues();
+      const headers = values[0];
+      let vistaCol = headers.indexOf('vista');
+      if (vistaCol === -1) {
+        vistaCol = headers.length;
+        sheet.getRange(1, vistaCol + 1).setValue('vista');
+        headers.push('vista');
+      }
+      const ids = values.slice(1).map(r => String(r[0]));
+      const idx = ids.indexOf(String(params.id));
+      if (idx !== -1) {
+        sheet.getRange(idx + 2, vistaCol + 1).setValue('si');
+      }
+      result = { ok: true };
+    }
+
+    // ── DOSSIER ─────────────────────────────────────────────────────────────
+    else if (action === 'getDossier') {
+      const sheetName = 'DOSSIER_' + String(params.guia).trim().toUpperCase().replace(/\s+/g,'_');
+      let sheet = ss.getSheetByName(sheetName);
+      if (!sheet) {
+        sheet = ss.insertSheet(sheetName);
+        sheet.appendRow(['id','fecha','tourNombre','horario','idioma','paxTotal','asistentes','creditos','semana','timestamp','estadoPago']);
+        sheet.setFrozenRows(1);
+        sheet.getRange(1,1,1,11).setBackground('#1B2B4B').setFontColor('#FFFFFF').setFontWeight('bold');
+      }
+      const values = sheet.getDataRange().getValues();
+      if (values.length <= 1) { result = []; }
+      else {
+        const headers = values[0];
+        // Asegurar columna estadoPago existe
+        if (!headers.includes('estadoPago')) {
+          sheet.getRange(1, headers.length + 1).setValue('estadoPago');
+          headers.push('estadoPago');
+        }
+        result = values.slice(1).filter(r => r[0]).map(row => {
+          let obj = {}; headers.forEach((h,i) => obj[h] = String(row[i])); return obj;
         });
-        return await response.json();
+      }
     }
-
-    async function cargarTours() {
-        try {
-            const tours = await apiCall({ action: 'getTours' });
-            const catalogo = document.getElementById('catalogo');
-            catalogo.innerHTML = "";
-
-            tours.forEach(t => {
-                catalogo.innerHTML += `
-                    <div class="tour-card">
-                        <h3>${t.nombre}</h3>
-                        <p>${t.descripcion || 'Sin descripción'}</p>
-                        <div class="price">${t.precio || '--'}€</div>
-                        <button class="btn-reserva" onclick="abrirModal('${t.id}', '${t.nombre}')">Reservar Ahora</button>
-                    </div>
-                `;
-            });
-        } catch (e) {
-            document.getElementById('catalogo').innerHTML = "Error al cargar el catálogo.";
+    else if (action === 'saveDossierEntry') {
+      const entry = data;
+      const guia = params.guia || (entry && entry.guia) || '';
+      if (!guia) { result = { error: 'guia param missing' }; }
+      else {
+        const sheetName = 'DOSSIER_' + String(guia).trim().toUpperCase().replace(/\s+/g,'_');
+        let sheet = ss.getSheetByName(sheetName);
+        if (!sheet) {
+          sheet = ss.insertSheet(sheetName);
+          sheet.appendRow(['id','fecha','tourNombre','horario','idioma','paxTotal','asistentes','creditos','semana','timestamp','estadoPago']);
+          sheet.setFrozenRows(1);
+          sheet.getRange(1,1,1,11).setBackground('#1B2B4B').setFontColor('#FFFFFF').setFontWeight('bold');
         }
-    }
-
-    function abrirModal(id, nombre) {
-        document.getElementById('tourId').value = id;
-        document.getElementById('modalTitulo').innerText = nombre;
-        document.getElementById('modalReserva').style.display = 'flex';
-    }
-
-    function cerrarModal() {
-        document.getElementById('modalReserva').style.display = 'none';
-    }
-
-    async function enviarReserva() {
-        const data = {
-            id: 'RES-' + Date.now(),
-            tourId: document.getElementById('tourId').value,
-            tourNombre: document.getElementById('modalTitulo').innerText,
-            nombre: document.getElementById('nombre').value,
-            whatsapp: document.getElementById('whatsapp').value,
-            fecha: document.getElementById('fecha').value,
-            adultos: document.getElementById('adultos').value,
-            menores: document.getElementById('menores').value,
-            timestamp: new Date().toISOString(),
-            estado: 'pendiente'
-        };
-
-        if(!data.nombre || !data.fecha || !data.whatsapp) {
-            alert("Por favor rellena los datos básicos.");
-            return;
+        // Asegurar columna estadoPago existe
+        const headers = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+        if (!headers.includes('estadoPago')) {
+          sheet.getRange(1, headers.length + 1).setValue('estadoPago');
+          headers.push('estadoPago');
         }
-
-        try {
-            const res = await postCall({ action: 'saveReserva', data: data });
-            if(res.ok) {
-                alert("¡Gracias! Tu reserva ha sido recibida. Te contactaremos por WhatsApp.");
-                cerrarModal();
-            }
-        } catch (e) {
-            alert("Hubo un error al enviar la reserva.");
-        }
+        const values = sheet.getDataRange().getValues();
+        const ids = values.slice(1).map(r => String(r[0]));
+        const idx = ids.indexOf(String(entry.id));
+        const row = [
+          entry.id, entry.fecha, entry.tourNombre, entry.horario,
+          entry.idioma || '', entry.paxTotal || 0, entry.asistentes || 0,
+          entry.creditos || 0, entry.semana || '', entry.timestamp || new Date().toISOString(),
+          entry.estadoPago || 'pendiente'
+        ];
+        if (idx === -1) { sheet.appendRow(row); }
+        else { sheet.getRange(idx+2,1,1,row.length).setValues([row]); }
+        result = { ok: true };
+      }
     }
-</script>
-</body>
-</html>
+    else if (action === 'deleteDossierEntry') {
+      const guia = params.guia || '';
+      const sheetName = 'DOSSIER_' + String(guia).trim().toUpperCase().replace(/\s+/g,'_');
+      const sheet = ss.getSheetByName(sheetName);
+      if (sheet) {
+        const values = sheet.getDataRange().getValues();
+        const ids = values.slice(1).map(r => String(r[0]));
+        const idx = ids.indexOf(String(params.id));
+        if (idx !== -1) sheet.deleteRow(idx + 2);
+      }
+      result = { ok: true };
+    }
+
+    // ── PAGOS SEMANALES ─────────────────────────────────────────────────────
+    else if (action === 'getPagosSemana') {
+      const sheetName = 'PAGOS_' + String(params.guia).trim().toUpperCase().replace(/\s+/g,'_');
+      let sheet = ss.getSheetByName(sheetName);
+      if (!sheet) {
+        sheet = ss.insertSheet(sheetName);
+        sheet.appendRow(['semana','fechaInicio','fechaFin','totalCreditos','estado','timestamp']);
+        sheet.setFrozenRows(1);
+        sheet.getRange(1,1,1,6).setBackground('#1B2B4B').setFontColor('#FFFFFF').setFontWeight('bold');
+        result = [];
+      } else {
+        const values = sheet.getDataRange().getValues();
+        if (values.length <= 1) { result = []; }
+        else {
+          const headers = values[0];
+          result = values.slice(1).filter(r => r[0]).map(row => {
+            let obj = {}; headers.forEach((h,i) => obj[h] = String(row[i])); return obj;
+          });
+        }
+      }
+    }
+    else if (action === 'savePagoSemana') {
+      const p = data;
+      const sheetName = 'PAGOS_' + String(p.guia).trim().toUpperCase().replace(/\s+/g,'_');
+      let sheet = ss.getSheetByName(sheetName);
+      if (!sheet) {
+        sheet = ss.insertSheet(sheetName);
+        sheet.appendRow(['semana','fechaInicio','fechaFin','totalCreditos','estado','timestamp']);
+        sheet.setFrozenRows(1);
+        sheet.getRange(1,1,1,6).setBackground('#1B2B4B').setFontColor('#FFFFFF').setFontWeight('bold');
+      }
+      const values = sheet.getDataRange().getValues();
+      const semanas = values.slice(1).map(r => String(r[0]));
+      const idx = semanas.indexOf(String(p.semana));
+      const row = [p.semana, p.fechaInicio, p.fechaFin, p.totalCreditos, p.estado || 'pendiente', new Date().toISOString()];
+      if (idx === -1) { sheet.appendRow(row); }
+      else { sheet.getRange(idx+2,1,1,row.length).setValues([row]); }
+      result = { ok: true };
+    }
+
+    // ── GUÍAS — lista desde pestañas DOSSIER_* ───────────────────────────────
+    else if (action === 'getGuias') {
+      const sheets = ss.getSheets();
+      const guias = sheets
+        .filter(s => s.getName().startsWith('DOSSIER_'))
+        .map(s => s.getName().replace('DOSSIER_','').replace(/_/g,' '));
+      result = guias;
+    }
+
+    // ── GUÍAS — gestión completa con PINs ────────────────────────────────────
+    else if (action === 'getGuiasData') {
+      result = getGuiasData_(ss);
+    }
+    else if (action === 'saveGuia') {
+      result = saveGuia_(ss, data);
+    }
+    else if (action === 'deleteGuia') {
+      result = deleteGuia_(ss, params.nombre);
+    }
+    else if (action === 'verificarPIN') {
+      result = verificarPIN_(ss, params.pin);
+    }
+    else if (action === 'getJornadasGuia') {
+      result = getJornadasGuia_(ss, params.guia);
+    }
+    else if (action === 'saveJornada') {
+      result = saveJornada_(ss, data);
+    }
+
+  } catch(err) {
+    result = { error: err.toString() };
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ── FUNCIONES AUXILIARES DE GUÍAS ────────────────────────────────────────────
+
+function getGuiasData_(ss) {
+  let sheet = ss.getSheetByName('GUIAS');
+  if (!sheet) {
+    // Crear pestaña con los 5 guías iniciales
+    sheet = ss.insertSheet('GUIAS');
+    sheet.appendRow(['nombre','pin','activo','timestamp']);
+    sheet.setFrozenRows(1);
+    sheet.getRange(1,1,1,4).setBackground('#1B2B4B').setFontColor('#FFFFFF').setFontWeight('bold');
+    var inicial = [
+      ['Javier',    '1001', 'true', new Date().toISOString()],
+      ['Camilo',    '1002', 'true', new Date().toISOString()],
+      ['Eduardo',   '1003', 'true', new Date().toISOString()],
+      ['Sebastian', '1004', 'true', new Date().toISOString()],
+      ['Humberto',  '1005', 'true', new Date().toISOString()]
+    ];
+    sheet.getRange(2, 1, inicial.length, 4).setValues(inicial);
+  }
+  var values = sheet.getDataRange().getValues();
+  if (values.length <= 1) return [];
+  var headers = values[0];
+  return values.slice(1).filter(r => r[0]).map(row => {
+    var obj = {}; headers.forEach((h,i) => obj[h] = String(row[i])); return obj;
+  });
+}
+
+function saveGuia_(ss, guia) {
+  var sheet = ss.getSheetByName('GUIAS');
+  if (!sheet) { getGuiasData_(ss); sheet = ss.getSheetByName('GUIAS'); }
+  var values = sheet.getDataRange().getValues();
+  var found = false;
+  for (var i = 1; i < values.length; i++) {
+    if (String(values[i][0]).trim().toLowerCase() === String(guia.nombre).trim().toLowerCase()) {
+      sheet.getRange(i + 1, 1, 1, 4).setValues([[
+        guia.nombre,
+        guia.pin,
+        guia.activo !== undefined ? String(guia.activo) : 'true',
+        new Date().toISOString()
+      ]]);
+      found = true;
+      break;
+    }
+  }
+  if (!found) {
+    sheet.appendRow([guia.nombre, guia.pin, guia.activo !== undefined ? String(guia.activo) : 'true', new Date().toISOString()]);
+  }
+  return { ok: true };
+}
+
+function deleteGuia_(ss, nombre) {
+  var sheet = ss.getSheetByName('GUIAS');
+  if (!sheet) return { ok: false, error: 'Hoja GUIAS no encontrada' };
+  var values = sheet.getDataRange().getValues();
+  for (var i = 1; i < values.length; i++) {
+    if (String(values[i][0]).trim().toLowerCase() === String(nombre).trim().toLowerCase()) {
+      sheet.deleteRow(i + 1);
+      return { ok: true };
+    }
+  }
+  return { ok: false, error: 'Guía no encontrado' };
+}
+
+function verificarPIN_(ss, pin) {
+  var guias = getGuiasData_(ss);
+  for (var i = 0; i < guias.length; i++) {
+    if (String(guias[i].pin).trim() === String(pin).trim() && guias[i].activo === 'true') {
+      return { ok: true, guia: guias[i].nombre };
+    }
+  }
+  return { ok: false };
+}
+
+
+// ── KEEPALIVE ─────────────────────────────────────────────────────────────────
+function keepAlive() {
+  Logger.log('keepAlive ping: ' + new Date().toISOString());
+}
+
+// ── JORNADAS ─────────────────────────────────────────────────────────────────
+
+function saveJornada_(ss, jornada) {
+  var sheet = ss.getSheetByName('JORNADAS');
+  if (!sheet) {
+    sheet = ss.insertSheet('JORNADAS');
+    sheet.appendRow(['id','guia','fecha','tourId','tourNombre','horario','clientesJSON','timestamp']);
+    sheet.setFrozenRows(1);
+    sheet.getRange(1,1,1,8).setBackground('#1B2B4B').setFontColor('#FFFFFF').setFontWeight('bold');
+  }
+  var values = sheet.getDataRange().getValues();
+  var ids = values.slice(1).map(function(r){return String(r[0]);});
+  var idx = ids.indexOf(String(jornada.id));
+  var row = [
+    jornada.id, jornada.guia, jornada.fecha,
+    jornada.tourId||'', jornada.tourNombre||'',
+    jornada.horario||'', jornada.clientesJSON||'[]',
+    jornada.timestamp||new Date().toISOString()
+  ];
+  if (idx === -1) { sheet.appendRow(row); }
+  else { sheet.getRange(idx+2,1,1,row.length).setValues([row]); }
+  return { ok: true };
+}
+
+function getJornadasGuia_(ss, guia) {
+  var sheet = ss.getSheetByName('JORNADAS');
+  if (!sheet) return [];
+  var values = sheet.getDataRange().getValues();
+  if (values.length <= 1) return [];
+  var headers = values[0];
+  var today = new Date();
+  today.setHours(0,0,0,0);
+  return values.slice(1).filter(function(r){
+    if (!r[0]) return false;
+    if (String(r[1]).trim().toLowerCase() !== String(guia).trim().toLowerCase()) return false;
+    // Incluir jornadas de hoy en adelante
+    try {
+      var d = new Date(String(r[2])+'T00:00:00');
+      return d >= today;
+    } catch(e) { return false; }
+  }).map(function(r){
+    return {
+      id: String(r[0]), guia: String(r[1]), fecha: String(r[2]),
+      tourId: String(r[3]), tourNombre: String(r[4]),
+      horario: String(r[5]), clientesJSON: String(r[6]),
+      timestamp: String(r[7])
+    };
+  });
+}
