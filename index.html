@@ -12,6 +12,7 @@
   --gold:#c9a84c;--gold-l:#e8c97a;
   --red:#c0392b;--green:#27ae60;--blue:#2980b9;
   --terra:#C4622D;--terra-l:rgba(196,98,45,0.12);--navy:#1B2B4B;
+  --informe:#8B5CF6;--informe-l:rgba(139,92,246,0.12);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--noir);color:var(--white);font-family:'DM Sans',sans-serif;font-weight:300;min-height:100vh;}
@@ -27,6 +28,8 @@ body{background:var(--noir);color:var(--white);font-family:'DM Sans',sans-serif;
 .nav-badge{font-size:.58rem;padding:1px 5px;border-radius:8px;font-weight:600;}
 .nb-mock{background:rgba(201,168,76,.2);color:var(--gold);}
 .nb-soon{background:rgba(136,136,136,.12);color:var(--muted);}
+.nb-informe{background:rgba(139,92,246,.25);color:#a78bfa;animation:pulse-badge 2s ease-in-out infinite;}
+@keyframes pulse-badge{0%,100%{opacity:1}50%{opacity:.5}}
 .nav-item.disabled{opacity:.4;cursor:default;pointer-events:none;}
 .nav-group-sep{width:1px;height:20px;background:var(--graphite);margin:0 6px;flex-shrink:0;}
 .topbar-right{display:flex;align-items:center;gap:10px;padding:10px 0;margin-left:auto;}
@@ -70,6 +73,7 @@ body{background:var(--noir);color:var(--white);font-family:'DM Sans',sans-serif;
 .btn-ghost{background:transparent;color:var(--light);border:1px solid var(--graphite);}.btn-ghost:hover{border-color:var(--muted);}
 .btn-danger{background:transparent;color:var(--red);border:1px solid var(--red);}.btn-danger:hover{background:var(--red);color:var(--white);}
 .btn-cancel-res{background:transparent;color:var(--gold);border:1px solid var(--gold);}.btn-cancel-res:hover{background:var(--gold);color:var(--noir);}
+.btn-informe-reg{background:var(--informe);color:var(--white);border:none;}.btn-informe-reg:hover{opacity:.88;}
 .btn-sm{padding:6px 12px;font-size:.76rem;}
 .btn-row{display:flex;gap:10px;margin-top:14px;}
 
@@ -93,6 +97,7 @@ body{background:var(--noir);color:var(--white);font-family:'DM Sans',sans-serif;
 .b-muted{background:rgba(136,136,136,.15);color:var(--muted);}
 .b-navy{background:rgba(27,43,75,.4);color:#7fa7d9;}
 .b-new{background:rgba(201,168,76,.25);color:var(--gold);border:1px solid rgba(201,168,76,.5);}
+.b-informe{background:rgba(139,92,246,.2);color:#a78bfa;border:1px solid rgba(139,92,246,.4);}
 
 /* ── TABLA ── */
 .table-wrap{overflow-x:auto;}
@@ -290,6 +295,112 @@ textarea{resize:vertical;min-height:70px;}
 .pin-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);}
 .guia-actions{display:flex;gap:7px;flex-wrap:wrap;}
 
+/* ══════════════════════════════════════════════
+   ── INFORMES (nueva sección) ──
+   ══════════════════════════════════════════════ */
+.informes-header-banner{
+  background:linear-gradient(135deg,rgba(139,92,246,.12),rgba(27,43,75,.2));
+  border:1px solid rgba(139,92,246,.3);
+  border-radius:12px;
+  padding:18px 22px;
+  margin-bottom:22px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.informes-header-icon{font-size:2rem;flex-shrink:0;}
+.informes-header-body{flex:1;}
+.informes-header-title{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--white);margin-bottom:3px;}
+.informes-header-sub{font-size:.78rem;color:var(--muted);line-height:1.5;}
+.informes-count{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:#a78bfa;min-width:48px;text-align:right;}
+.informes-count-label{font-size:.68rem;color:var(--muted);text-align:right;white-space:nowrap;}
+
+.informe-guia-group{margin-bottom:22px;}
+.informe-guia-label{
+  font-size:.68rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  color:#a78bfa;padding:8px 0 10px;
+  border-bottom:1px solid rgba(139,92,246,.2);
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.informe-guia-label::before{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:#a78bfa;flex-shrink:0;
+}
+
+.informe-card{
+  background:var(--charcoal);
+  border:1px solid rgba(139,92,246,.25);
+  border-left:3px solid var(--informe);
+  border-radius:0 10px 10px 0;
+  padding:16px 18px;
+  margin-bottom:10px;
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:16px;
+  align-items:center;
+  transition:border-color .2s;
+}
+.informe-card:hover{border-color:rgba(139,92,246,.5);}
+.informe-card.registrado{
+  border-left-color:var(--green);
+  border-color:rgba(39,174,96,.2);
+  opacity:.6;
+}
+
+.informe-card-left{flex:1;min-width:0;}
+.informe-tour{font-family:'Playfair Display',serif;font-size:.98rem;color:var(--white);margin-bottom:4px;}
+.informe-meta{font-size:.76rem;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px;}
+.informe-meta span{display:flex;align-items:center;gap:4px;}
+.informe-pax{display:flex;gap:8px;flex-wrap:wrap;}
+.informe-pax-item{background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);border-radius:6px;padding:3px 10px;font-size:.74rem;color:#c4b5fd;}
+
+.informe-card-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.informe-cred-label{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}
+.informe-cred-input{
+  width:80px;
+  background:var(--graphite);
+  border:2px solid rgba(139,92,246,.4);
+  border-radius:8px;
+  color:#a78bfa;
+  font-family:'Playfair Display',serif;
+  font-size:1.3rem;
+  font-weight:600;
+  padding:8px 10px;
+  text-align:center;
+  outline:none;
+  transition:border-color .2s;
+}
+.informe-cred-input:focus{border-color:var(--informe);}
+.informe-cred-input::placeholder{color:rgba(139,92,246,.3);}
+
+.btn-registrar{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:var(--informe);
+  color:var(--white);
+  border:none;
+  border-radius:8px;
+  padding:10px 16px;
+  font-family:'DM Sans',sans-serif;
+  font-size:.8rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .18s;
+  white-space:nowrap;
+}
+.btn-registrar:hover{background:#7c3aed;}
+.btn-registrar:disabled{opacity:.45;cursor:default;}
+.btn-registrar .btn-reg-icon{font-size:1.1rem;}
+
+.informes-empty{
+  text-align:center;padding:60px 20px;
+  background:rgba(139,92,246,.04);
+  border:1px dashed rgba(139,92,246,.2);
+  border-radius:12px;
+}
+.informes-empty .ei{font-size:2.8rem;margin-bottom:12px;opacity:.6;}
+.informes-empty p{font-size:.84rem;color:var(--muted);margin-top:8px;line-height:1.6;}
+
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
   .topbar{padding:0 12px;}
@@ -300,6 +411,8 @@ textarea{resize:vertical;min-height:70px;}
   .civ-products{grid-template-columns:1fr;}
   .form-row{grid-template-columns:1fr;}
   .dossier-row{grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;}
+  .informe-card{grid-template-columns:1fr;gap:12px;}
+  .informe-card-right{justify-content:flex-end;}
 }
 @media(max-width:600px){
   .topbar-nav .nav-item span.nav-text{display:none;}
@@ -325,6 +438,7 @@ textarea{resize:vertical;min-height:70px;}
     <div class="nav-item disabled"><span>🟣</span><span class="nav-text"> Guruwalk</span><span class="nav-badge nb-soon">Próx.</span></div>
     <div class="nav-group-sep"></div>
     <div class="nav-item" onclick="nav('ops')" data-sec="ops"><span>👥</span><span class="nav-text"> Tour Manager</span></div>
+    <div class="nav-item" onclick="nav('informes')" data-sec="informes" id="nav-informes"><span>📥</span><span class="nav-text"> Informes</span></div>
     <div class="nav-item" onclick="nav('dossier')" data-sec="dossier"><span>📁</span><span class="nav-text"> Dossier</span></div>
     <div class="nav-item" onclick="nav('guias')" data-sec="guias"><span>👤</span><span class="nav-text"> Guías</span></div>
   </nav>
@@ -434,7 +548,6 @@ textarea{resize:vertical;min-height:70px;}
           <div class="form-group">
             <label>Guía asignado</label>
             <select id="ot-guide"><option value="">— Selecciona un guía —</option></select>
-          
           </div>
           <div class="form-group"><label>Fecha</label><input type="date" id="ot-date"></div>
         </div>
@@ -461,6 +574,28 @@ textarea{resize:vertical;min-height:70px;}
       </div>
       <div class="divider"></div>
       <button class="btn btn-danger btn-sm" id="opsDeleteBtn" style="display:none" onclick="deleteOpsTour()">🗑 Eliminar esta jornada</button>
+    </div>
+  </div>
+
+  <!-- ══ INFORMES (nueva sección) ══ -->
+  <div class="section" id="sec-informes">
+    <div class="sec-header">
+      <h1 class="sec-title">Informes de Guías</h1>
+      <button class="btn btn-ghost btn-sm" onclick="initInformes()">↻ Actualizar</button>
+    </div>
+    <div class="informes-header-banner">
+      <div class="informes-header-icon">📥</div>
+      <div class="informes-header-body">
+        <div class="informes-header-title">Informes pendientes de procesar</div>
+        <div class="informes-header-sub">Cuando un guía envía el informe de asistencia desde su app, aparece aquí. Asigna los créditos y pulsa "Registrar" para moverlo al dossier y cerrar la jornada.</div>
+      </div>
+      <div>
+        <div class="informes-count" id="informes-total-count">—</div>
+        <div class="informes-count-label">pendientes</div>
+      </div>
+    </div>
+    <div id="informesContent">
+      <div class="empty-state"><div class="ei">⏳</div>Cargando...</div>
     </div>
   </div>
 
@@ -605,9 +740,10 @@ let USE_MOCK_CIV=true;
 let dossierGuias=[], dossierActivo=null, dossierEntries={}, pagosEntries={};
 let guiasData=[];
 let _listadosGrupos=[];
+let informesPendientes=[];   // ← nuevo
 
 // ═══════════════════════════════════════════════════════════════
-//  FIX #1: apiCall usa POST — evita límite de URL con clientesJSON
+//  API
 // ═══════════════════════════════════════════════════════════════
 async function apiCall(params) {
   const resp = await fetch(API, {
@@ -642,8 +778,6 @@ function showToast(msg,type='success',dur=3500){
 function escH(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
-
-// FIX #2: normalizarFecha robusta
 function normalizarFecha(val){
   if(!val)return'';
   const s=String(val);
@@ -654,8 +788,6 @@ function normalizarFecha(val){
   }catch(e){}
   return s;
 }
-
-// FIX #3: normalizarHorario maneja fracción decimal de Sheets (0.41666 = 10:00)
 function normalizarHorario(val){
   if(!val)return'';
   const s=String(val);
@@ -671,7 +803,6 @@ function normalizarHorario(val){
   }catch(e){}
   return s;
 }
-
 function formatDate(str){
   if(!str)return'';
   const s=normalizarFecha(String(str));if(!s)return String(str);
@@ -692,16 +823,9 @@ function getSemanaKey(fechaStr){
   const fmt=x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
   return{key:fmt(lun)+'_'+fmt(dom),inicio:fmt(lun),fin:fmt(dom)};
 }
-
-// Cache
 const CACHE_TTL=5*60*1000;
-function cacheGet(k){
-  try{const o=JSON.parse(localStorage.getItem(k)||'null');return o&&(Date.now()-o.ts<CACHE_TTL)?o.data:null;}
-  catch{return null;}
-}
-function cacheSet(k,d){
-  try{localStorage.setItem(k,JSON.stringify({ts:Date.now(),data:d}));}catch{}
-}
+function cacheGet(k){try{const o=JSON.parse(localStorage.getItem(k)||'null');return o&&(Date.now()-o.ts<CACHE_TTL)?o.data:null;}catch{return null;}}
+function cacheSet(k,d){try{localStorage.setItem(k,JSON.stringify({ts:Date.now(),data:d}));}catch{}}
 
 // ═══════════════════════════════════════════════════════════════
 //  NAVEGACIÓN
@@ -717,6 +841,7 @@ function nav(sec){
   if(sec==='dash')updateDashboard();
   if(sec==='dossier')initDossier();
   if(sec==='guias')initGuias();
+  if(sec==='informes')initInformes();  // ← nuevo
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1374,7 +1499,6 @@ function getToursFromForm(){
   return result;
 }
 
-// FIX #5: saveOpsTour con log visible de cada paso en Sheets
 async function saveOpsTour(){
   const guide=document.getElementById('ot-guide').value.trim();
   if(!guide){showToast('Falta el guía','error');return;}
@@ -1431,14 +1555,12 @@ async function registrarEnSheetsConLog(guide,date,toursData){
       clientesJSON:JSON.stringify(tx.clients||[]),
       timestamp:new Date().toISOString()
     };
-    // Guardar en Dossier
     try{
       await apiCall({action:'saveDossierEntry',guia:guide,data:entry});
       lines.push(`<div class="log-ok">✅ Dossier: ${escH(tx.tourNombre)} (${paxTotal} PAX)</div>`);
     }catch(e){
       lines.push(`<div class="log-err">❌ Dossier falló: ${escH(e.message)}</div>`);
     }
-    // Guardar Jornada para app del guía
     try{
       await apiCall({action:'saveJornada',data:jornada});
       lines.push(`<div class="log-ok">✅ Jornada app guía: ${escH(guide)}</div>`);
@@ -1452,27 +1574,16 @@ async function registrarEnSheetsConLog(guide,date,toursData){
 async function deleteOpsTour(){
   if(!editingOpsId||!confirm('¿Eliminar esta jornada?'))return;
   const t=opsTours[editingOpsId];
-  let sheetsOk=false;
-
+  try{ await apiCall({action:'deleteJornada', id:'jor_'+editingOpsId}); }catch(e){ showToast('Error1: '+e.message,'error',8000); }
   if(t&&t.guide&&t.date&&t.tours&&t.tours.length){
     for(const tx of t.tours){
-      // Construir el baseId exactamente igual que en registrarEnSheetsConLog
       const baseId=t.guide.replace(/\s+/g,'')+'_'+t.date+'_'+(tx.tourId||'manual');
-      try{
-        await apiCall({action:'deleteJornada',id:'jor_'+baseId});
-        sheetsOk=true;
-      }catch(e){ showToast('Error borrando jornada: '+e.message,'error',8000); }
-      try{
-        await apiCall({action:'deleteDossierEntry',guia:t.guide,id:'dos_'+baseId});
-      }catch(e){}
+      try{ await apiCall({action:'deleteJornada',id:'jor_'+baseId}); }catch(e){}
+      try{ await apiCall({action:'deleteDossierEntry',guia:t.guide,id:'dos_'+baseId}); }catch(e){}
     }
-  } else {
-    showToast('Error: no se pudo leer la jornada del local','error',8000);
   }
-
   delete opsTours[editingOpsId];opsSave();editingOpsId=null;
-  showToast(sheetsOk?'Jornada eliminada ✓':'Eliminada local (revisar Sheets)');
-  showOpsList();
+  showToast('Jornada eliminada');showOpsList();
 }
 
 function opsDownloadBackup(){
@@ -1509,6 +1620,271 @@ function opsDownloadGuideFile(){
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(a.href);
   showToast('Archivo descargado ✓');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ██████╗  ██╗███╗   ██╗███████╗ ██████╗ ██████╗  ███╗   ███╗███████╗███████╗
+//  ██╔══██╗ ██║████╗  ██║██╔════╝██╔═══██╗██╔══██╗ ████╗ ████║██╔════╝██╔════╝
+//  ██║  ██║ ██║██╔██╗ ██║█████╗  ██║   ██║██████╔╝ ██╔████╔██║█████╗  ███████╗
+//  ██║  ██║ ██║██║╚██╗██║██╔══╝  ██║   ██║██╔══██╗ ██║╚██╔╝██║██╔══╝  ╚════██║
+//  ██████╔╝ ██║██║ ╚████║██║     ╚██████╔╝██║  ██║ ██║ ╚═╝ ██║███████╗███████║
+//  ╚═════╝  ╚═╝╚═╝  ╚═══╝╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═╝     ╚═╝╚══════╝╚══════╝
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Carga todos los dossiers de todos los guías y filtra los
+ * entries con estadoPago === 'informe_pendiente'.
+ * Actualiza el badge del nav y el counter del banner.
+ */
+async function initInformes() {
+  const container = document.getElementById('informesContent');
+  container.innerHTML = '<div class="empty-state"><div class="ei">⏳</div>Cargando informes...</div>';
+
+  // Necesitamos la lista de guías primero
+  try {
+    const guiasRaw = await apiCall({ action: 'getGuias' });
+    dossierGuias = Array.isArray(guiasRaw) ? guiasRaw : [];
+  } catch(e) {
+    container.innerHTML = `<div class="empty-state"><div class="ei">⚠️</div>Error cargando guías: ${escH(e.message)}</div>`;
+    return;
+  }
+
+  if (!dossierGuias.length) {
+    container.innerHTML = '<div class="informes-empty"><div class="ei">👤</div><p>No hay guías registrados todavía.</p></div>';
+    updateInformesNavBadge(0);
+    return;
+  }
+
+  // Cargar todos los dossiers en paralelo
+  const results = await Promise.allSettled(
+    dossierGuias.map(g => apiCall({ action: 'getDossier', guia: g })
+      .then(entries => ({ guia: g, entries: Array.isArray(entries) ? entries : [] }))
+    )
+  );
+
+  // Filtrar informe_pendiente
+  informesPendientes = [];
+  results.forEach(r => {
+    if (r.status === 'fulfilled') {
+      const { guia, entries } = r.value;
+      entries
+        .filter(e => String(e.estadoPago).trim() === 'informe_pendiente')
+        .forEach(e => {
+          informesPendientes.push({
+            ...e,
+            guia,
+            fecha: normalizarFecha(e.fecha),
+            horario: normalizarHorario(e.horario)
+          });
+        });
+    }
+  });
+
+  // Ordenar por fecha desc
+  informesPendientes.sort((a, b) => a.fecha > b.fecha ? -1 : 1);
+
+  updateInformesNavBadge(informesPendientes.length);
+  renderInformes();
+}
+
+/** Actualiza el badge numérico en la nav y lo muestra/oculta */
+function updateInformesNavBadge(count) {
+  document.getElementById('informes-total-count').textContent = count;
+  const navEl = document.getElementById('nav-informes');
+  // Quitar badge previo
+  navEl.querySelectorAll('.nav-badge.nb-informe').forEach(b => b.remove());
+  if (count > 0) {
+    const badge = document.createElement('span');
+    badge.className = 'nav-badge nb-informe';
+    badge.textContent = count;
+    navEl.appendChild(badge);
+  }
+}
+
+/** Renderiza las cards de informes pendientes agrupadas por guía */
+function renderInformes() {
+  const container = document.getElementById('informesContent');
+
+  if (!informesPendientes.length) {
+    container.innerHTML = `
+      <div class="informes-empty">
+        <div class="ei">✅</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1rem;color:var(--white)">Todo al día</div>
+        <p>No hay informes pendientes de procesar.<br>Cuando un guía envíe su informe de asistencia aparecerá aquí.</p>
+      </div>`;
+    return;
+  }
+
+  // Agrupar por guía
+  const byGuia = {};
+  informesPendientes.forEach(e => {
+    if (!byGuia[e.guia]) byGuia[e.guia] = [];
+    byGuia[e.guia].push(e);
+  });
+
+  let html = '';
+  Object.keys(byGuia).forEach(guia => {
+    const entries = byGuia[guia];
+    html += `
+      <div class="informe-guia-group" id="ig-${escH(guia)}">
+        <div class="informe-guia-label">
+          👤 ${escH(guia)}
+          <span style="color:var(--muted);font-weight:400;font-size:.68rem;text-transform:none;letter-spacing:0">
+            — ${entries.length} informe${entries.length !== 1 ? 's' : ''} pendiente${entries.length !== 1 ? 's' : ''}
+          </span>
+        </div>`;
+
+    entries.forEach(e => {
+      const jornadaId = String(e.id).replace(/^dos_/, 'jor_');
+      const paxNum = parseInt(e.paxTotal) || 0;
+      const asistNum = parseInt(e.asistentes) || 0;
+
+      html += `
+        <div class="informe-card" id="ic-${escH(e.id)}">
+          <div class="informe-card-left">
+            <div class="informe-tour">🎯 ${escH(e.tourNombre || '—')}</div>
+            <div class="informe-meta">
+              <span>📅 ${formatDate(e.fecha)}</span>
+              ${e.horario ? `<span>🕐 ${escH(e.horario)}h</span>` : ''}
+              <span class="badge b-informe">⏳ Informe pendiente</span>
+            </div>
+            <div class="informe-pax">
+              <span class="informe-pax-item">👥 ${paxNum} PAX reservados</span>
+              ${asistNum > 0 ? `<span class="informe-pax-item">✅ ${asistNum} asistieron</span>` : ''}
+            </div>
+          </div>
+          <div class="informe-card-right">
+            <div>
+              <div class="informe-cred-label">Créditos</div>
+              <input
+                type="number"
+                min="0"
+                placeholder="0"
+                class="informe-cred-input"
+                id="cred-${escH(e.id)}"
+                value="${parseInt(e.creditos) > 0 ? parseInt(e.creditos) : ''}"
+              >
+            </div>
+            <button
+              class="btn-registrar"
+              id="btn-reg-${escH(e.id)}"
+              onclick="registrarInforme('${escH(e.guia)}','${escH(e.id)}','${escH(jornadaId)}')"
+            >
+              <span class="btn-reg-icon">✓</span>
+              Registrar
+            </button>
+          </div>
+        </div>`;
+    });
+
+    html += '</div>'; // /informe-guia-group
+  });
+
+  container.innerHTML = html;
+}
+
+/**
+ * Procesa un informe:
+ * 1. Lee los créditos del input
+ * 2. Actualiza el dossierEntry: estadoPago → 'pendiente', creditos → N
+ * 3. Borra la jornada de la hoja JORNADAS
+ * 4. Quita el card del DOM y actualiza el counter
+ */
+async function registrarInforme(guia, entryId, jornadaId) {
+  const credInput = document.getElementById('cred-' + entryId);
+  const creditos = parseInt(credInput?.value) || 0;
+
+  if (creditos < 0) {
+    showToast('Los créditos no pueden ser negativos', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btn-reg-' + entryId);
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="btn-reg-icon">⏳</span>Guardando...'; }
+
+  // Encontrar el entry en memoria para tener todos sus campos
+  const entry = informesPendientes.find(e => e.id === entryId);
+  if (!entry) {
+    showToast('Entry no encontrado en memoria', 'error');
+    if (btn) { btn.disabled = false; btn.innerHTML = '<span class="btn-reg-icon">✓</span>Registrar'; }
+    return;
+  }
+
+  const semInfo = getSemanaKey(entry.fecha);
+  const updatedEntry = {
+    ...entry,
+    creditos,
+    estadoPago: 'pendiente',
+    semana: semInfo.key,
+    timestamp: new Date().toISOString()
+  };
+  // Limpiar campo guia para evitar duplicados en el objeto enviado
+  delete updatedEntry.guia; // se pasa como parámetro separado
+
+  let errores = [];
+
+  // 1 — Actualizar dossier entry
+  try {
+    await apiCall({ action: 'saveDossierEntry', guia, data: { ...updatedEntry, guia } });
+  } catch(e) {
+    errores.push('Dossier: ' + e.message);
+  }
+
+  // 2 — Borrar jornada de Sheets (doble intento: por jornadaId derivado y por ID directo)
+  try {
+    await apiCall({ action: 'deleteJornada', id: jornadaId });
+  } catch(e) {
+    // intento secundario: el ID podría no tener el prefijo exacto
+    try {
+      await apiCall({ action: 'deleteJornada', id: 'jor_' + entryId.replace(/^dos_/, '') });
+    } catch(e2) {
+      errores.push('Jornada: ' + e2.message);
+    }
+  }
+
+  if (errores.length) {
+    showToast('⚠️ ' + errores.join(' | '), 'error', 7000);
+    if (btn) { btn.disabled = false; btn.innerHTML = '<span class="btn-reg-icon">✓</span>Registrar'; }
+    return;
+  }
+
+  // Éxito — animar card y quitarla del DOM
+  const card = document.getElementById('ic-' + entryId);
+  if (card) {
+    card.classList.add('registrado');
+    card.style.transition = 'opacity .4s, transform .4s';
+    card.style.opacity = '0';
+    card.style.transform = 'translateX(20px)';
+    setTimeout(() => {
+      card.remove();
+      // Si el grupo quedó vacío, quitarlo también
+      const grupoEl = document.getElementById('ig-' + guia);
+      if (grupoEl && !grupoEl.querySelectorAll('.informe-card').length) {
+        grupoEl.remove();
+      }
+    }, 400);
+  }
+
+  // Actualizar estado interno
+  informesPendientes = informesPendientes.filter(e => e.id !== entryId);
+  updateInformesNavBadge(informesPendientes.length);
+
+  // Si no quedan pendientes, mostrar estado vacío
+  if (!informesPendientes.length) {
+    setTimeout(() => {
+      document.getElementById('informesContent').innerHTML = `
+        <div class="informes-empty">
+          <div class="ei">✅</div>
+          <div style="font-family:'Playfair Display',serif;font-size:1rem;color:var(--white)">¡Todo procesado!</div>
+          <p>Todos los informes han sido registrados en los dossiers.</p>
+        </div>`;
+    }, 450);
+  }
+
+  showToast(`✅ Informe de ${guia} registrado — ${creditos} cr.`);
+
+  // Invalidar caché del dossier de ese guía para que se recargue fresco
+  if (dossierEntries[guia]) delete dossierEntries[guia];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1604,20 +1980,25 @@ function renderDossierContent(guia){
       h+=`<div id="${acId}" style="display:${isAct?'block':'none'}">`;
       byMonth[mk].sort((a,b)=>a.fecha>b.fecha?-1:1).forEach(e=>{
         const ep=e.estadoPago||'pendiente',ip=ep==='pagado';
+        const esInforme=ep==='informe_pendiente';
         const g2=escH(guia),eid=escH(e.id);
         h+=`<div class="dossier-row" style="${ip?'opacity:.7':''}">
-          <div><div class="dr-tour">${escH(e.tourNombre||'')}</div><div class="dr-date">${formatDDMMYYYY(e.fecha)}${e.horario?' + '+e.horario:''}</div></div>
+          <div>
+            <div class="dr-tour">${escH(e.tourNombre||'')}${esInforme?'<span class="badge b-informe" style="margin-left:6px;vertical-align:middle;font-size:.6rem">📥 Informe</span>':''}</div>
+            <div class="dr-date">${formatDDMMYYYY(e.fecha)}${e.horario?' + '+e.horario:''}</div>
+          </div>
           <div class="dr-date">${e.horario||'--'}</div>
           <div class="dr-field"><input type="text" placeholder="ESP/ENG/FRA" value="${escH(e.idioma||'')}" onchange="updateDossierField('${g2}','${eid}','idioma',this.value)"></div>
           <div class="dr-field" style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
             <input type="number" min="0" placeholder="PAX" value="${e.paxTotal||''}" onchange="updateDossierField('${g2}','${eid}','paxTotal',this.value)" style="${iSt}">
             <input type="number" min="0" placeholder="Asist." value="${e.asistentes||''}" onchange="updateDossierField('${g2}','${eid}','asistentes',this.value)" style="${iSt}">
           </div>
-          <div class="dr-field"><input type="number" min="0" placeholder="0" value="${e.creditos||''}" onchange="updateDossierField('${g2}','${eid}','creditos',this.value)" style="${cSt};color:${ip?'var(--green)':'var(--gold)'}"></div>
+          <div class="dr-field"><input type="number" min="0" placeholder="0" value="${e.creditos||''}" onchange="updateDossierField('${g2}','${eid}','creditos',this.value)" style="${cSt};color:${ip?'var(--green)':esInforme?'#a78bfa':'var(--gold)'}"></div>
           <div class="dr-field">
-            <select style="${sSt}${ip?';border-color:var(--green);color:var(--green)':''}" onchange="updateDossierField('${g2}','${eid}','estadoPago',this.value)">
+            <select style="${sSt}${ip?';border-color:var(--green);color:var(--green)':esInforme?';border-color:#a78bfa;color:#a78bfa':''}" onchange="updateDossierField('${g2}','${eid}','estadoPago',this.value)">
               <option value="pendiente" ${ep==='pendiente'?'selected':''}>⏳ Pendiente</option>
               <option value="pagado" ${ep==='pagado'?'selected':''}>✅ Pagado</option>
+              <option value="informe_pendiente" ${ep==='informe_pendiente'?'selected':''}>📥 Informe pend.</option>
             </select>
           </div>
           <div style="text-align:right"><button class="btn btn-danger btn-sm" onclick="deleteDossierEntry('${g2}','${eid}')">🗑</button></div>
@@ -1881,7 +2262,6 @@ async function eliminarGuia(nombre){
   hideLoading();
 }
 
-// Delegación de eventos para la sección Guías
 document.addEventListener('click',e=>{
   const btn=e.target.closest('[data-action]');if(!btn)return;
   const grid=document.getElementById('guiasGrid');
@@ -1934,7 +2314,7 @@ function updateDashboard(){
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  BUILD GUIDE HTML (archivo que se descarga para el guía)
+//  BUILD GUIDE HTML
 // ═══════════════════════════════════════════════════════════════
 function buildGuideHTML(jornada){
   const dataObj={
