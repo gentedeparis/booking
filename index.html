@@ -1452,21 +1452,27 @@ async function registrarEnSheetsConLog(guide,date,toursData){
 async function deleteOpsTour(){
   if(!editingOpsId||!confirm('¿Eliminar esta jornada?'))return;
   const t=opsTours[editingOpsId];
-  
-  // Intentar borrar en Sheets usando el ID de la jornada directamente
-  try{ await apiCall({action:'deleteJornada', id:'jor_'+editingOpsId}); }catch(e){ showToast('Error1: '+e.message,'error',8000); }
-  
-  // También intentar con la estructura completa si existe
+  let sheetsOk=false;
+
   if(t&&t.guide&&t.date&&t.tours&&t.tours.length){
     for(const tx of t.tours){
+      // Construir el baseId exactamente igual que en registrarEnSheetsConLog
       const baseId=t.guide.replace(/\s+/g,'')+'_'+t.date+'_'+(tx.tourId||'manual');
-      try{ await apiCall({action:'deleteJornada',id:'jor_'+baseId}); }catch(e){}
-      try{ await apiCall({action:'deleteDossierEntry',guia:t.guide,id:'dos_'+baseId}); }catch(e){}
+      try{
+        await apiCall({action:'deleteJornada',id:'jor_'+baseId});
+        sheetsOk=true;
+      }catch(e){ showToast('Error borrando jornada: '+e.message,'error',8000); }
+      try{
+        await apiCall({action:'deleteDossierEntry',guia:t.guide,id:'dos_'+baseId});
+      }catch(e){}
     }
+  } else {
+    showToast('Error: no se pudo leer la jornada del local','error',8000);
   }
-  
+
   delete opsTours[editingOpsId];opsSave();editingOpsId=null;
-  showToast('Jornada eliminada');showOpsList();
+  showToast(sheetsOk?'Jornada eliminada ✓':'Eliminada local (revisar Sheets)');
+  showOpsList();
 }
 
 function opsDownloadBackup(){
