@@ -433,8 +433,8 @@ textarea{resize:vertical;min-height:70px;}
         <div class="form-row">
           <div class="form-group">
             <label>Guía asignado</label>
-            <input type="text" id="ot-guide" placeholder="Nombre del guía" list="guia-suggestions" autocomplete="off">
-            <datalist id="guia-suggestions"></datalist>
+            <select id="ot-guide"><option value="">— Selecciona un guía —</option></select>
+          
           </div>
           <div class="form-group"><label>Fecha</label><input type="date" id="ot-date"></div>
         </div>
@@ -546,7 +546,7 @@ textarea{resize:vertical;min-height:70px;}
 <div class="modal-overlay" id="newGuiaModal">
   <div class="modal">
     <div class="modal-title">Nuevo Guía — Dossier</div>
-    <div class="form-group"><label>Nombre del guía</label><input type="text" id="newGuiaName" placeholder="Ej: Sebastián"></div>
+    <div class="form-group"><label>Nombre del guía</label><select id="newGuiaName"><option value="">— Selecciona un guía —</option></select></div>
     <div class="modal-actions"><button class="btn btn-ghost" onclick="closeNewGuiaModal()">Cancelar</button><button class="btn btn-gold" onclick="createNewGuia()">Crear dossier</button></div>
   </div>
 </div>
@@ -1196,19 +1196,18 @@ async function refreshFromAPI(){
 // ═══════════════════════════════════════════════════════════════
 //  TOUR MANAGER
 // ═══════════════════════════════════════════════════════════════
-
-// FIX #4: carga guías desde API para el datalist de autocompletado
 async function loadGuiasForDatalist(){
   try{
-    const resp=await apiCall({action:'getGuiasData'});
-    const dl=document.getElementById('guia-suggestions');
-    if(dl&&Array.isArray(resp)){
-      dl.innerHTML=resp
-        .filter(g=>g.activo==='true'||g.activo===true)
-        .map(g=>`<option value="${escH(g.nombre)}">`)
-        .join('');
-    }
-  }catch(e){/* silencioso, solo es autocompletado */}
+    const resp = await apiCall({action:'getGuiasData'});
+    if(!Array.isArray(resp)) return;
+    const activos = resp.filter(g=>g.activo==='true'||g.activo===true);
+    const opts = '<option value="">— Selecciona un guía —</option>'
+      + activos.map(g=>`<option value="${escH(g.nombre)}">${escH(g.nombre)}</option>`).join('');
+    const selGuide = document.getElementById('ot-guide');
+    if(selGuide) selGuide.innerHTML = opts;
+    const selNew = document.getElementById('newGuiaName');
+    if(selNew) selNew.innerHTML = opts;
+  }catch(e){ console.warn('loadGuiasForDatalist:',e); }
 }
 
 function renderTourCatalogChecks(){
@@ -1450,8 +1449,16 @@ async function registrarEnSheetsConLog(guide,date,toursData){
   return lines.join('');
 }
 
-function deleteOpsTour(){
+async function deleteOpsTour(){
   if(!editingOpsId||!confirm('¿Eliminar esta jornada?'))return;
+  const t=opsTours[editingOpsId];
+  if(t&&t.tours&&t.guide&&t.date){
+    for(const tx of t.tours){
+      const baseId=t.guide.replace(/\s+/g,'')+'_'+t.date+'_'+(tx.tourId||'manual');
+      try{ await apiCall({action:'deleteJornada',id:'jor_'+baseId}); }catch(e){}
+      try{ await apiCall({action:'deleteDossierEntry',guia:t.guide,id:'dos_'+baseId}); }catch(e){}
+    }
+  }
   delete opsTours[editingOpsId];opsSave();editingOpsId=null;
   showToast('Jornada eliminada');showOpsList();
 }
@@ -1496,6 +1503,7 @@ function opsDownloadGuideFile(){
 //  DOSSIER
 // ═══════════════════════════════════════════════════════════════
 async function initDossier(){
+  await loadGuiasForDatalist();
   showLoading();
   try{
     const guias=await apiCall({action:'getGuias'});
