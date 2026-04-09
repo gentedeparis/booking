@@ -1454,7 +1454,7 @@ async function deleteOpsTour(){
   const t=opsTours[editingOpsId];
   
   // Intentar borrar en Sheets usando el ID de la jornada directamente
-  try{ await apiCall({action:'deleteJornada', id:'jor_'+editingOpsId}); }catch(e){}
+  try{ await apiCall({action:'deleteJornada', id:'jor_'+editingOpsId}); }catch(e){ showToast('Error1: '+e.message,'error',8000); }
   
   // También intentar con la estructura completa si existe
   if(t&&t.guide&&t.date&&t.tours&&t.tours.length){
