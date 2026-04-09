@@ -1459,7 +1459,7 @@ async function deleteOpsTour(){
   // También intentar con la estructura completa si existe
   if(t&&t.guide&&t.date&&t.tours&&t.tours.length){
     for(const tx of t.tours){
-      const baseId=t.guide.replace(/\s+/g,'')+'_'+t.date+'_'+(tx.tourId||'manual');
+      const baseId=t.guide.replace(/\s+/g,'').toUpperCase()+'_'+t.date+'_'+(tx.tourId||'manual');
       try{ await apiCall({action:'deleteJornada',id:'jor_'+baseId}); }catch(e){}
       try{ await apiCall({action:'deleteDossierEntry',guia:t.guide,id:'dos_'+baseId}); }catch(e){}
     }
