@@ -563,7 +563,6 @@ function guardarClientesJornada(jornadaId, gi, isAuto) {
 
   apiCall({ action: 'updateJornadaClientes', id: jornadaId, data: clientes })
     .then(function() {
-      // Actualizar estado local
       j.clientes = clientes;
       walkins[wkeys] = [];
       if (btn) { btn.disabled = false; btn.textContent = '💾 Guardar'; }
@@ -594,6 +593,7 @@ function scheduleAutoSave(jornadaId, gi) {
 
 // ═══════════════════════════════════════════════════════════════
 //  ENVIAR INFORME AL ADMIN
+//  FIX: estadoPago cambiado a 'informe_pendiente' (era 'pendiente')
 // ═══════════════════════════════════════════════════════════════
 function enviarInforme(jornadaId, gi) {
   var j = jornadasData.find(function(x) { return x.id === jornadaId; });
@@ -623,14 +623,13 @@ function enviarInforme(jornadaId, gi) {
     creditos: 0,
     semana: '',
     timestamp: new Date().toISOString(),
-    estadoPago: 'pendiente'
+    estadoPago: 'informe_pendiente'  // FIX: era 'pendiente', el admin filtra por 'informe_pendiente'
   };
 
   apiCall({ action: 'saveDossierEntry', guia: guiaNombre, data: entry })
     .then(function() {
       showToast('✅ Informe enviado al administrador');
       if (btn) { btn.disabled = false; btn.textContent = '📤 Enviar informe'; }
-      // Marcar como procesado localmente y re-render
       jornadaOpen[jornadaId] = false;
       loadAll();
     })
@@ -653,13 +652,13 @@ function toggleJornada(jornadaId) {
 
 // ═══════════════════════════════════════════════════════════════
 //  RENDER JORNADAS
+//  FIX: data-action="enviarinforme" corregido (tenía caracteres árabes)
 // ═══════════════════════════════════════════════════════════════
 function renderJornadas() {
   var el = document.getElementById('jornadasContent');
   var today = hoy();
   var proximas = jornadasData.filter(function(j) { return j.fecha >= today; });
 
-  // Filtrar jornadas ya procesadas (dossier con asistentes > 0 para esa fecha+tour)
   proximas = proximas.filter(function(j) {
     return !dossierData.some(function(d) {
       return d.fecha === j.fecha
@@ -698,13 +697,11 @@ function renderJornadas() {
     var totalWalkin = walkins[wkeys].reduce(function(s,w) { return s + (w.adultos||0) + (w.menores||0); }, 0);
     var presentesWalkin = walkins[wkeys].filter(function(w) { return w.presente; }).length;
 
-    // Abrir por defecto si es hoy o ya estaba abierto
     if (jornadaOpen[j.id] === undefined) jornadaOpen[j.id] = esHoy;
     var isOpen = !!jornadaOpen[j.id];
 
     html += '<div class="jornada-card">';
 
-    // Header (acordeón)
     html += '<div class="jornada-header" onclick="toggleJornada(\'' + escH(j.id) + '\')">';
     html += '<div class="jornada-header-top">';
     html += '<div style="flex:1">';
@@ -720,10 +717,8 @@ function renderJornadas() {
     html += '</div>';
     html += '</div>'; // /jornada-header
 
-    // Body (acordeón)
     html += '<div class="jornada-body' + (isOpen ? ' open' : '') + '" id="jbody-' + escH(j.id) + '">';
 
-    // Clientes editables
     if (clientes.length === 0) {
       html += '<div class="cliente-vacio">Sin clientes registrados.</div>';
     } else {
@@ -775,13 +770,12 @@ function renderJornadas() {
     });
     html += '</div></div>';
 
-    // Indicador autosave
     html += '<div class="autosave-indicator" id="autosave-' + gi + '"></div>';
 
-    // Botones guardar + enviar informe
+    // FIX: data-action="enviarinforme" — antes tenía caracteres árabes "enviارinforme"
     html += '<div class="jornada-save-section">';
     html += '<button class="btn-guardar-jornada" id="btn-guardar-' + gi + '" data-action="guardarclientesjornada" data-jid="' + escH(j.id) + '" data-gi="' + gi + '">💾 Guardar</button>';
-    html += '<button class="btn-informe" id="btn-informe-' + gi + '" data-action="enviارinforme" data-jid="' + escH(j.id) + '" data-gi="' + gi + '">📤 Enviar informe</button>';
+    html += '<button class="btn-informe" id="btn-informe-' + gi + '" data-action="enviarinforme" data-jid="' + escH(j.id) + '" data-gi="' + gi + '">📤 Enviar informe</button>';
     html += '<span class="jornada-save-status" id="save-status-' + gi + '"></span>';
     html += '</div>';
 
@@ -791,7 +785,6 @@ function renderJornadas() {
 
   el.innerHTML = html;
 
-  // Auto-save en inputs
   el.querySelectorAll('[data-autosave]').forEach(function(input) {
     input.addEventListener('input', function() {
       scheduleAutoSave(input.getAttribute('data-jid'), input.getAttribute('data-gi'));
