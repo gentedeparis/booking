@@ -778,25 +778,76 @@ function showToast(msg,type='success',dur=3500){
 function escH(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
-function normalizarFecha(val){
-  if(!val)return'';
-  const s=String(val);
-  if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
-  try{
-    const d=new Date(s);
-    if(!isNaN(d.getTime()))return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  }catch(e){}
+function normalizarFecha(val) {
+  if (val === null || val === undefined || val === '') return '';
+  const s = String(val).trim();
+  if (!s || s === '0' || s === 'NaN' || s === 'undefined' || s === 'null') return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const m1 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m1) return `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
+  if (/^\d+(\.\d+)?$/.test(s)) {
+    const num = parseFloat(s);
+    if (num > 0 && num < 1) return '';
+    if (num > 1000) {
+      try {
+        const d = new Date((num - 25569) * 86400 * 1000);
+        if (!isNaN(d.getTime())) {
+          return d.getUTCFullYear() + '-'
+            + String(d.getUTCMonth() + 1).padStart(2, '0') + '-'
+            + String(d.getUTCDate()).padStart(2, '0');
+        }
+      } catch(e) {}
+    }
+  }
+  if (s.includes('T') || s.includes(' ')) {
+    try {
+      const d = new Date(s);
+      if (!isNaN(d.getTime())) {
+        return d.getUTCFullYear() + '-'
+          + String(d.getUTCMonth() + 1).padStart(2, '0') + '-'
+          + String(d.getUTCDate()).padStart(2, '0');
+      }
+    } catch(e) {}
+  }
+  try {
+    const d = new Date(s);
+    if (!isNaN(d.getTime()) && d.getFullYear() > 2000) {
+      return d.getFullYear() + '-'
+        + String(d.getMonth() + 1).padStart(2, '0') + '-'
+        + String(d.getDate()).padStart(2, '0');
+    }
+  } catch(e) {}
   return s;
 }
-function normalizarHorario(val){
-  if(!val)return'';
-  const s=String(val);
-  if(/^\d{1,2}:\d{2}$/.test(s))return s;
-  const num=parseFloat(s);
-  if(!isNaN(num)&&num>=0&&num<1){
-    const totalMin=Math.round(num*24*60);
-    return String(Math.floor(totalMin/60)).padStart(2,'0')+':'+String(totalMin%60).padStart(2,'0');
+
+function normalizarHorario(val) {
+  if (val === null || val === undefined || val === '') return '';
+  const s = String(val).trim();
+  if (!s || s === '0' || s === 'NaN' || s === 'undefined' || s === 'null') return '';
+  const mHM = s.match(/^(\d{1,2}):(\d{2})(:\d{2})?$/);
+  if (mHM) return String(parseInt(mHM[1])).padStart(2,'0') + ':' + mHM[2];
+  const num = parseFloat(s);
+  if (!isNaN(num)) {
+    if (num >= 0 && num < 1) {
+      const totalMin = Math.round(num * 24 * 60);
+      return String(Math.floor(totalMin / 60)).padStart(2, '0')
+        + ':' + String(totalMin % 60).padStart(2, '0');
+    }
+    if (Number.isInteger(num) && num >= 0 && num <= 23) {
+      return String(num).padStart(2, '0') + ':00';
+    }
   }
+  if (s.includes('T') || s.includes(' ')) {
+    try {
+      const d = new Date(s);
+      if (!isNaN(d.getTime())) {
+        return String(d.getUTCHours()).padStart(2, '0')
+          + ':' + String(d.getUTCMinutes()).padStart(2, '0');
+      }
+    } catch(e) {}
+  }
+  return s;
+}
   try{
     const d=new Date(s);
     if(!isNaN(d.getTime()))return String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0');
@@ -1674,16 +1725,41 @@ async function initInformes() {
             ...e,
             guia,
             fecha: normalizarFecha(e.fecha),
-            horario: normalizarHorario(e.horario)
+            horario: normalizarHorario(e.horario),
+            clientes: []   // se carga en el siguiente paso
           });
         });
     }
   });
 
+  // Cargar clientesJSON de JORNADAS para cada informe pendiente
+  await Promise.allSettled(
+    informesPendientes.map(e => {
+      const jornadaId = String(e.id).replace(/^dos_/, 'jor_');
+      return apiCall({ action: 'getJornadasGuia', guia: e.guia })
+        .then(jornadas => {
+          const j = (Array.isArray(jornadas) ? jornadas : [])
+            .find(x => x.id === jornadaId);
+          if (j && j.clientesJSON) {
+            try { e.clientes = JSON.parse(j.clientesJSON); } catch {}
+          }
+        })
+        .catch(() => {});
+    })
+  );
+
   // Ordenar por fecha desc
   informesPendientes.sort((a, b) => a.fecha > b.fecha ? -1 : 1);
 
   updateInformesNavBadge(informesPendientes.length);
+  function toggleInformeAcord(entryId) {
+  const body = document.getElementById('iac-body-' + entryId);
+  const arr  = document.getElementById('iac-arr-'  + entryId);
+  if (!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if (arr) arr.textContent = isOpen ? '▶' : '▼';
+}
   renderInformes();
 }
 
@@ -1752,6 +1828,53 @@ function renderInformes() {
               <span class="informe-pax-item">👥 ${paxNum} PAX reservados</span>
               ${asistNum > 0 ? `<span class="informe-pax-item">✅ ${asistNum} asistieron</span>` : ''}
             </div>
+            ${e.clientes && e.clientes.length ? `
+            <div style="margin-top:10px">
+              <div class="informe-acord-hdr" id="iac-hdr-${escH(e.id)}"
+                onclick="toggleInformeAcord('${escH(e.id)}')"
+                style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+                       font-size:.74rem;color:#a78bfa;user-select:none;padding:4px 0">
+                <span id="iac-arr-${escH(e.id)}">▶</span>
+                Ver / editar lista de clientes (${e.clientes.length})
+              </div>
+              <div id="iac-body-${escH(e.id)}" style="display:none;margin-top:8px">
+                ${e.clientes.map((c, ci) => `
+                  <div style="display:grid;grid-template-columns:1fr 52px 52px 1fr auto;
+                              gap:6px;align-items:center;margin-bottom:6px">
+                    <input type="text"
+                      id="ic-cn-${escH(e.id)}-${ci}"
+                      value="${escH(c.name || '')}"
+                      placeholder="Nombre"
+                      style="background:var(--graphite);border:1px solid var(--smoke);
+                             border-radius:5px;color:var(--white);font-size:.78rem;
+                             padding:5px 8px;outline:none;font-family:'DM Sans',sans-serif">
+                    <input type="number" min="0"
+                      id="ic-ca-${escH(e.id)}-${ci}"
+                      value="${parseInt(c.adults)||0}"
+                      placeholder="Ad."
+                      style="background:var(--graphite);border:1px solid var(--smoke);
+                             border-radius:5px;color:var(--white);font-size:.78rem;
+                             padding:5px 4px;text-align:center;outline:none">
+                    <input type="number" min="0"
+                      id="ic-cm-${escH(e.id)}-${ci}"
+                      value="${parseInt(c.minors)||0}"
+                      placeholder="Men."
+                      style="background:var(--graphite);border:1px solid var(--smoke);
+                             border-radius:5px;color:var(--white);font-size:.78rem;
+                             padding:5px 4px;text-align:center;outline:none">
+                    <input type="text"
+                      id="ic-cw-${escH(e.id)}-${ci}"
+                      value="${escH(c.wa || '')}"
+                      placeholder="WhatsApp"
+                      style="background:var(--graphite);border:1px solid var(--smoke);
+                             border-radius:5px;color:var(--white);font-size:.78rem;
+                             padding:5px 8px;outline:none;font-family:'DM Sans',sans-serif">
+                    <span style="font-size:.68rem;color:var(--muted);white-space:nowrap">
+                      ${parseInt(c.adults)||0}A ${parseInt(c.minors)||0}M
+                    </span>
+                  </div>`).join('')}
+              </div>
+            </div>` : ''}
           </div>
           <div class="informe-card-right">
             <div>
