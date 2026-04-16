@@ -282,29 +282,75 @@ function escH(s) {
 }
 
 function normalizarFecha(val) {
-  if (!val) return '';
-  var s = String(val);
+  if (val === null || val === undefined || val === '') return '';
+  const s = String(val).trim();
+  if (!s || s === '0' || s === 'NaN' || s === 'undefined' || s === 'null') return '';
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const m1 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m1) return `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
+  if (/^\d+(\.\d+)?$/.test(s)) {
+    const num = parseFloat(s);
+    if (num > 0 && num < 1) return '';
+    if (num > 1000) {
+      try {
+        const d = new Date((num - 25569) * 86400 * 1000);
+        if (!isNaN(d.getTime())) {
+          return d.getUTCFullYear() + '-'
+            + String(d.getUTCMonth() + 1).padStart(2, '0') + '-'
+            + String(d.getUTCDate()).padStart(2, '0');
+        }
+      } catch(e) {}
+    }
+  }
+  if (s.includes('T') || s.includes(' ')) {
+    try {
+      const d = new Date(s);
+      if (!isNaN(d.getTime())) {
+        return d.getUTCFullYear() + '-'
+          + String(d.getUTCMonth() + 1).padStart(2, '0') + '-'
+          + String(d.getUTCDate()).padStart(2, '0');
+      }
+    } catch(e) {}
+  }
   try {
-    var d = new Date(s);
-    if (!isNaN(d.getTime())) {
-      return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    const d = new Date(s);
+    if (!isNaN(d.getTime()) && d.getFullYear() > 2000) {
+      return d.getFullYear() + '-'
+        + String(d.getMonth() + 1).padStart(2, '0') + '-'
+        + String(d.getDate()).padStart(2, '0');
     }
   } catch(e) {}
   return s;
 }
 
 function normalizarHorario(val) {
-  if (!val) return '';
-  var s = String(val);
-  if (/^\d{1,2}:\d{2}$/.test(s)) return s;
-  var num = parseFloat(s);
-  if (!isNaN(num) && num >= 0 && num < 1) {
-    var totalMin = Math.round(num * 24 * 60);
-    var h = Math.floor(totalMin / 60);
-    var m = totalMin % 60;
-    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+  if (val === null || val === undefined || val === '') return '';
+  const s = String(val).trim();
+  if (!s || s === '0' || s === 'NaN' || s === 'undefined' || s === 'null') return '';
+  const mHM = s.match(/^(\d{1,2}):(\d{2})(:\d{2})?$/);
+  if (mHM) return String(parseInt(mHM[1])).padStart(2,'0') + ':' + mHM[2];
+  const num = parseFloat(s);
+  if (!isNaN(num)) {
+    if (num >= 0 && num < 1) {
+      const totalMin = Math.round(num * 24 * 60);
+      return String(Math.floor(totalMin / 60)).padStart(2, '0')
+        + ':' + String(totalMin % 60).padStart(2, '0');
+    }
+    if (Number.isInteger(num) && num >= 0 && num <= 23) {
+      return String(num).padStart(2, '0') + ':00';
+    }
   }
+  if (s.includes('T') || s.includes(' ')) {
+    try {
+      const d = new Date(s);
+      if (!isNaN(d.getTime())) {
+        return String(d.getUTCHours()).padStart(2, '0')
+          + ':' + String(d.getUTCMinutes()).padStart(2, '0');
+      }
+    } catch(e) {}
+  }
+  return s;
+}
   try {
     var d = new Date(s);
     if (!isNaN(d.getTime())) {
@@ -711,8 +757,6 @@ function renderJornadas() {
     html += '<div id="jchev-' + escH(j.id) + '" class="jornada-chevron" style="transform:' + (isOpen ? 'rotate(180deg)' : '') + '">▼</div>';
     html += '</div>';
     html += '<div class="jornada-stats">';
-    html += '<div class="jornada-stat">Reservas: <span>' + clientes.length + '</span></div>';
-    html += '<div class="jornada-stat">PAX: <span>' + totalPax + '</span></div>';
     html += '<div class="jornada-stat" id="stat-pres-' + gi + '">Presentes: <span>' + (presentes + presentesWalkin) + '/' + (totalPax + totalWalkin) + '</span></div>';
     html += '</div>';
     html += '</div>'; // /jornada-header
