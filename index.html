@@ -1746,15 +1746,16 @@ async function initInformes() {
   informesPendientes.sort((a, b) => a.fecha > b.fecha ? -1 : 1);
 
   updateInformesNavBadge(informesPendientes.length);
-  function toggleInformeAcord(entryId) {
+  renderInformes();
+}
+
+function toggleInformeAcord(entryId) {
   const body = document.getElementById('iac-body-' + entryId);
   const arr  = document.getElementById('iac-arr-'  + entryId);
   if (!body) return;
   const isOpen = body.style.display !== 'none';
   body.style.display = isOpen ? 'none' : 'block';
   if (arr) arr.textContent = isOpen ? '▶' : '▼';
-}
-  renderInformes();
 }
 
 /** Actualiza el badge numérico en la nav y lo muestra/oculta */
@@ -1818,10 +1819,17 @@ function renderInformes() {
               ${e.horario ? `<span>🕐 ${escH(e.horario)}h</span>` : ''}
               <span class="badge b-informe">⏳ Informe pendiente</span>
             </div>
-            <div class="informe-pax">
-              <span class="informe-pax-item">👥 ${paxNum} PAX reservados</span>
-              ${asistNum > 0 ? `<span class="informe-pax-item">✅ ${asistNum} asistieron</span>` : ''}
-            </div>
+            ${(() => {
+  const totalAd = (e.clientes||[]).reduce((s,c) => s+(parseInt(c.adults)||0), 0);
+  const totalMen = (e.clientes||[]).reduce((s,c) => s+(parseInt(c.minors)||0), 0);
+  return `<div class="informe-pax">
+    <span class="informe-pax-item">✅ ${asistNum} / ${paxNum} asistentes</span>
+    ${totalMen > 0
+      ? `<span class="informe-pax-item">👤 ${totalAd} adultos · 🧒 ${totalMen} menores</span>`
+      : `<span class="informe-pax-item">👤 ${totalAd} adultos</span>`
+    }
+  </div>`;
+})()}9
             ${e.clientes && e.clientes.length ? `
             <div style="margin-top:10px">
               <div class="informe-acord-hdr" id="iac-hdr-${escH(e.id)}"
@@ -2553,4 +2561,4 @@ init();
 </script>
 
 </body>
-</html>
+</html>9
