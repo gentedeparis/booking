@@ -1771,7 +1771,23 @@ function updateInformesNavBadge(count) {
     navEl.appendChild(badge);
   }
 }
+function toggleInformeAcord(entryId) {
+  const body = document.getElementById('iac-body-' + entryId);
+  const arr  = document.getElementById('iac-arr-'  + entryId);
+  if (!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if (arr) arr.textContent = isOpen ? '▶' : '▼';
+}
 
+function recalcAsist(entryId, paxNum) {
+  const body = document.getElementById('iac-body-' + entryId);
+  if (!body) return;
+  const checks = body.querySelectorAll('input[type="checkbox"]:checked');
+  const asist = checks.length;
+  const pill = document.getElementById('asist-count-' + entryId);
+  if (pill) pill.textContent = '✅ ' + asist + ' / ' + paxNum + ' asistentes';
+}
 /** Renderiza las cards de informes pendientes agrupadas por guía */
 function renderInformes() {
   const container = document.getElementById('informesContent');
@@ -1823,7 +1839,7 @@ function renderInformes() {
   const totalAd = (e.clientes||[]).reduce((s,c) => s+(parseInt(c.adults)||0), 0);
   const totalMen = (e.clientes||[]).reduce((s,c) => s+(parseInt(c.minors)||0), 0);
   return `<div class="informe-pax">
-    <span class="informe-pax-item">✅ ${asistNum} / ${paxNum} asistentes</span>
+    <span class="informe-pax-item" id="asist-count-${escH(e.id)}">✅ ${asistNum} / ${paxNum} asistentes</span>
     ${totalMen > 0
       ? `<span class="informe-pax-item">👤 ${totalAd} adultos · 🧒 ${totalMen} menores</span>`
       : `<span class="informe-pax-item">👤 ${totalAd} adultos</span>`
@@ -1840,41 +1856,44 @@ function renderInformes() {
                 Ver / editar lista de clientes (${e.clientes.length})
               </div>
               <div id="iac-body-${escH(e.id)}" style="display:none;margin-top:8px">
-                ${e.clientes.map((c, ci) => `
-                  <div style="display:grid;grid-template-columns:1fr 52px 52px 1fr auto;
-                              gap:6px;align-items:center;margin-bottom:6px">
-                    <input type="text"
-                      id="ic-cn-${escH(e.id)}-${ci}"
-                      value="${escH(c.name || '')}"
-                      placeholder="Nombre"
-                      style="background:var(--graphite);border:1px solid var(--smoke);
-                             border-radius:5px;color:var(--white);font-size:.78rem;
-                             padding:5px 8px;outline:none;font-family:'DM Sans',sans-serif">
-                    <input type="number" min="0"
-                      id="ic-ca-${escH(e.id)}-${ci}"
-                      value="${parseInt(c.adults)||0}"
-                      placeholder="Ad."
-                      style="background:var(--graphite);border:1px solid var(--smoke);
-                             border-radius:5px;color:var(--white);font-size:.78rem;
-                             padding:5px 4px;text-align:center;outline:none">
-                    <input type="number" min="0"
-                      id="ic-cm-${escH(e.id)}-${ci}"
-                      value="${parseInt(c.minors)||0}"
-                      placeholder="Men."
-                      style="background:var(--graphite);border:1px solid var(--smoke);
-                             border-radius:5px;color:var(--white);font-size:.78rem;
-                             padding:5px 4px;text-align:center;outline:none">
-                    <input type="text"
-                      id="ic-cw-${escH(e.id)}-${ci}"
-                      value="${escH(c.wa || '')}"
-                      placeholder="WhatsApp"
-                      style="background:var(--graphite);border:1px solid var(--smoke);
-                             border-radius:5px;color:var(--white);font-size:.78rem;
-                             padding:5px 8px;outline:none;font-family:'DM Sans',sans-serif">
-                    <span style="font-size:.68rem;color:var(--muted);white-space:nowrap">
-                      ${parseInt(c.adults)||0}A ${parseInt(c.minors)||0}M
-                    </span>
-                  </div>`).join('')}
+               <div style="display:grid;grid-template-columns:22px 1fr 48px 48px 1fr auto;
+                gap:6px;align-items:center;margin-bottom:6px">
+      <input type="checkbox"
+        ${c.present ? 'checked' : ''}
+        style="width:18px;height:18px;accent-color:var(--informe);cursor:pointer;flex-shrink:0"
+        onchange="recalcAsist('${escH(e.id)}',${paxNum})">
+      <input type="text"
+        id="ic-cn-${escH(e.id)}-${ci}"
+        value="${escH(c.name || '')}"
+        placeholder="Nombre"
+        style="background:var(--graphite);border:1px solid var(--smoke);
+               border-radius:5px;color:var(--white);font-size:.78rem;
+               padding:5px 8px;outline:none;font-family:'DM Sans',sans-serif">
+      <input type="number" min="0"
+        id="ic-ca-${escH(e.id)}-${ci}"
+        value="${parseInt(c.adults)||0}"
+        placeholder="Ad."
+        style="background:var(--graphite);border:1px solid var(--smoke);
+               border-radius:5px;color:var(--white);font-size:.78rem;
+               padding:5px 4px;text-align:center;outline:none">
+      <input type="number" min="0"
+        id="ic-cm-${escH(e.id)}-${ci}"
+        value="${parseInt(c.minors)||0}"
+        placeholder="Men."
+        style="background:var(--graphite);border:1px solid var(--smoke);
+               border-radius:5px;color:var(--white);font-size:.78rem;
+               padding:5px 4px;text-align:center;outline:none">
+      <input type="text"
+        id="ic-cw-${escH(e.id)}-${ci}"
+        value="${escH(c.wa || '')}"
+        placeholder="WhatsApp"
+        style="background:var(--graphite);border:1px solid var(--smoke);
+               border-radius:5px;color:var(--white);font-size:.78rem;
+               padding:5px 8px;outline:none;font-family:'DM Sans',sans-serif">
+      <span style="font-size:.68rem;color:var(--muted);white-space:nowrap">
+        ${parseInt(c.adults)||0}A ${parseInt(c.minors)||0}M
+      </span>
+    </div>`).join('')}
               </div>
             </div>` : ''}
           </div>
@@ -2561,4 +2580,4 @@ init();
 </script>
 
 </body>
-</html>9
+</html>
