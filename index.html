@@ -1481,7 +1481,7 @@ function renderInformes() {
               <span class="badge b-informe">⏳ Informe pendiente</span>
             </div>
             <div class="informe-pax">
-              <span class="informe-pax-item" id="asist-count-${escH(e.id)}">✅ ${(e.clientes||[]).filter(c=>c.present).reduce((s,c)=>(parseInt(c.adults)||0)+(parseInt(c.minors)||0)+s,0)} / ${paxNum} asistentes</span>>
+              <span class="informe-pax-item" id="asist-count-${escH(e.id)}">✅ ${(e.clientes||[]).filter(c=>c.present).reduce((s,c)=>(parseInt(c.adults)||0)+(parseInt(c.minors)||0)+s,0)} / ${paxNum} asistentes</span>
               ${totalMen > 0
                 ? `<span class="informe-pax-item">👤 ${totalAd} adultos · 🧒 ${totalMen} menores</span>`
                 : `<span class="informe-pax-item">👤 ${totalAd} adultos</span>`}
