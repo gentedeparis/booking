@@ -508,6 +508,11 @@ function loadAll() {
   ])
   .then(function(results) {
     jornadasData = parseJornadas(results[0]);
+    jornadasData.forEach(function(j) {
+  (j.clientes || []).forEach(function(c, ci) {
+    presencia[j.id + '_' + ci] = !!c.present;
+  });
+});
     dossierData = Array.isArray(results[1]) ? results[1].map(function(e) {
       return Object.assign({}, e, {
         fecha: normalizarFecha(e.fecha),
@@ -531,6 +536,11 @@ function loadJornadas() {
   apiCall({ action: 'getJornadasGuia', guia: guiaNombre })
     .then(function(raw) {
       jornadasData = parseJornadas(raw);
+      jornadasData.forEach(function(j) {
+  (j.clientes || []).forEach(function(c, ci) {
+    presencia[j.id + '_' + ci] = !!c.present;
+  });
+});
       clearJornadasError();
       setStatus('ok', 'Actualizado · ' + new Date().toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit'}));
       renderJornadas();
@@ -602,6 +612,9 @@ function guardarClientesJornada(jornadaId, gi, isAuto) {
   apiCall({ action: 'updateJornadaClientes', id: jornadaId, data: clientes })
     .then(function() {
       j.clientes = clientes;
+      clientes.forEach(function(c, ci) {
+  presencia[jornadaId + '_' + ci] = !!c.present;
+});
       walkins[wkeys] = [];
       if (btn) { btn.disabled = false; btn.textContent = '💾 Guardar'; }
       if (indicator) { indicator.textContent = isAuto ? '✅ Guardado automáticamente' : ''; setTimeout(function(){ if(indicator) indicator.textContent=''; }, 3000); }
