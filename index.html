@@ -1423,20 +1423,21 @@ function toggleInformeAcord(entryId) {
   if (arr) arr.textContent = isOpen ? '▶' : '▼';
 }
 
-function recalcAsist(entryId, paxNum) {
+function recalcAsistTotal(entryId) {
   const body = document.getElementById('iac-body-' + entryId);
   if (!body) return;
-  let asist = 0;
+  let asist = 0, total = 0;
   body.querySelectorAll('div[style*="grid-template-columns"]').forEach(function(row, ci) {
+    const adEl = document.getElementById('ic-ca-' + entryId + '-' + ci);
+    const menEl = document.getElementById('ic-cm-' + entryId + '-' + ci);
+    const ad = parseInt(adEl ? adEl.value : 0) || 0;
+    const men = parseInt(menEl ? menEl.value : 0) || 0;
+    total += ad + men;
     const chk = row.querySelector('input[type="checkbox"]');
-    if (chk && chk.checked) {
-      const adEl = document.getElementById('ic-ca-' + entryId + '-' + ci);
-      const menEl = document.getElementById('ic-cm-' + entryId + '-' + ci);
-      asist += (parseInt(adEl ? adEl.value : 0) || 0) + (parseInt(menEl ? menEl.value : 0) || 0);
-    }
+    if (chk && chk.checked) asist += ad + men;
   });
   const pill = document.getElementById('asist-count-' + entryId);
-  if (pill) pill.textContent = '✅ ' + asist + ' / ' + paxNum + ' asistentes';
+  if (pill) pill.textContent = '✅ ' + asist + ' / ' + total + ' asistentes';
 }
 
 function renderInformes() {
@@ -1498,13 +1499,13 @@ function renderInformes() {
                   <div style="display:grid;grid-template-columns:22px 1fr 48px 48px 1fr auto;gap:6px;align-items:center;margin-bottom:6px">
                     <input type="checkbox" ${c.present ? 'checked' : ''}
                       style="width:18px;height:18px;accent-color:var(--informe);cursor:pointer;flex-shrink:0"
-                      onchange="recalcAsist('${escH(e.id)}',${paxNum})">
+                      onchange="recalcAsistTotal('${escH(e.id)}')">
                     <input type="text" id="ic-cn-${escH(e.id)}-${ci}" value="${escH(c.name||'')}" placeholder="Nombre"
                       style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);font-size:.78rem;padding:5px 8px;outline:none;font-family:'DM Sans',sans-serif">
                     <input type="number" min="0" id="ic-ca-${escH(e.id)}-${ci}" value="${parseInt(c.adults)||0}" placeholder="Ad."
-                      style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);font-size:.78rem;padding:5px 4px;text-align:center;outline:none">
+                      style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);font-size:.78rem;padding:5px 4px;text-align:center;outline:none" oninput="recalcAsistTotal('${escH(e.id)}')">
                     <input type="number" min="0" id="ic-cm-${escH(e.id)}-${ci}" value="${parseInt(c.minors)||0}" placeholder="Men."
-                      style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);font-size:.78rem;padding:5px 4px;text-align:center;outline:none">
+                      style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);font-size:.78rem;padding:5px 4px;text-align:center;outline:none" oninput="recalcAsistTotal('${escH(e.id)}')">
                     <input type="text" id="ic-cw-${escH(e.id)}-${ci}" value="${escH(c.wa||'')}" placeholder="WhatsApp"
                       style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);font-size:.78rem;padding:5px 8px;outline:none;font-family:'DM Sans',sans-serif">
                     <span style="font-size:.68rem;color:var(--muted);white-space:nowrap">${parseInt(c.adults)||0}A ${parseInt(c.minors)||0}M</span>
@@ -1542,25 +1543,24 @@ async function registrarInforme(guia, entryId, jornadaId) {
     if (btn) { btn.disabled = false; btn.innerHTML = '<span class="btn-reg-icon">✓</span>Registrar'; }
     return;
   }
-  const semInfo = getSemanaKey(entry.fecha);
-  // Calcular asistentes reales sumando pax de filas marcadas
-let asistentesReales = 0;
-const iacBody = document.getElementById('iac-body-' + entryId);
+  const iacBody = document.getElementById('iac-body-' + entryId);
+let paxTotalActualizado = 0, asistentesActualizados = 0;
 if (iacBody) {
   iacBody.querySelectorAll('div[style*="grid-template-columns"]').forEach(function(row, ci) {
+    const adEl = document.getElementById('ic-ca-' + entryId + '-' + ci);
+    const menEl = document.getElementById('ic-cm-' + entryId + '-' + ci);
+    const ad = parseInt(adEl ? adEl.value : 0) || 0;
+    const men = parseInt(menEl ? menEl.value : 0) || 0;
+    paxTotalActualizado += ad + men;
     const chk = row.querySelector('input[type="checkbox"]');
-    if (chk && chk.checked) {
-      const adEl = document.getElementById('ic-ca-' + entryId + '-' + ci);
-      const menEl = document.getElementById('ic-cm-' + entryId + '-' + ci);
-      asistentesReales += (parseInt(adEl ? adEl.value : 0) || 0) + (parseInt(menEl ? menEl.value : 0) || 0);
-    }
+    if (chk && chk.checked) asistentesActualizados += ad + men;
   });
 } else {
-  // Si el acordeón nunca se abrió, usar el valor ya calculado en el entry
-  asistentesReales = parseInt(entry.asistentes) || 0;
+  paxTotalActualizado = parseInt(entry.paxTotal) || 0;
+  asistentesActualizados = parseInt(entry.asistentes) || 0;
 }
-
-const updatedEntry = {...entry, creditos, asistentes: asistentesReales, estadoPago: 'pendiente', semana: semInfo.key, timestamp: new Date().toISOString()};
+  const semInfo = getSemanaKey(entry.fecha);
+const updatedEntry = {...entry, creditos, paxTotal: paxTotalActualizado, asistentes: asistentesActualizados, estadoPago: 'pendiente', semana: semInfo.key, timestamp: new Date().toISOString()};
   delete updatedEntry.guia;
   let errores = [];
   try { await apiCall({ action: 'saveDossierEntry', guia, data: { ...updatedEntry, guia } }); }
