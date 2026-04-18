@@ -1389,7 +1389,7 @@ async function initInformes() {
   await Promise.allSettled(
     informesPendientes.map(e => {
       const jornadaId = String(e.id).replace(/^dos_/, 'jor_');
-      return apiCall({ action: 'getJornadasGuia', guia: e.guia })
+      return apiCall({ action: 'getJornadasGuia', guia: e.guia, includePast: 'true' })
         .then(jornadas => {
           const j = (Array.isArray(jornadas) ? jornadas : []).find(x => x.id === jornadaId);
           if (j && j.clientesJSON) { try { e.clientes = JSON.parse(j.clientesJSON); } catch {} }
@@ -1426,16 +1426,8 @@ function toggleInformeAcord(entryId) {
 function recalcAsist(entryId, paxNum) {
   const body = document.getElementById('iac-body-' + entryId);
   if (!body) return;
-  let asist = 0;
-  const rows = body.querySelectorAll('div[style*="grid-template-columns"]');
-  rows.forEach(function(row, ci) {
-    const chk = row.querySelector('input[type="checkbox"]');
-    if (chk && chk.checked) {
-      const adEl = document.getElementById('ic-ca-' + entryId + '-' + ci);
-      const menEl = document.getElementById('ic-cm-' + entryId + '-' + ci);
-      asist += (parseInt(adEl ? adEl.value : 0) || 0) + (parseInt(menEl ? menEl.value : 0) || 0);
-    }
-  });
+  const checks = body.querySelectorAll('input[type="checkbox"]:checked');
+  const asist = checks.length;
   const pill = document.getElementById('asist-count-' + entryId);
   if (pill) pill.textContent = '✅ ' + asist + ' / ' + paxNum + ' asistentes';
 }
@@ -1482,7 +1474,7 @@ function renderInformes() {
               <span class="badge b-informe">⏳ Informe pendiente</span>
             </div>
             <div class="informe-pax">
-              <span class="informe-pax-item" id="asist-count-${escH(e.id)}">✅ ${(e.clientes||[]).filter(c=>c.present).reduce((s,c)=>(parseInt(c.adults)||0)+(parseInt(c.minors)||0)+s,0)} / ${paxNum} asistentes</span>
+              <span class="informe-pax-item" id="asist-count-${escH(e.id)}">✅ ${asistNum} / ${paxNum} asistentes</span>
               ${totalMen > 0
                 ? `<span class="informe-pax-item">👤 ${totalAd} adultos · 🧒 ${totalMen} menores</span>`
                 : `<span class="informe-pax-item">👤 ${totalAd} adultos</span>`}
