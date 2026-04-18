@@ -582,7 +582,8 @@ function guardarClientesJornada(jornadaId, gi, isAuto) {
       name:   nameEl.value.trim() || j.clientes[ci].name || '—',
       adults: parseInt(adEl ? adEl.value : 0) || 0,
       minors: parseInt(menEl ? menEl.value : 0) || 0,
-      wa:     waEl ? waEl.value.trim() : ''
+      wa:     waEl ? waEl.value.trim() : '',
+      present: !!presencia[jornadaId + '_' + ci]
     });
   });
 
@@ -642,7 +643,8 @@ function enviarInforme(jornadaId, gi) {
   var wkeys = 'wi_' + gi;
   var wiList = walkins[wkeys] || [];
 
-  var presentes = clientes.filter(function(c, ci) { return presencia[j.id+'_'+ci]; }).length;
+  var presentes = clientes.filter(function(c, ci) { return presencia[j.id+'_'+ci]; })
+  .reduce(function(s,c){ return s+(parseInt(c.adults)||0)+(parseInt(c.minors)||0); }, 0);
   var presentesWalkin = wiList.filter(function(w) { return w.presente; }).length;
   var totalAsistentes = presentes + presentesWalkin;
   var totalPax = clientes.reduce(function(s,c) { return s+(parseInt(c.adults)||0)+(parseInt(c.minors)||0); }, 0);
@@ -727,7 +729,7 @@ function renderJornadas() {
   sorted.forEach(function(j, gi) {
     var clientes = j.clientes || [];
     var totalPax = clientes.reduce(function(s,c) { return s + (parseInt(c.adults)||0) + (parseInt(c.minors)||0); }, 0);
-    var presentes = clientes.filter(function(c, ci) { return presencia[j.id+'_'+ci]; }).length;
+    var presentes = clientes.filter(function(c, ci) { return presencia[j.id+'_'+ci]; }).reduce(function(s,c){ return s+(parseInt(c.adults)||0)+(parseInt(c.minors)||0); }, 0);
     var esHoy = j.fecha === today;
     var wkeys = 'wi_' + gi;
     if (!walkins[wkeys]) walkins[wkeys] = [];
@@ -830,15 +832,31 @@ function renderJornadas() {
 function updateStatPresentes(gi) {
   var el = document.getElementById('stat-pres-' + gi);
   if (!el) return;
-  var checks = document.querySelectorAll('[data-action="presencia"][data-gi="' + gi + '"]:checked');
-  var presentes = checks.length;
+  var presentes = 0;
+  document.querySelectorAll('[data-action="presencia"][data-gi="' + gi + '"]:checked').forEach(function(chk) {
+    var pkey = chk.getAttribute('data-pkey');
+    var sep = pkey.lastIndexOf('_');
+    var jid = pkey.substring(0, sep);
+    var ci = pkey.substring(sep + 1);
+    var ad = document.getElementById('ca-' + jid + '-' + ci);
+    var men = document.getElementById('cm-' + jid + '-' + ci);
+    presentes += (parseInt(ad ? ad.value : 0) || 0) + (parseInt(men ? men.value : 0) || 0);
+  });
+  var totalClientes = 0;
+  document.querySelectorAll('[data-action="presencia"][data-gi="' + gi + '"]').forEach(function(chk) {
+    var pkey = chk.getAttribute('data-pkey');
+    var sep = pkey.lastIndexOf('_');
+    var jid = pkey.substring(0, sep);
+    var ci = pkey.substring(sep + 1);
+    var ad = document.getElementById('ca-' + jid + '-' + ci);
+    var men = document.getElementById('cm-' + jid + '-' + ci);
+    totalClientes += (parseInt(ad ? ad.value : 0) || 0) + (parseInt(men ? men.value : 0) || 0);
+  });
   var wkeys = 'wi_' + gi;
   var wiList = walkins[wkeys] || [];
-  var wPresentes = wiList.filter(function(w) { return w.presente; }).length;
-  var j = jornadasData[gi];
-  var totalPax = j ? (j.clientes||[]).reduce(function(s,c){return s+(parseInt(c.adults)||0)+(parseInt(c.minors)||0);},0) : 0;
+  var wPresentes = wiList.filter(function(w){return w.presente;}).reduce(function(s,w){return s+(parseInt(w.adultos)||0)+(parseInt(w.menores)||0);},0);
   var totalWalkin = wiList.reduce(function(s,w){return s+(parseInt(w.adultos)||0)+(parseInt(w.menores)||0);},0);
-  el.innerHTML = 'Presentes: <span>' + (presentes + wPresentes) + '/' + (totalPax + totalWalkin) + '</span>';
+  el.innerHTML = 'Presentes: <span>' + (presentes + wPresentes) + '/' + (totalClientes + totalWalkin) + '</span>';
 }
 
 // ═══════════════════════════════════════════════════════════════
