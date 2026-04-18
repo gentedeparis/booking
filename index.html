@@ -1543,7 +1543,24 @@ async function registrarInforme(guia, entryId, jornadaId) {
     return;
   }
   const semInfo = getSemanaKey(entry.fecha);
-  const updatedEntry = {...entry, creditos, estadoPago: 'pendiente', semana: semInfo.key, timestamp: new Date().toISOString()};
+  // Calcular asistentes reales sumando pax de filas marcadas
+let asistentesReales = 0;
+const iacBody = document.getElementById('iac-body-' + entryId);
+if (iacBody) {
+  iacBody.querySelectorAll('div[style*="grid-template-columns"]').forEach(function(row, ci) {
+    const chk = row.querySelector('input[type="checkbox"]');
+    if (chk && chk.checked) {
+      const adEl = document.getElementById('ic-ca-' + entryId + '-' + ci);
+      const menEl = document.getElementById('ic-cm-' + entryId + '-' + ci);
+      asistentesReales += (parseInt(adEl ? adEl.value : 0) || 0) + (parseInt(menEl ? menEl.value : 0) || 0);
+    }
+  });
+} else {
+  // Si el acordeón nunca se abrió, usar el valor ya calculado en el entry
+  asistentesReales = parseInt(entry.asistentes) || 0;
+}
+
+const updatedEntry = {...entry, creditos, asistentes: asistentesReales, estadoPago: 'pendiente', semana: semInfo.key, timestamp: new Date().toISOString()};
   delete updatedEntry.guia;
   let errores = [];
   try { await apiCall({ action: 'saveDossierEntry', guia, data: { ...updatedEntry, guia } }); }
