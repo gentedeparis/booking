@@ -1642,8 +1642,8 @@ function renderDossierContent(guia){
     const p=e.fecha.split('-'),mk=p[0]+'-'+p[1];
     if(!byMonth[mk])byMonth[mk]=[];byMonth[mk].push(e);
     if(!mesMap[mk]){const last=new Date(parseInt(p[0]),parseInt(p[1]),0).getDate();mesMap[mk]={inicio:p[0]+'-'+p[1]+'-01',fin:p[0]+'-'+p[1]+'-'+String(last).padStart(2,'0'),total:0,pagado:0};}
-    mesMap[mk].total+=parseInt(e.creditos)||0;
-    if(e.estadoPago==='pagado')mesMap[mk].pagado+=parseInt(e.creditos)||0;
+    mesMap[mk].total+=parseFloat(e.creditos)||0;
+    if(e.estadoPago==='pagado')mesMap[mk].pagado+=parseFloat(e.creditos)||0;
   });
   const now=new Date(),mesActual=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
   const mn=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -1713,7 +1713,25 @@ function renderDossierContent(guia){
     });
   }
   h+='</div>';
-  h+=`<div style="margin-top:30px"><div style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:16px">📅 Score mensual — ${escH(guia)}</div>`;
+  const totalGlobal = Object.values(mesMap).reduce((s,m)=>s+m.total,0);
+const pagadoGlobal = Object.values(mesMap).reduce((s,m)=>s+m.pagado,0);
+const pendienteGlobal = totalGlobal - pagadoGlobal;
+h+=`<div style="margin-top:30px">
+  <div style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:12px">📅 Score mensual — ${escH(guia)}</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px">
+    <div style="background:var(--graphite);border:1px solid var(--smoke);border-radius:8px;padding:14px;text-align:center">
+      <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--white)">${totalGlobal.toFixed(2).replace(/\.00$/,'')} cr.</div>
+      <div style="font-size:.68rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em">Total</div>
+    </div>
+    <div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:14px;text-align:center">
+      <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--gold)">${pendienteGlobal.toFixed(2).replace(/\.00$/,'')} cr.</div>
+      <div style="font-size:.68rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em">⏳ Pendiente</div>
+    </div>
+    <div style="background:rgba(39,174,96,.06);border:1px solid rgba(39,174,96,.3);border-radius:8px;padding:14px;text-align:center">
+      <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--green)">${pagadoGlobal.toFixed(2).replace(/\.00$/,'')} cr.</div>
+      <div style="font-size:.68rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em">✅ Cobrado</div>
+    </div>
+  </div>`;
   Object.keys(mesMap).sort().reverse().forEach(mk=>{
     const sm=mesMap[mk],pend=sm.total-sm.pagado,todo=pend===0&&sm.total>0;
     const p=mk.split('-'),nm=mnFull[parseInt(p[1])-1]+' '+p[0];
