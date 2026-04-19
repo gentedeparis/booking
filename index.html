@@ -1054,6 +1054,7 @@ async function eliminarReservaLista(id,idx){
     const g=_listadosGrupos[idx];if(g)g.reservas=g.reservas.filter(r=>r.id!==id);
     if(!g||!g.reservas.filter(r=>r.estado!=='cancelada').length){document.getElementById('grupo-'+idx)?.remove();if(g)_listadosGrupos[idx]=null;}
     showToast('Eliminada ✓');
+    renderListareservas();
   }catch(e){showToast('Error','error');}
   hideLoading();
 }
