@@ -907,7 +907,15 @@ function renderDossier() {
   var html = '';
 
   html += '<div style="margin-bottom:24px;">';
-  html += '<div style="font-family:Georgia,serif;font-size:1rem;color:var(--white);margin-bottom:14px;">📅 Score mensual</div>';
+  var totalGlobal = Object.keys(mesMap).reduce(function(s,k){return s+mesMap[k].total;},0);
+var pagadoGlobal = Object.keys(mesMap).reduce(function(s,k){return s+mesMap[k].pagado;},0);
+var pendienteGlobal = totalGlobal - pagadoGlobal;
+html += '<div style="font-family:Georgia,serif;font-size:1rem;color:var(--white);margin-bottom:12px;">📅 Score mensual</div>';
+html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">';
+html += '<div style="background:var(--graphite);border:1px solid var(--smoke);border-radius:8px;padding:12px;text-align:center"><div style="font-family:Georgia,serif;font-size:1.3rem;color:var(--white)">' + (totalGlobal % 1 === 0 ? totalGlobal : totalGlobal.toFixed(2)) + ' cr.</div><div style="font-size:.66rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em">Total</div></div>';
+html += '<div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:12px;text-align:center"><div style="font-family:Georgia,serif;font-size:1.3rem;color:var(--gold)">' + (pendienteGlobal % 1 === 0 ? pendienteGlobal : pendienteGlobal.toFixed(2)) + ' cr.</div><div style="font-size:.66rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em">⏳ Pendiente</div></div>';
+html += '<div style="background:rgba(39,174,96,.06);border:1px solid rgba(39,174,96,.3);border-radius:8px;padding:12px;text-align:center"><div style="font-family:Georgia,serif;font-size:1.3rem;color:var(--green)">' + (pagadoGlobal % 1 === 0 ? pagadoGlobal : pagadoGlobal.toFixed(2)) + ' cr.</div><div style="font-size:.66rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em">✅ Cobrado</div></div>';
+html += '</div>';
   Object.keys(mesMap).sort().reverse().forEach(function(mkey) {
     var sm = mesMap[mkey];
     var pend = sm.total - sm.pagado;
