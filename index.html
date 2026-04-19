@@ -939,45 +939,34 @@ async function renderListareservas(){
     if(a.fecha!==b.fecha)return a.fecha>b.fecha?1:-1;
     return(a.horario||'')>(b.horario||'')?1:-1;
   });
-  const hoy2 = new Date(); hoy2.setHours(0,0,0,0);
-const futuros = sorted.filter(g => { const d = new Date(g.fecha+'T00:00:00'); return d >= hoy2; });
-const pasados = sorted.filter(g => { const d = new Date(g.fecha+'T00:00:00'); return d < hoy2; });
-
-if(!futuros.length && !pasados.length){
-  container.innerHTML=`<div class="empty-state"><div class="ei">✅</div>${filtro?'No hay reservas para esta fecha.':'No hay reservas activas.'}</div>`;return;
-}
-
-function renderGrupo(g, idx) {
-  const confirmadas=g.reservas.filter(r=>r.estado!=='cancelada');
-  const canceladas=g.reservas.filter(r=>r.estado==='cancelada');
-  const totalPax=confirmadas.reduce((s,r)=>(parseInt(r.adultos)||0)+(parseInt(r.menores)||0)+s,0);
-  const tieneNuevas=confirmadas.some(r=>String(r.vista)!=='si');
-  const paxRows=confirmadas.map(r=>{
-    const esNueva=String(r.vista)!=='si';
-    return `<div class="lr-pax-row${esNueva?' listado-pax-nueva':''}">
-      <div style="display:flex;align-items:center;gap:7px;min-width:0">
-        <span class="lr-pax-name">${escH(r.nombre||'—')}</span>
-        ${esNueva?'<span class="badge b-new" style="font-size:.6rem">NUEVA</span>':''}
-      </div>
-      <div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div>
-      <a href="https://wa.me/${String(r.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="lr-wa">📱 ${escH(r.whatsapp||'')}</a>
-      <div class="lr-pax-actions">
-        ${esNueva?`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();marcarVistaIndividual('${r.id}',${idx})">👁</button>`:''}
-        <button class="btn btn-cancel-res btn-sm" onclick="event.stopPropagation();cancelarReserva('${r.id}','${escH(r.nombre||'')}','${escH(r.whatsapp||'')}','${r.fecha}','${escH(r.tourNombre||'')}')">✕</button>
-        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${idx})">🗑</button>
-      </div>
-    </div>`;
-  }).join('');
-  const canceladasRows=canceladas.length?
-    '<div style="padding:6px 0 2px;font-size:.7rem;color:var(--muted);text-transform:uppercase">Canceladas</div>'+
-    canceladas.map(r=>`<div class="lr-pax-row" style="opacity:.45">
-      <div><span class="lr-pax-name" style="text-decoration:line-through">${escH(r.nombre||'—')}</span></div>
-      <div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div>
-      <div class="lr-wa" style="color:var(--muted)">${escH(r.whatsapp||'')}</div>
-      <div class="lr-pax-actions"><button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${idx})">🗑</button></div>
-    </div>`).join(''):'';
-  return `<div class="listado-grupo${tieneNuevas
-  
+  _listadosGrupos=sorted;
+  const hoy2=new Date();hoy2.setHours(0,0,0,0);
+  const futuros=sorted.filter(g=>{const d=new Date(g.fecha+'T00:00:00');return d>=hoy2;});
+  const pasados=sorted.filter(g=>{const d=new Date(g.fecha+'T00:00:00');return d<hoy2;});
+  if(!futuros.length&&!pasados.length){
+    container.innerHTML=`<div class="empty-state"><div class="ei">✅</div>${filtro?'No hay reservas para esta fecha.':'No hay reservas activas.'}</div>`;return;
+  }
+  function renderGrupo(g,idx){
+    const confirmadas=g.reservas.filter(r=>r.estado!=='cancelada');
+    const canceladas=g.reservas.filter(r=>r.estado==='cancelada');
+    const totalPax=confirmadas.reduce((s,r)=>(parseInt(r.adultos)||0)+(parseInt(r.menores)||0)+s,0);
+    const tieneNuevas=confirmadas.some(r=>String(r.vista)!=='si');
+    const paxRows=confirmadas.map(r=>{
+      const esNueva=String(r.vista)!=='si';
+      return `<div class="lr-pax-row${esNueva?' listado-pax-nueva':''}">
+        <div style="display:flex;align-items:center;gap:7px;min-width:0">
+          <span class="lr-pax-name">${escH(r.nombre||'—')}</span>
+          ${esNueva?'<span class="badge b-new" style="font-size:.6rem">NUEVA</span>':''}
+        </div>
+        <div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div>
+        <a href="https://wa.me/${String(r.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="lr-wa">📱 ${escH(r.whatsapp||'')}</a>
+        <div class="lr-pax-actions">
+          ${esNueva?`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();marcarVistaIndividual('${r.id}',${idx})">👁</button>`:''}
+          <button class="btn btn-cancel-res btn-sm" onclick="event.stopPropagation();cancelarReserva('${r.id}','${escH(r.nombre||'')}','${escH(r.whatsapp||'')}','${r.fecha}','${escH(r.tourNombre||'')}')">✕</button>
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${idx})">🗑</button>
+        </div>
+      </div>`;
+    }).join('');
     const canceladasRows=canceladas.length?
       '<div style="padding:6px 0 2px;font-size:.7rem;color:var(--muted);text-transform:uppercase">Canceladas</div>'+
       canceladas.map(r=>`<div class="lr-pax-row" style="opacity:.45">
@@ -1003,9 +992,26 @@ function renderGrupo(g, idx) {
         <div class="listado-grupo-body">${paxRows}${canceladasRows}</div>
       </div>
     </div>`;
-  }).join('');
+  }
+  let html='';
+  if(!futuros.length){
+    html+='<div class="empty-state" style="padding:30px 20px"><div class="ei">📅</div>No hay reservas próximas.</div>';
+  }else{
+    html+=futuros.map((g,i)=>renderGrupo(g,sorted.indexOf(g))).join('');
+  }
+  if(pasados.length){
+    html+=`<div style="margin-top:18px">
+      <button onclick="toggleHistorico()" id="btn-historico" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center">
+        📦 Ver histórico (${pasados.length} grupos pasados)
+      </button>
+      <div id="historico-wrap" style="display:none;margin-top:12px">
+        <div style="font-size:.72rem;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em">— Tours pasados —</div>
+        ${pasados.map((g,i)=>renderGrupo(g,sorted.indexOf(g))).join('')}
+      </div>
+    </div>`;
+  }
+  container.innerHTML=html;
 }
-
 async function toggleListadoGrupo(idx){
   const body=document.getElementById('acord-body-'+idx);
   const grupoEl=document.getElementById('grupo-'+idx);
