@@ -896,8 +896,8 @@ function renderDossier() {
       var lastDay = new Date(parseInt(p[0]), parseInt(p[1]), 0).getDate();
       mesMap[mkey] = { inicio: p[0]+'-'+p[1]+'-01', fin: p[0]+'-'+p[1]+'-'+String(lastDay).padStart(2,'0'), total: 0, pagado: 0 };
     }
-    mesMap[mkey].total += parseInt(e.creditos) || 0;
-    if (e.estadoPago === 'pagado') mesMap[mkey].pagado += parseInt(e.creditos) || 0;
+    mesMap[mkey].total += parseFloat(e.creditos) || 0;
+    if (e.estadoPago === 'pagado') mesMap[mkey].pagado += parseFloat(e.creditos) || 0;
   });
 
   var monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
