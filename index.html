@@ -977,28 +977,7 @@ function renderGrupo(g, idx) {
       <div class="lr-pax-actions"><button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${idx})">🗑</button></div>
     </div>`).join(''):'';
   return `<div class="listado-grupo${tieneNuevas
-  _listadosGrupos=sorted;
-  container.innerHTML=sorted.map((g,idx)=>{
-    const confirmadas=g.reservas.filter(r=>r.estado!=='cancelada');
-    const canceladas=g.reservas.filter(r=>r.estado==='cancelada');
-    const totalPax=confirmadas.reduce((s,r)=>(parseInt(r.adultos)||0)+(parseInt(r.menores)||0)+s,0);
-    const tieneNuevas=confirmadas.some(r=>String(r.vista)!=='si');
-    const paxRows=confirmadas.map(r=>{
-      const esNueva=String(r.vista)!=='si';
-      return `<div class="lr-pax-row${esNueva?' listado-pax-nueva':''}">
-        <div style="display:flex;align-items:center;gap:7px;min-width:0">
-          <span class="lr-pax-name">${escH(r.nombre||'—')}</span>
-          ${esNueva?'<span class="badge b-new" style="font-size:.6rem">NUEVA</span>':''}
-        </div>
-        <div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div>
-        <a href="https://wa.me/${String(r.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="lr-wa">📱 ${escH(r.whatsapp||'')}</a>
-        <div class="lr-pax-actions">
-          ${esNueva?`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();marcarVistaIndividual('${r.id}',${idx})">👁</button>`:''}
-          <button class="btn btn-cancel-res btn-sm" onclick="event.stopPropagation();cancelarReserva('${r.id}','${escH(r.nombre||'')}','${escH(r.whatsapp||'')}','${r.fecha}','${escH(r.tourNombre||'')}')">✕</button>
-          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${idx})">🗑</button>
-        </div>
-      </div>`;
-    }).join('');
+  
     const canceladasRows=canceladas.length?
       '<div style="padding:6px 0 2px;font-size:.7rem;color:var(--muted);text-transform:uppercase">Canceladas</div>'+
       canceladas.map(r=>`<div class="lr-pax-row" style="opacity:.45">
@@ -1572,6 +1551,7 @@ function renderInformes() {
     });
     html += '</div>';
   });
+  _listadosGrupos=sorted;
   container.innerHTML = html;
 }
 
