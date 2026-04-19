@@ -1051,10 +1051,59 @@ async function eliminarReservaLista(id,idx){
   try{
     await apiCall({action:'deleteReserva',id});
     reservas=reservas.filter(r=>r.id!==id);
-    const g=_listadosGrupos[idx];if(g)g.reservas=g.reservas.filter(r=>r.id!==id);
-    if(!g||!g.reservas.filter(r=>r.estado!=='cancelada').length){document.getElementById('grupo-'+idx)?.remove();if(g)_listadosGrupos[idx]=null;}
+    _listadosGrupos.forEach(g=>{if(g)g.reservas=g.reservas.filter(r=>r.id!==id);});
     showToast('Eliminada ✓');
-    renderListareservas();
+    // Re-renderizar desde datos locales sin re-fetch
+    const hoy2=new Date();hoy2.setHours(0,0,0,0);
+    const futuros=_listadosGrupos.filter(g=>g&&new Date(g.fecha+'T00:00:00')>=hoy2);
+    const pasados=_listadosGrupos.filter(g=>g&&new Date(g.fecha+'T00:00:00')<hoy2);
+    const container=document.getElementById('listadosContainer');
+    function renderGrupo(g,gi){
+      const confirmadas=g.reservas.filter(r=>r.estado!=='cancelada');
+      if(!confirmadas.length)return '';
+      const totalPax=confirmadas.reduce((s,r)=>(parseInt(r.adultos)||0)+(parseInt(r.menores)||0)+s,0);
+      const tieneNuevas=confirmadas.some(r=>String(r.vista)!=='si');
+      const paxRows=confirmadas.map(r=>{
+        const esNueva=String(r.vista)!=='si';
+        return `<div class="lr-pax-row${esNueva?' listado-pax-nueva':''}">
+          <div style="display:flex;align-items:center;gap:7px;min-width:0"><span class="lr-pax-name">${escH(r.nombre||'—')}</span>${esNueva?'<span class="badge b-new" style="font-size:.6rem">NUEVA</span>':''}</div>
+          <div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div>
+          <a href="https://wa.me/${String(r.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="lr-wa">📱 ${escH(r.whatsapp||'')}</a>
+          <div class="lr-pax-actions">
+            ${esNueva?`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();marcarVistaIndividual('${r.id}',${gi})">👁</button>`:''}
+            <button class="btn btn-cancel-res btn-sm" onclick="event.stopPropagation();cancelarReserva('${r.id}','${escH(r.nombre||'')}','${escH(r.whatsapp||'')}','${r.fecha}','${escH(r.tourNombre||'')}')">✕</button>
+            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${gi})">🗑</button>
+          </div></div>`;
+      }).join('');
+      return `<div class="listado-grupo${tieneNuevas?' listado-grupo-nueva':''}" id="grupo-${gi}">
+        <div class="listado-acord-header" onclick="toggleListadoGrupo(${gi})">
+          <div class="listado-grupo-info">
+            <div class="listado-grupo-title">🎯 ${escH(g.tourNombre||'—')}</div>
+            <div class="listado-grupo-meta">📅 ${formatDate(g.fecha)} · 🕐 ${g.horario||'--'}</div>
+          </div>
+          <div class="listado-grupo-stats">
+            <span class="badge b-gold">${totalPax} PAX</span>
+            <span class="badge b-muted">${confirmadas.length} res.</span>
+            <span class="listado-acord-arrow">▼</span>
+            <button class="btn btn-terra btn-sm" onclick="event.stopPropagation();precargarJornada(${gi})">→ Crear jornada</button>
+          </div>
+        </div>
+        <div class="listado-acord-body" id="acord-body-${gi}">
+          <div class="listado-grupo-body">${paxRows}</div>
+        </div>
+      </div>`;
+    }
+    let html=futuros.map((g,i)=>renderGrupo(g,_listadosGrupos.indexOf(g))).join('');
+    if(pasados.length){
+      html+=`<div style="margin-top:18px">
+        <button onclick="toggleHistorico()" id="btn-historico" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center">📦 Ver histórico (${pasados.length} grupos pasados)</button>
+        <div id="historico-wrap" style="display:none;margin-top:12px">
+          <div style="font-size:.72rem;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em">— Tours pasados —</div>
+          ${pasados.map((g,i)=>renderGrupo(g,_listadosGrupos.indexOf(g))).join('')}
+        </div>
+      </div>`;
+    }
+    container.innerHTML=html||'<div class="empty-state"><div class="ei">✅</div>No hay reservas activas.</div>';
   }catch(e){showToast('Error','error');}
   hideLoading();
 }
