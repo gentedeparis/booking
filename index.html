@@ -1471,6 +1471,20 @@ async function initInformes() {
     }
   });
 
+  const guiasConInformes = [...new Set(informesPendientes.map(e => e.guia))];
+  await Promise.allSettled(
+    guiasConInformes.map(guia =>
+      apiCall({ action: 'getJornadasGuia', guia, includePast: 'true' })
+        .then(jornadas => {
+          informesPendientes.filter(e => e.guia === guia).forEach(e => {
+            const jornadaId = String(e.id).replace(/^dos_/, 'jor_');
+            const j = (Array.isArray(jornadas) ? jornadas : []).find(x => x.id === jornadaId);
+            if (j && j.clientesJSON) { try { e.clientes = JSON.parse(j.clientesJSON); } catch {} }
+          });
+        })
+        .catch(() => {})
+    )
+  );
   informesPendientes.sort((a, b) => a.fecha > b.fecha ? -1 : 1);
   updateInformesNavBadge(informesPendientes.length);
   renderInformes();
