@@ -280,7 +280,16 @@ function apiCall(params) {
 function escH(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
-
+function getSemanaKey(fechaStr){
+  var d=new Date(fechaStr+'T00:00:00'),dow=d.getDay(),diff=dow===0?-6:1-dow;
+  var lun=new Date(d);lun.setDate(d.getDate()+diff);
+  var dom=new Date(lun);dom.setDate(lun.getDate()+6);
+  var fmt=function(x){return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');};
+  return{key:fmt(lun)+'_'+fmt(dom),inicio:fmt(lun),fin:fmt(dom)};
+}
+function normalizeId(str){
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]/g,'');
+}
 function normalizarFecha(val) {
   if (val === null || val === undefined || val === '') return '';
   const s = String(val).trim();
@@ -664,7 +673,7 @@ function enviarInforme(jornadaId, gi) {
   var totalWalkin = wiList.reduce(function(s,w) { return s+(parseInt(w.adultos)||0)+(parseInt(w.menores)||0); }, 0);
 
   var entry = {
-    id: 'dos_' + guiaNombre.replace(/\s+/g,'') + '_' + j.fecha + '_' + (j.tourId||'manual'),
+    id: 'dos_' + normalizeId(guiaNombre) + '_' + j.fecha + '_' + (j.tourId||'manual'),
     guia: guiaNombre,
     fecha: j.fecha,
     tourNombre: j.tourNombre,
@@ -673,7 +682,7 @@ function enviarInforme(jornadaId, gi) {
     paxTotal: totalPax + totalWalkin,
     asistentes: totalAsistentes,
     creditos: 0,
-    semana: '',
+    semana: getSemanaKey(j.fecha).key,
     timestamp: new Date().toISOString(),
     estadoPago: 'informe_pendiente'  // FIX: era 'pendiente', el admin filtra por 'informe_pendiente'
   };
