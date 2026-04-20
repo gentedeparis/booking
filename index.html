@@ -595,7 +595,7 @@ let _listadosGrupos=[];
 let informesPendientes=[];
 
 // FIX: Añadido Timeout de 5 segundos a las peticiones para evitar que se quede en "Conectando..."
-async function apiCall(params, timeout = 5000) {
+async function apiCall(params, timeout = 30000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
   try {
