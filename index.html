@@ -936,7 +936,8 @@ async function renderListareservas(){
   });
   reservas.filter(r=>r.estado==='cancelada').forEach(r=>{
     const key=r.fecha+'|'+(r.tourId||r.tourNombre)+'|'+r.horario;
-    if(grupos[key])grupos[key].reservas.push(r);
+    if(!grupos[key])grupos[key]={fecha:r.fecha,tourNombre:r.tourNombre,tourId:r.tourId,horario:r.horario,reservas:[]};
+    grupos[key].reservas.push(r);
   });
   const sorted=Object.values(grupos).sort((a,b)=>{
     if(a.fecha!==b.fecha)return a.fecha>b.fecha?1:-1;
@@ -1116,11 +1117,9 @@ async function cancelarReserva(id,nombre,wa,fecha,tourNombre){
   if(!confirm('¿Cancelar reserva de '+nombre+'?'))return;
   showLoading();
   try{
-    await apiCall({action:'cancelReserva',id});
-    const raw=await apiCall({action:'getReservas'});
-    reservas=(Array.isArray(raw)?raw:[]).map(r=>({...r,fecha:normalizarFecha(r.fecha),horario:normalizarHorario(r.horario)}));
-    renderListareservas();
+  await apiCall({action:'cancelReserva',id});
     showToast('Cancelada ✓');
+    renderListareservas();
     const msg=encodeURIComponent(`Hola ${nombre} 👋\n\nTe escribimos desde *Gente de París* para informarte que tu reserva ha sido *cancelada*:\n\n📅 Fecha: ${formatDate(fecha)}\n🎯 Tour: ${tourNombre}\n\nLamentamos los inconvenientes. ¡Hasta pronto! 🗼`);
     window.open('https://wa.me/'+wa.replace(/[^0-9]/g,'')+'?text='+msg,'_blank');
   }catch(e){showToast('Error','error');}
