@@ -594,14 +594,28 @@ let guiasData=[];
 let _listadosGrupos=[];
 let informesPendientes=[];
 
-async function apiCall(params) {
-  const resp = await fetch(API, {method:'POST', body:JSON.stringify(params)});
-  const text = await resp.text();
-  if (!text.trim().startsWith('{') && !text.trim().startsWith('[')) throw new Error('Respuesta inesperada del servidor');
-  let result;
-  try { result = JSON.parse(text); } catch(e) { throw new Error('JSON inválido: ' + text.slice(0,100)); }
-  if (result && result.error) throw new Error(result.error);
-  return result;
+// FIX: Añadido Timeout de 5 segundos a las peticiones para evitar que se quede en "Conectando..."
+async function apiCall(params, timeout = 5000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    const resp = await fetch(API, {
+      method: 'POST',
+      body: JSON.stringify(params),
+      signal: controller.signal
+    });
+    clearTimeout(id);
+    const text = await resp.text();
+    if (!text.trim().startsWith('{') && !text.trim().startsWith('[')) throw new Error('Respuesta inesperada del servidor');
+    let result;
+    try { result = JSON.parse(text); } catch(e) { throw new Error('JSON inválido: ' + text.slice(0,100)); }
+    if (result && result.error) throw new Error(result.error);
+    return result;
+  } catch(e) {
+    clearTimeout(id);
+    if (e.name === 'AbortError') throw new Error('Tiempo de espera agotado (Timeout)');
+    throw e;
+  }
 }
 
 function setSyncStatus(s,t){document.getElementById('syncDot').className='sync-dot '+s;document.getElementById('syncText').textContent=t;}
@@ -1974,114 +1988,3 @@ function downloadDossierPublic(guia){
     if(!byM[mk])byM[mk]=[];byM[mk].push(e);
   });
   let body='';
-  Object.keys(byM).sort().forEach(mk=>{
-    const p=mk.split('-');
-    body+=`<div style="font-size:.68rem;letter-spacing:.12em;color:#7fa7d9;padding:10px 0 6px;border-bottom:1px solid rgba(41,128,185,.2);margin-bottom:8px">/////// ${(mn[parseInt(p[1])-1]||'').toUpperCase()} ${p[0]} ///////</div>`;
-    byM[mk].sort((a,b)=>a.fecha>b.fecha?1:-1).forEach(e=>{
-      const ip=e.estadoPago==='pagado';
-      body+=`<div style="background:#1a1a1a;border:1px solid #2c2c2c;border-radius:8px;padding:13px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
-        <div><div style="font-size:.9rem;font-weight:600">${escH(e.tourNombre||'—')}</div>
-        <div style="font-size:.72rem;color:#888;margin-top:2px">${formatDDMMYYYY(e.fecha)}${e.horario?' · '+e.horario:''} · PAX: ${e.paxTotal||0} · Asist: ${e.asistentes||0}</div></div>
-        <div style="text-align:right">
-          <div style="font-family:'Georgia',serif;font-size:1.1rem;color:${ip?'#27ae60':'#c9a84c'}">${e.creditos||0} cr.</div>
-          <div style="font-size:.68rem;margin-top:2px;color:${ip?'#27ae60':'#c9a84c'}">${ip?'✅ Pagado':'⏳ Pend.'}</div>
-        </div>
-      </div>`;
-    });
-  });
-  const html=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escH(guia)} · Dossier · Gente de París</title><style>body{font-family:'Segoe UI',Arial,sans-serif;background:#0f0f0f;color:#f5f2ec;padding:20px}.wrap{max-width:800px;margin:0 auto}.hdr{background:#1B2B4B;padding:18px 22px;border-radius:10px;margin-bottom:20px}</style></head><body><div class="wrap"><div class="hdr"><div style="font-size:1.2rem;font-weight:700">📁 Dossier — ${escH(guia)}</div><div style="font-size:.78rem;opacity:.6;margin-top:3px">Generado ${new Date().toLocaleDateString('es-ES')}</div></div>${body||'<div style="text-align:center;padding:40px;color:#888">Sin registros aún.</div>'}</div></body></html>`;
-  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='dossier-'+guia.replace(/\s+/g,'-').toLowerCase()+'.html';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  showToast('Vista pública de '+guia+' descargada ✓');
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  GUÍAS
-// ═══════════════════════════════════════════════════════════════
-async function initGuias(){
-  const grid=document.getElementById('guiasGrid');
-  grid.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando guías...</div>';
-  showLoading();
-  try{const resp=await apiCall({action:'getGuiasData'});guiasData=Array.isArray(resp)?resp:[];renderGuias();}
-  catch(e){grid.innerHTML=`<div class="empty-state"><div class="ei">❌</div>Error: ${escH(String(e))}</div>`;showToast('Error cargando guías','error',6000);}
-  hideLoading();
-}
-
-function renderGuias(){
-  const grid=document.getElementById('guiasGrid');
-  if(!guiasData.length){grid.innerHTML='<div class="empty-state"><div class="ei">👤</div>No hay guías.</div>';return;}
-  grid.innerHTML=guiasData.map(g=>{
-    const activo=String(g.activo).toLowerCase()==='true';
-    return `<div class="guia-card ${activo?'':'inactivo'}">
-      <div>
-        <div class="guia-nombre">${escH(g.nombre)}</div>
-        <div class="guia-pin">PIN:
-          <span class="pin-dots" id="pd-${escH(g.nombre)}">
-            <span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>
-          </span>
-          <button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:.7rem" data-action="verpin" data-pin="${escH(g.pin)}" data-target="pd-${escH(g.nombre)}">Ver</button>
-        </div>
-        <div style="margin-top:6px"><span class="badge ${activo?'b-green':'b-muted'}">${activo?'✅ Activo':'⏸ Inactivo'}</span></div>
-      </div>
-      <div class="guia-actions">
-        <button class="btn btn-ghost btn-sm" data-action="editar" data-nombre="${escH(g.nombre)}">✏️ Editar</button>
-        <button class="btn btn-ghost btn-sm" data-action="toggle" data-nombre="${escH(g.nombre)}" data-activo="${String(g.activo).toLowerCase()}">${activo?'⏸ Desactivar':'▶ Activar'}</button>
-        <button class="btn btn-danger btn-sm" data-action="eliminar" data-nombre="${escH(g.nombre)}">🗑</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function toggleVerPin(btn){
-  const pin=btn.getAttribute('data-pin'),targetId=btn.getAttribute('data-target');
-  const pinEl=document.getElementById(targetId);if(!pinEl)return;
-  if(btn.textContent==='Ver'){pinEl.innerHTML=`<span style="font-family:monospace;font-size:.92rem;color:var(--gold);letter-spacing:.2em">${escH(pin)}</span>`;btn.textContent='Ocultar';}
-  else{pinEl.innerHTML='<span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>';btn.textContent='Ver';}
-}
-
-function openGuiaModal(nombre){
-  editingGuiaNombre=nombre||null;
-  document.getElementById('guiaModalTitle').textContent=nombre?'Editar Guía':'Nuevo Guía';
-  if(nombre){
-    const g=guiasData.find(x=>x.nombre===nombre);
-    if(g){document.getElementById('gNombre').value=g.nombre;document.getElementById('gNombre').disabled=true;document.getElementById('gPin').value=g.pin;document.getElementById('gActivo').checked=g.activo==='true';}
-  }else{document.getElementById('gNombre').value='';document.getElementById('gNombre').disabled=false;document.getElementById('gPin').value='';document.getElementById('gActivo').checked=true;}
-  document.getElementById('guiaModal').classList.add('open');
-}
-function closeGuiaModal(){document.getElementById('guiaModal').classList.remove('open');document.getElementById('gNombre').disabled=false;}
-
-async function saveGuia(){
-  const nombre=document.getElementById('gNombre').value.trim();
-  const pin=String(document.getElementById('gPin').value).trim();
-  if(!nombre){showToast('Escribe el nombre','error');return;}
-  if(!/^[0-9]{4}$/.test(pin)){showToast('El PIN debe tener 4 dígitos','error');return;}
-  const dup=guiasData.find(g=>String(g.pin)===pin&&g.nombre!==nombre);
-  if(dup){showToast('Ese PIN ya lo usa '+dup.nombre,'error');return;}
-  showLoading();
-  try{await apiCall({action:'saveGuia',data:{nombre,pin,activo:String(document.getElementById('gActivo').checked)}});closeGuiaModal();await initGuias();showToast((editingGuiaNombre?'Guía actualizado':'Guía creado')+' ✓');}
-  catch(e){showToast('Error al guardar','error');}
-  hideLoading();
-}
-
-async function toggleGuiaActivo(nombre,activoActual){
-  const g=guiasData.find(x=>x.nombre===nombre);if(!g)return;
-  showLoading();
-  try{await apiCall({action:'saveGuia',data:{nombre:g.nombre,pin:g.pin,activo:activoActual==='true'?'false':'true'}});await initGuias();showToast('Estado actualizado ✓');}
-  catch(e){showToast('Error','error');}
-  hideLoading();
-}
-
-async function eliminarGuia(nombre){
-  if(!confirm('¿Eliminar al guía '+nombre+'?'))return;
-  showLoading();
-  try{await apiCall({action:'deleteGuia',nombre});await initGuias();showToast('Guía eliminado ✓');}
-  catch(e){showToast('Error al eliminar','error');}
-  hideLoading();
-}
-
-document.addEventListener('click',e=>{
-  const btn=e.target.closest('[data-action]');if(!btn)return;
-  const grid=document.getElementById('guiasGrid');
-  if(!grid?.contains(btn))return;
