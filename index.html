@@ -679,6 +679,9 @@ function formatDDMMYYYY(str){
   const p=s.split('-');
   return String(parseInt(p[2])).padStart(2,'0')+'/'+String(parseInt(p[1])).padStart(2,'0')+'/'+p[0];
 }
+function normalizeId(str){
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]/g,'');
+}
 function getSemanaKey(fechaStr){
   const d=new Date(fechaStr+'T00:00:00'),dow=d.getDay(),diff=dow===0?-6:1-dow;
   const lun=new Date(d);lun.setDate(d.getDate()+diff);
@@ -939,7 +942,7 @@ async function renderListareservas(){
     if(a.fecha!==b.fecha)return a.fecha>b.fecha?1:-1;
     return(a.horario||'')>(b.horario||'')?1:-1;
   });
-  _listadosGrupos=sorted;
+
   const hoy2=new Date();hoy2.setHours(0,0,0,0);
   const futuros=sorted.filter(g=>{const d=new Date(g.fecha+'T00:00:00');return d>=hoy2;});
   const pasados=sorted.filter(g=>{const d=new Date(g.fecha+'T00:00:00');return d<hoy2;});
@@ -1373,7 +1376,7 @@ async function registrarEnSheetsConLog(guide,date,toursData){
   const lines=[];
   for(const tx of toursData){
     const semInfo=getSemanaKey(date);
-    const baseId=guide.replace(/\s+/g,'')+'_'+date+'_'+(tx.tourId||'manual');
+    const baseId=normalizeId(guide)+'_'+date+'_'+(tx.tourId||'manual');
     const paxTotal=tx.clients.reduce((s,c)=>s+(c.adults||0)+(c.minors||0),0);
     const entry={id:'dos_'+baseId,guia:guide,fecha:date,tourNombre:tx.tourNombre,horario:tx.horario||'',idioma:'',paxTotal,asistentes:0,creditos:0,semana:semInfo.key,timestamp:new Date().toISOString()};
     const jornada={id:'jor_'+baseId,guia:guide,fecha:date,tourId:tx.tourId||'',tourNombre:tx.tourNombre,horario:tx.horario||'',clientesJSON:JSON.stringify(tx.clients||[]),timestamp:new Date().toISOString()};
@@ -1388,10 +1391,9 @@ async function registrarEnSheetsConLog(guide,date,toursData){
 async function deleteOpsTour(){
   if(!editingOpsId||!confirm('¿Eliminar esta jornada?'))return;
   const t=opsTours[editingOpsId];
-  try{await apiCall({action:'deleteJornada',id:'jor_'+editingOpsId});}catch(e){showToast('Error1: '+e.message,'error',8000);}
   if(t&&t.guide&&t.date&&t.tours&&t.tours.length){
     for(const tx of t.tours){
-      const baseId=t.guide.replace(/\s+/g,'')+'_'+t.date+'_'+(tx.tourId||'manual');
+      const baseId=normalizeId(t.guide)+'_'+t.date+'_'+(tx.tourId||'manual');
       try{await apiCall({action:'deleteJornada',id:'jor_'+baseId});}catch(e){}
       try{await apiCall({action:'deleteDossierEntry',guia:t.guide,id:'dos_'+baseId});}catch(e){}
     }
@@ -1893,7 +1895,7 @@ async function saveManualDossierEntry(){
   if(!fecha){showToast('Selecciona una fecha','error');return;}
   const semInfo=getSemanaKey(fecha);
   const entry={
-    id:'dos_man_'+guia.replace(/\s+/g,'')+'_'+Date.now(),guia,fecha,tourNombre,
+    id:'dos_man_'+normalizeId(guia)+'_'+Date.now(),guia,fecha,tourNombre,
     horario:document.getElementById('manualHorario').value||'',
     idioma:document.getElementById('manualIdioma').value.trim(),
     paxTotal:parseInt(document.getElementById('manualPax').value)||0,
