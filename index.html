@@ -973,8 +973,8 @@ async function renderListareservas(){
     }).join('');
     const canceladasRows=canceladas.length?
       '<div style="padding:6px 0 2px;font-size:.7rem;color:var(--muted);text-transform:uppercase">Canceladas</div>'+
-      canceladas.map(r=>`<div class="lr-pax-row" style="opacity:.45">
-        <div><span class="lr-pax-name" style="text-decoration:line-through">${escH(r.nombre||'—')}</span></div>
+      canceladas.map(r=>`<div class="lr-pax-row" style="background:rgba(192,57,43,0.08);border-left:3px solid rgba(192,57,43,0.5);padding-left:10px;opacity:.75">
+        <div style="display:flex;align-items:center;gap:8px;min-width:0"><span class="lr-pax-name" style="text-decoration:line-through;color:var(--muted)">${escH(r.nombre||'—')}</span><span style="font-size:.6rem;background:rgba(192,57,43,.25);color:#e74c3c;border:1px solid rgba(192,57,43,.4);border-radius:4px;padding:1px 6px;white-space:nowrap">✕ Cancelada</span></div>
         <div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div>
         <div class="lr-wa" style="color:var(--muted)">${escH(r.whatsapp||'')}</div>
         <div class="lr-pax-actions"><button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${idx})">🗑</button></div>
