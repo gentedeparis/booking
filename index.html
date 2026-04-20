@@ -1119,6 +1119,7 @@ async function cancelarReserva(id,nombre,wa,fecha,tourNombre){
     await apiCall({action:'cancelReserva',id});
     const raw=await apiCall({action:'getReservas'});
     reservas=(Array.isArray(raw)?raw:[]).map(r=>({...r,fecha:normalizarFecha(r.fecha),horario:normalizarHorario(r.horario)}));
+    renderListareservas();
     showToast('Cancelada ✓');
     const msg=encodeURIComponent(`Hola ${nombre} 👋\n\nTe escribimos desde *Gente de París* para informarte que tu reserva ha sido *cancelada*:\n\n📅 Fecha: ${formatDate(fecha)}\n🎯 Tour: ${tourNombre}\n\nLamentamos los inconvenientes. ¡Hasta pronto! 🗼`);
     window.open('https://wa.me/'+wa.replace(/[^0-9]/g,'')+'?text='+msg,'_blank');
