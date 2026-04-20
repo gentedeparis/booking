@@ -942,6 +942,7 @@ async function renderListareservas(){
     if(a.fecha!==b.fecha)return a.fecha>b.fecha?1:-1;
     return(a.horario||'')>(b.horario||'')?1:-1;
   });
+  _listadosGrupos=sorted;
 
   const hoy2=new Date();hoy2.setHours(0,0,0,0);
   const futuros=sorted.filter(g=>{const d=new Date(g.fecha+'T00:00:00');return d>=hoy2;});
