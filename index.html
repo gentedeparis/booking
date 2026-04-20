@@ -1469,17 +1469,7 @@ async function initInformes() {
       });
     }
   });
-  await Promise.allSettled(
-    informesPendientes.map(e => {
-      const jornadaId = String(e.id).replace(/^dos_/, 'jor_');
-      return apiCall({ action: 'getJornadasGuia', guia: e.guia, includePast: 'true' })
-        .then(jornadas => {
-          const j = (Array.isArray(jornadas) ? jornadas : []).find(x => x.id === jornadaId);
-          if (j && j.clientesJSON) { try { e.clientes = JSON.parse(j.clientesJSON); } catch {} }
-        })
-        .catch(() => {});
-    })
-  );
+
   informesPendientes.sort((a, b) => a.fecha > b.fecha ? -1 : 1);
   updateInformesNavBadge(informesPendientes.length);
   renderInformes();
