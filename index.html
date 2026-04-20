@@ -600,12 +600,17 @@ async function apiCall(params, timeout = 30000) {
   try {
     const resp = await fetch(API, {method:'POST', body:JSON.stringify(params), signal: controller.signal});
     clearTimeout(id);
-  const text = await resp.text();
-  if (!text.trim().startsWith('{') && !text.trim().startsWith('[')) throw new Error('Respuesta inesperada del servidor');
-  let result;
-  try { result = JSON.parse(text); } catch(e) { throw new Error('JSON inválido: ' + text.slice(0,100)); }
-  if (result && result.error) throw new Error(result.error);
-  return result;
+    const text = await resp.text();
+    if (!text.trim().startsWith('{') && !text.trim().startsWith('[')) throw new Error('Respuesta inesperada del servidor');
+    let result;
+    try { result = JSON.parse(text); } catch(e) { throw new Error('JSON inválido: ' + text.slice(0,100)); }
+    if (result && result.error) throw new Error(result.error);
+    return result;
+  } catch(e) {
+    clearTimeout(id);
+    if (e.name === 'AbortError') throw new Error('Tiempo de espera agotado');
+    throw e;
+  }
 }
 
 function setSyncStatus(s,t){document.getElementById('syncDot').className='sync-dot '+s;document.getElementById('syncText').textContent=t;}
