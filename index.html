@@ -594,14 +594,28 @@ let guiasData=[];
 let _listadosGrupos=[];
 let informesPendientes=[];
 
-async function apiCall(params) {
-  const resp = await fetch(API, {method:'POST', body:JSON.stringify(params)});
-  const text = await resp.text();
-  if (!text.trim().startsWith('{') && !text.trim().startsWith('[')) throw new Error('Respuesta inesperada del servidor');
-  let result;
-  try { result = JSON.parse(text); } catch(e) { throw new Error('JSON inválido: ' + text.slice(0,100)); }
-  if (result && result.error) throw new Error(result.error);
-  return result;
+// FIX: Añadido Timeout de 5 segundos a las peticiones para evitar que se quede en "Conectando..."
+async function apiCall(params, timeout = 30000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    const resp = await fetch(API, {
+      method: 'POST',
+      body: JSON.stringify(params),
+      signal: controller.signal
+    });
+    clearTimeout(id);
+    const text = await resp.text();
+    if (!text.trim().startsWith('{') && !text.trim().startsWith('[')) throw new Error('Respuesta inesperada del servidor');
+    let result;
+    try { result = JSON.parse(text); } catch(e) { throw new Error('JSON inválido: ' + text.slice(0,100)); }
+    if (result && result.error) throw new Error(result.error);
+    return result;
+  } catch(e) {
+    clearTimeout(id);
+    if (e.name === 'AbortError') throw new Error('Tiempo de espera agotado (Timeout)');
+    throw e;
+  }
 }
 
 function setSyncStatus(s,t){document.getElementById('syncDot').className='sync-dot '+s;document.getElementById('syncText').textContent=t;}
@@ -917,6 +931,49 @@ function evaluarLimpieza(){
   }
 }
 
+// ═══════════════════════════════════════════════════════════════
+//  LISTA RESERVAS - FUNCIONES CORREGIDAS
+// ═══════════════════════════════════════════════════════════════
+
+// Función auxiliar para generar el HTML de las filas de reservas (confirmadas y canceladas)
+function getGrupoBodyHTML(g, idx) {
+  const confirmadas=g.reservas.filter(r=>r.estado!=='cancelada');
+  const canceladas=g.reservas.filter(r=>r.estado==='cancelada');
+  
+  // Si no hay nada, devolver vacío
+  if(!confirmadas.length && !canceladas.length) return '';
+
+  // 1. Filas Confirmadas
+  const paxRows=confirmadas.map(r=>{
+    const esNueva=String(r.vista)!=='si';
+    return `<div class="lr-pax-row${esNueva?' listado-pax-nueva':''}">
+      <div style="display:flex;align-items:center;gap:7px;min-width:0">
+        <span class="lr-pax-name">${escH(r.nombre||'—')}</span>
+        ${esNueva?'<span class="badge b-new" style="font-size:.6rem">NUEVA</span>':''}
+      </div>
+      <div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div>
+      <a href="https://wa.me/${String(r.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="lr-wa">📱 ${escH(r.whatsapp||'')}</a>
+      <div class="lr-pax-actions">
+        ${esNueva?`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();marcarVistaIndividual('${r.id}',${idx})">👁</button>`:''}
+        <button class="btn btn-cancel-res btn-sm" onclick="event.stopPropagation();cancelarReserva('${r.id}','${escH(r.nombre||'')}','${escH(r.whatsapp||'')}','${r.fecha}','${escH(r.tourNombre||'')}')">✕</button>
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${idx})">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // 2. Filas Canceladas (si existen)
+  const canceladasRows=canceladas.length?
+    '<div style="padding:6px 0 2px;font-size:.7rem;color:var(--muted);text-transform:uppercase">Canceladas</div>'+
+    canceladas.map(r=>`<div class="lr-pax-row" style="background:rgba(192,57,43,0.08);border-left:3px solid rgba(192,57,43,0.5);padding-left:10px;opacity:.75">
+      <div style="display:flex;align-items:center;gap:8px;min-width:0"><span class="lr-pax-name" style="text-decoration:line-through;color:var(--muted)">${escH(r.nombre||'—')}</span><span style="font-size:.6rem;background:rgba(192,57,43,.25);color:#e74c3c;border:1px solid rgba(192,57,43,.4);border-radius:4px;padding:1px 6px;white-space:nowrap">✕ Cancelada</span></div>
+      <div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div>
+      <div class="lr-wa" style="color:var(--muted)">${escH(r.whatsapp||'')}</div>
+      <div class="lr-pax-actions"><button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${idx})">🗑</button></div>
+    </div>`).join(''):'';
+
+  return paxRows + canceladasRows;
+}
+
 async function renderListareservas(){
   const filtro=document.getElementById('filtroListadoFecha').value;
   const container=document.getElementById('listadosContainer');
@@ -934,6 +991,7 @@ async function renderListareservas(){
     if(!grupos[key])grupos[key]={fecha:r.fecha,tourNombre:r.tourNombre,tourId:r.tourId,horario:r.horario,reservas:[]};
     grupos[key].reservas.push(r);
   });
+  // Añadir canceladas a los grupos existentes
   reservas.filter(r=>r.estado==='cancelada').forEach(r=>{
     const key=r.fecha+'|'+(r.tourId||r.tourNombre)+'|'+r.horario;
     if(!grupos[key])grupos[key]={fecha:r.fecha,tourNombre:r.tourNombre,tourId:r.tourId,horario:r.horario,reservas:[]};
@@ -953,33 +1011,14 @@ async function renderListareservas(){
   }
   function renderGrupo(g,idx){
     const confirmadas=g.reservas.filter(r=>r.estado!=='cancelada');
-    const canceladas=g.reservas.filter(r=>r.estado==='cancelada');
+    if(!confirmadas.length && !g.reservas.some(r=>r.estado==='cancelada')) return ''; // Grupo completamente vacío (raro, pero posible)
+    
     const totalPax=confirmadas.reduce((s,r)=>(parseInt(r.adultos)||0)+(parseInt(r.menores)||0)+s,0);
     const tieneNuevas=confirmadas.some(r=>String(r.vista)!=='si');
-    const paxRows=confirmadas.map(r=>{
-      const esNueva=String(r.vista)!=='si';
-      return `<div class="lr-pax-row${esNueva?' listado-pax-nueva':''}">
-        <div style="display:flex;align-items:center;gap:7px;min-width:0">
-          <span class="lr-pax-name">${escH(r.nombre||'—')}</span>
-          ${esNueva?'<span class="badge b-new" style="font-size:.6rem">NUEVA</span>':''}
-        </div>
-        <div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div>
-        <a href="https://wa.me/${String(r.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="lr-wa">📱 ${escH(r.whatsapp||'')}</a>
-        <div class="lr-pax-actions">
-          ${esNueva?`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();marcarVistaIndividual('${r.id}',${idx})">👁</button>`:''}
-          <button class="btn btn-cancel-res btn-sm" onclick="event.stopPropagation();cancelarReserva('${r.id}','${escH(r.nombre||'')}','${escH(r.whatsapp||'')}','${r.fecha}','${escH(r.tourNombre||'')}')">✕</button>
-          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${idx})">🗑</button>
-        </div>
-      </div>`;
-    }).join('');
-    const canceladasRows=canceladas.length?
-      '<div style="padding:6px 0 2px;font-size:.7rem;color:var(--muted);text-transform:uppercase">Canceladas</div>'+
-      canceladas.map(r=>`<div class="lr-pax-row" style="background:rgba(192,57,43,0.08);border-left:3px solid rgba(192,57,43,0.5);padding-left:10px;opacity:.75">
-        <div style="display:flex;align-items:center;gap:8px;min-width:0"><span class="lr-pax-name" style="text-decoration:line-through;color:var(--muted)">${escH(r.nombre||'—')}</span><span style="font-size:.6rem;background:rgba(192,57,43,.25);color:#e74c3c;border:1px solid rgba(192,57,43,.4);border-radius:4px;padding:1px 6px;white-space:nowrap">✕ Cancelada</span></div>
-        <div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div>
-        <div class="lr-wa" style="color:var(--muted)">${escH(r.whatsapp||'')}</div>
-        <div class="lr-pax-actions"><button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${idx})">🗑</button></div>
-      </div>`).join(''):'';
+    
+    // Usar helper para el cuerpo
+    const bodyContent = getGrupoBodyHTML(g, idx);
+
     return `<div class="listado-grupo${tieneNuevas?' listado-grupo-nueva':''}" id="grupo-${idx}">
       <div class="listado-acord-header" onclick="toggleListadoGrupo(${idx})">
         <div class="listado-grupo-info">
@@ -994,7 +1033,7 @@ async function renderListareservas(){
         </div>
       </div>
       <div class="listado-acord-body" id="acord-body-${idx}">
-        <div class="listado-grupo-body">${paxRows}${canceladasRows}</div>
+        <div class="listado-grupo-body">${bodyContent}</div>
       </div>
     </div>`;
   }
@@ -1017,13 +1056,17 @@ async function renderListareservas(){
   }
   container.innerHTML=html;
 }
+
 async function toggleListadoGrupo(idx){
   const body=document.getElementById('acord-body-'+idx);
   const grupoEl=document.getElementById('grupo-'+idx);
   if(!body)return;
   const isOpen=body.classList.contains('open');
+  
+  // Cerrar todos
   document.querySelectorAll('.listado-acord-body').forEach(b=>b.classList.remove('open'));
   document.querySelectorAll('.listado-acord-arrow').forEach(a=>a.classList.remove('open'));
+  
   if(!isOpen){
     body.classList.add('open');
     grupoEl?.querySelector('.listado-acord-arrow')?.classList.add('open');
@@ -1031,17 +1074,32 @@ async function toggleListadoGrupo(idx){
     if(g){
       const nuevas=g.reservas.filter(r=>String(r.vista)!=='si'&&r.estado!=='cancelada');
       if(nuevas.length){
-        nuevas.forEach(r=>{r.vista='si';apiCall({action:'marcarVista',id:r.id}).catch(()=>{});});
-        if(grupoEl){
+        nuevas.forEach(r=>{
+          r.vista='si';
+          apiCall({action:'marcarVista',id:r.id}).catch(()=>{});
+        });
+        
+        // FIX: Re-generar el HTML del cuerpo para quitar badges "NUEVA" y botones 👁
+        const innerBody = body.querySelector('.listado-grupo-body');
+        if(innerBody) {
+          innerBody.innerHTML = getGrupoBodyHTML(g, idx);
+        }
+
+        // FIX: Si no quedan nuevas en el grupo, quitar estilo "NUEVA" del header
+        const tieneNuevasAhora = g.reservas.some(r=>String(r.vista)!=='si' && r.estado!=='cancelada');
+        if(!tieneNuevasAhora) {
           grupoEl.classList.remove('listado-grupo-nueva');
-          grupoEl.querySelectorAll('.badge.b-new').forEach(b=>b.remove());
-          grupoEl.querySelectorAll('.listado-pax-nueva').forEach(r=>r.classList.remove('listado-pax-nueva'));
-          grupoEl.querySelectorAll('.lr-pax-actions .btn-ghost.btn-sm').forEach(b=>{if(b.textContent.includes('👁'))b.remove();});
+          const headerTitle = grupoEl.querySelector('.listado-grupo-title');
+          if(headerTitle) {
+            const badge = headerTitle.querySelector('.badge.b-new');
+            if(badge) badge.remove();
+          }
         }
       }
     }
   }
 }
+
 function toggleHistorico(){
   const wrap = document.getElementById('historico-wrap');
   const btn = document.getElementById('btn-historico');
@@ -1050,9 +1108,11 @@ function toggleHistorico(){
   wrap.style.display = isOpen ? 'none' : 'block';
   btn.textContent = isOpen ? '📦 Ver histórico' : '📦 Ocultar histórico';
 }
+
 function marcarVistaIndividual(id,idx){
   const r=reservas.find(x=>x.id===id);
   if(r){r.vista='si';apiCall({action:'marcarVista',id}).catch(()=>{});}
+  // Eliminar botón de la vista actual sin recargar todo el grupo
   document.querySelectorAll(`[onclick*="marcarVistaIndividual('${id}"]`).forEach(b=>b.remove());
 }
 
@@ -1064,29 +1124,19 @@ async function eliminarReservaLista(id,idx){
     reservas=reservas.filter(r=>r.id!==id);
     _listadosGrupos.forEach(g=>{if(g)g.reservas=g.reservas.filter(r=>r.id!==id);});
     showToast('Eliminada ✓');
-    // Re-renderizar desde datos locales sin re-fetch
+    // Re-renderizar desde datos locales
     const hoy2=new Date();hoy2.setHours(0,0,0,0);
     const futuros=_listadosGrupos.filter(g=>g&&new Date(g.fecha+'T00:00:00')>=hoy2);
     const pasados=_listadosGrupos.filter(g=>g&&new Date(g.fecha+'T00:00:00')<hoy2);
     const container=document.getElementById('listadosContainer');
     function renderGrupo(g,gi){
-      const confirmadas=g.reservas.filter(r=>r.estado!=='cancelada');
-      if(!confirmadas.length)return '';
-      const totalPax=confirmadas.reduce((s,r)=>(parseInt(r.adultos)||0)+(parseInt(r.menores)||0)+s,0);
-      const tieneNuevas=confirmadas.some(r=>String(r.vista)!=='si');
-      const paxRows=confirmadas.map(r=>{
-        const esNueva=String(r.vista)!=='si';
-        return `<div class="lr-pax-row${esNueva?' listado-pax-nueva':''}">
-          <div style="display:flex;align-items:center;gap:7px;min-width:0"><span class="lr-pax-name">${escH(r.nombre||'—')}</span>${esNueva?'<span class="badge b-new" style="font-size:.6rem">NUEVA</span>':''}</div>
-          <div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div>
-          <a href="https://wa.me/${String(r.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="lr-wa">📱 ${escH(r.whatsapp||'')}</a>
-          <div class="lr-pax-actions">
-            ${esNueva?`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();marcarVistaIndividual('${r.id}',${gi})">👁</button>`:''}
-            <button class="btn btn-cancel-res btn-sm" onclick="event.stopPropagation();cancelarReserva('${r.id}','${escH(r.nombre||'')}','${escH(r.whatsapp||'')}','${r.fecha}','${escH(r.tourNombre||'')}')">✕</button>
-            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${gi})">🗑</button>
-          </div></div>`;
-      }).join('');
-      return `<div class="listado-grupo${tieneNuevas?' listado-grupo-nueva':''}" id="grupo-${gi}">
+       const bodyContent = getGrupoBodyHTML(g, gi);
+       if(!bodyContent) return ''; // Grupo vacío tras eliminar
+       
+       const confirmadas=g.reservas.filter(r=>r.estado!=='cancelada');
+       const totalPax=confirmadas.reduce((s,r)=>(parseInt(r.adultos)||0)+(parseInt(r.menores)||0)+s,0);
+       const tieneNuevas=confirmadas.some(r=>String(r.vista)!=='si');
+       return `<div class="listado-grupo${tieneNuevas?' listado-grupo-nueva':''}" id="grupo-${gi}">
         <div class="listado-acord-header" onclick="toggleListadoGrupo(${gi})">
           <div class="listado-grupo-info">
             <div class="listado-grupo-title">🎯 ${escH(g.tourNombre||'—')}</div>
@@ -1100,7 +1150,7 @@ async function eliminarReservaLista(id,idx){
           </div>
         </div>
         <div class="listado-acord-body" id="acord-body-${gi}">
-          <div class="listado-grupo-body">${paxRows}</div>
+          <div class="listado-grupo-body">${bodyContent}</div>
         </div>
       </div>`;
     }
@@ -1176,7 +1226,7 @@ function renderCivitatis(){
   document.getElementById('civProductCards').innerHTML=civData.products.map(p=>{
     const bk=civData.bookings.filter(b=>b.productId===p.id&&b.status==='confirmed');
     const pax=bk.reduce((s,b)=>s+b.adults+b.children,0);
-    return `<div class="civ-product"><div class="civ-product-name">🎯 ${escH(p.name)}</div><div class="civ-stats"><div class="civ-stat"><div class="civ-stat-n" style="color:var(--terra)">${bk.length}</div><div class="civ-stat-l">Reservas</div></div><div class="civ-stat"><div class="civ-stat-n" style="color:var(--gold)">${pax}</div><div class="civ-stat-l">PAX</div></div></div></div>`;
+    return `<div class="civ-product"><div class="civ-product-name">🎯 ${escH(p.name)}</div><div class="civ-stats"><div class="civ-stat"><div class="civ-stat-n" style="color:var(--terra)">${bk.length}</div><div class="civ-stat-l">Reservas</div></div><div class="civ-stat"><div class="civ-stat-n" style="color:var(--gold)">${pax}</div><div class="civ-stat-l">PAX</div></div></div>`;
   }).join('');
   const filtro=document.getElementById('civFiltroEstado').value;
   const sorted=[...civData.bookings].filter(b=>filtro?b.status===filtro:true).sort((a,b)=>a.date<b.date?1:-1);
@@ -1184,7 +1234,8 @@ function renderCivitatis(){
   document.getElementById('civTable').innerHTML='<table><thead><tr><th>ID</th><th>Fecha</th><th>Tour</th><th>Cliente</th><th>Teléfono</th><th>PAX</th><th>Importe</th><th>Estado</th></tr></thead><tbody>'
     +sorted.map(b=>`<tr class="${b.status==='cancelled'?'cancelled':''}">
       <td style="font-family:monospace;font-size:.72rem;color:var(--muted)">${b.id}</td>
-      <td>${formatDate(b.date)}</td><td>${escH(b.productName)}</td><td>${escH(b.clientName)}</td>
+      <td>${formatDate(b.date)}</td><td>${escH(b.productName)}</td>
+      <td>${escH(b.clientName)}</td>
       <td><a href="https://wa.me/${b.phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold);text-decoration:none">📱 ${escH(b.phone)}</a></td>
       <td>${b.adults}A${b.children?' '+b.children+'M':''}</td>
       <td>${b.status==='cancelled'?'—':'<span class="total-tag">'+b.amount+'€</span>'}</td>
@@ -1416,7 +1467,7 @@ async function deleteOpsTour(){
 function opsDownloadBackup(){
   if(!Object.keys(opsTours).length){showToast('No hay jornadas','error');return;}
   const a=document.createElement('a');
-  a.href='data:text/html;charset=utf-8,'+encodeURIComponent('<pre>'+JSON.stringify(opsTours,null,2)+'</pre>');
+ a.href='data:text/html;charset=utf-8,'+encodeURIComponent('<pre>'+JSON.stringify(opsTours,null,2)+'</pre>');
   a.download='backup_'+new Date().toISOString().slice(0,10)+'.html';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   showToast('Copia descargada ✓');
@@ -1937,265 +1988,3 @@ function downloadDossierPublic(guia){
     if(!byM[mk])byM[mk]=[];byM[mk].push(e);
   });
   let body='';
-  Object.keys(byM).sort().forEach(mk=>{
-    const p=mk.split('-');
-    body+=`<div style="font-size:.68rem;letter-spacing:.12em;color:#7fa7d9;padding:10px 0 6px;border-bottom:1px solid rgba(41,128,185,.2);margin-bottom:8px">/////// ${(mn[parseInt(p[1])-1]||'').toUpperCase()} ${p[0]} ///////</div>`;
-    byM[mk].sort((a,b)=>a.fecha>b.fecha?1:-1).forEach(e=>{
-      const ip=e.estadoPago==='pagado';
-      body+=`<div style="background:#1a1a1a;border:1px solid #2c2c2c;border-radius:8px;padding:13px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
-        <div><div style="font-size:.9rem;font-weight:600">${escH(e.tourNombre||'—')}</div>
-        <div style="font-size:.72rem;color:#888;margin-top:2px">${formatDDMMYYYY(e.fecha)}${e.horario?' · '+e.horario:''} · PAX: ${e.paxTotal||0} · Asist: ${e.asistentes||0}</div></div>
-        <div style="text-align:right">
-          <div style="font-family:'Georgia',serif;font-size:1.1rem;color:${ip?'#27ae60':'#c9a84c'}">${e.creditos||0} cr.</div>
-          <div style="font-size:.68rem;margin-top:2px;color:${ip?'#27ae60':'#c9a84c'}">${ip?'✅ Pagado':'⏳ Pend.'}</div>
-        </div>
-      </div>`;
-    });
-  });
-  const html=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escH(guia)} · Dossier · Gente de París</title><style>body{font-family:'Segoe UI',Arial,sans-serif;background:#0f0f0f;color:#f5f2ec;padding:20px}.wrap{max-width:800px;margin:0 auto}.hdr{background:#1B2B4B;padding:18px 22px;border-radius:10px;margin-bottom:20px}</style></head><body><div class="wrap"><div class="hdr"><div style="font-size:1.2rem;font-weight:700">📁 Dossier — ${escH(guia)}</div><div style="font-size:.78rem;opacity:.6;margin-top:3px">Generado ${new Date().toLocaleDateString('es-ES')}</div></div>${body||'<div style="text-align:center;padding:40px;color:#888">Sin registros aún.</div>'}</div></body></html>`;
-  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='dossier-'+guia.replace(/\s+/g,'-').toLowerCase()+'.html';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  showToast('Vista pública de '+guia+' descargada ✓');
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  GUÍAS
-// ═══════════════════════════════════════════════════════════════
-async function initGuias(){
-  const grid=document.getElementById('guiasGrid');
-  grid.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando guías...</div>';
-  showLoading();
-  try{const resp=await apiCall({action:'getGuiasData'});guiasData=Array.isArray(resp)?resp:[];renderGuias();}
-  catch(e){grid.innerHTML=`<div class="empty-state"><div class="ei">❌</div>Error: ${escH(String(e))}</div>`;showToast('Error cargando guías','error',6000);}
-  hideLoading();
-}
-
-function renderGuias(){
-  const grid=document.getElementById('guiasGrid');
-  if(!guiasData.length){grid.innerHTML='<div class="empty-state"><div class="ei">👤</div>No hay guías.</div>';return;}
-  grid.innerHTML=guiasData.map(g=>{
-    const activo=String(g.activo).toLowerCase()==='true';
-    return `<div class="guia-card ${activo?'':'inactivo'}">
-      <div>
-        <div class="guia-nombre">${escH(g.nombre)}</div>
-        <div class="guia-pin">PIN:
-          <span class="pin-dots" id="pd-${escH(g.nombre)}">
-            <span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>
-          </span>
-          <button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:.7rem" data-action="verpin" data-pin="${escH(g.pin)}" data-target="pd-${escH(g.nombre)}">Ver</button>
-        </div>
-        <div style="margin-top:6px"><span class="badge ${activo?'b-green':'b-muted'}">${activo?'✅ Activo':'⏸ Inactivo'}</span></div>
-      </div>
-      <div class="guia-actions">
-        <button class="btn btn-ghost btn-sm" data-action="editar" data-nombre="${escH(g.nombre)}">✏️ Editar</button>
-        <button class="btn btn-ghost btn-sm" data-action="toggle" data-nombre="${escH(g.nombre)}" data-activo="${String(g.activo).toLowerCase()}">${activo?'⏸ Desactivar':'▶ Activar'}</button>
-        <button class="btn btn-danger btn-sm" data-action="eliminar" data-nombre="${escH(g.nombre)}">🗑</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function toggleVerPin(btn){
-  const pin=btn.getAttribute('data-pin'),targetId=btn.getAttribute('data-target');
-  const pinEl=document.getElementById(targetId);if(!pinEl)return;
-  if(btn.textContent==='Ver'){pinEl.innerHTML=`<span style="font-family:monospace;font-size:.92rem;color:var(--gold);letter-spacing:.2em">${escH(pin)}</span>`;btn.textContent='Ocultar';}
-  else{pinEl.innerHTML='<span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>';btn.textContent='Ver';}
-}
-
-function openGuiaModal(nombre){
-  editingGuiaNombre=nombre||null;
-  document.getElementById('guiaModalTitle').textContent=nombre?'Editar Guía':'Nuevo Guía';
-  if(nombre){
-    const g=guiasData.find(x=>x.nombre===nombre);
-    if(g){document.getElementById('gNombre').value=g.nombre;document.getElementById('gNombre').disabled=true;document.getElementById('gPin').value=g.pin;document.getElementById('gActivo').checked=g.activo==='true';}
-  }else{document.getElementById('gNombre').value='';document.getElementById('gNombre').disabled=false;document.getElementById('gPin').value='';document.getElementById('gActivo').checked=true;}
-  document.getElementById('guiaModal').classList.add('open');
-}
-function closeGuiaModal(){document.getElementById('guiaModal').classList.remove('open');document.getElementById('gNombre').disabled=false;}
-
-async function saveGuia(){
-  const nombre=document.getElementById('gNombre').value.trim();
-  const pin=String(document.getElementById('gPin').value).trim();
-  if(!nombre){showToast('Escribe el nombre','error');return;}
-  if(!/^[0-9]{4}$/.test(pin)){showToast('El PIN debe tener 4 dígitos','error');return;}
-  const dup=guiasData.find(g=>String(g.pin)===pin&&g.nombre!==nombre);
-  if(dup){showToast('Ese PIN ya lo usa '+dup.nombre,'error');return;}
-  showLoading();
-  try{await apiCall({action:'saveGuia',data:{nombre,pin,activo:String(document.getElementById('gActivo').checked)}});closeGuiaModal();await initGuias();showToast((editingGuiaNombre?'Guía actualizado':'Guía creado')+' ✓');}
-  catch(e){showToast('Error al guardar','error');}
-  hideLoading();
-}
-
-async function toggleGuiaActivo(nombre,activoActual){
-  const g=guiasData.find(x=>x.nombre===nombre);if(!g)return;
-  showLoading();
-  try{await apiCall({action:'saveGuia',data:{nombre:g.nombre,pin:g.pin,activo:activoActual==='true'?'false':'true'}});await initGuias();showToast('Estado actualizado ✓');}
-  catch(e){showToast('Error','error');}
-  hideLoading();
-}
-
-async function eliminarGuia(nombre){
-  if(!confirm('¿Eliminar al guía '+nombre+'?'))return;
-  showLoading();
-  try{await apiCall({action:'deleteGuia',nombre});await initGuias();showToast('Guía eliminado ✓');}
-  catch(e){showToast('Error al eliminar','error');}
-  hideLoading();
-}
-
-document.addEventListener('click',e=>{
-  const btn=e.target.closest('[data-action]');if(!btn)return;
-  const grid=document.getElementById('guiasGrid');
-  if(!grid?.contains(btn))return;
-  const action=btn.getAttribute('data-action');
-  if(action==='verpin')toggleVerPin(btn);
-  else if(action==='editar')openGuiaModal(btn.getAttribute('data-nombre'));
-  else if(action==='toggle')toggleGuiaActivo(btn.getAttribute('data-nombre'),btn.getAttribute('data-activo'));
-  else if(action==='eliminar')eliminarGuia(btn.getAttribute('data-nombre'));
-});
-
-// ═══════════════════════════════════════════════════════════════
-//  DASHBOARD
-// ═══════════════════════════════════════════════════════════════
-function updateDashboard(){
-  document.getElementById('dash-total-res').textContent=reservas.filter(r=>r.estado!=='cancelada').length||'—';
-  document.getElementById('dash-tours-activos').textContent=tours.filter(t=>t.activo==='true'||t.activo===true||t.activo==='TRUE').length||tours.length||'—';
-  const hoy=new Date(),d7=new Date(hoy.getTime()+7*86400000);
-  const paxWeek=reservas.filter(r=>{if(!r.fecha||r.estado==='cancelada')return false;const d=new Date(r.fecha+'T00:00:00');return d>=hoy&&d<=d7;}).reduce((s,r)=>s+(parseInt(r.adultos)||0)+(parseInt(r.menores)||0),0);
-  document.getElementById('dash-pax').textContent=paxWeek||0;
-  const recentDirect=[...reservas].sort((a,b)=>b.timestamp>a.timestamp?1:-1).slice(0,5);
-  const ddEl=document.getElementById('dash-recent-direct');
-  ddEl.innerHTML=recentDirect.length
-    ?recentDirect.map(r=>{
-        const esNueva=String(r.vista)!=='si'&&r.estado!=='cancelada';
-        return `<div class="recent-item">
-          <div class="recent-dot" style="background:${r.estado==='cancelada'?'var(--muted)':esNueva?'var(--gold)':'var(--green)'}"></div>
-          <div class="recent-info"><div class="recent-name">${escH(r.nombre||'—')}${esNueva?'<span class="badge b-new" style="font-size:.58rem;margin-left:5px">NUEVA</span>':''}</div>
-          <div class="recent-meta">${formatDate(r.fecha)} · ${escH(r.tourNombre||'')}</div></div>
-          <span class="recent-tag rt-direct">Directo</span>
-        </div>`;
-      }).join('')
-    :'<div style="text-align:center;padding:20px;color:var(--muted);font-size:.82rem">Sin reservas todavía</div>';
-  if(!civData){loadCivitatis().then(()=>updateDashboard());return;}
-  document.getElementById('dash-recent-civ').innerHTML=[...civData.bookings].sort((a,b)=>a.date<b.date?1:-1).slice(0,5)
-    .map(b=>`<div class="recent-item">
-      <div class="recent-dot" style="background:${b.status==='cancelled'?'var(--muted)':'var(--terra)'}"></div>
-      <div class="recent-info"><div class="recent-name">${escH(b.clientName)}</div><div class="recent-meta">${formatDate(b.date)} · ${escH(b.productName)}</div></div>
-      <span class="recent-tag rt-civitatis">Civitatis</span>
-    </div>`).join('');
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  BUILD GUIDE HTML
-// ═══════════════════════════════════════════════════════════════
-function buildGuideHTML(jornada){
-  const dataObj={
-    name:jornada.tours.map(x=>x.tourNombre).join(' + '),
-    date:jornada.date,guide:jornada.guide,
-    tours:(jornada.tours||[]).map(tx=>({
-      tourNombre:tx.tourNombre||'',horario:tx.horario||'',
-      clients:(tx.clients||[]).map(c=>({name:c.name,adults:c.adults||0,minors:c.minors||0,wa:c.wa||'',present:false,realAdults:c.adults,realMinors:c.minors}))
-    }))
-  };
-  const dataJSON=JSON.stringify(dataObj).replace(/<\//g,'<\\/');
-  return `<!DOCTYPE html><html lang="es"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${escH(dataObj.name)} · Gente de París</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Segoe UI',Arial,sans-serif;background:#f4f4f4;color:#111;padding-bottom:40px;}
-.wrap{max-width:680px;margin:20px auto;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.1);overflow:hidden;}
-.hdr{background:#1B2B4B;padding:18px 22px;color:#fff;}
-.hdr-name{font-size:20px;font-weight:700;}.hdr-meta{font-size:13px;opacity:.7;margin-top:3px;}
-.ct{padding:20px 24px;}
-.sts{display:flex;gap:12px;margin-bottom:20px;}
-.st{flex:1;background:#f9f9f9;border:1px solid #eee;padding:14px;border-radius:10px;text-align:center;}
-.sn{font-size:28px;font-weight:700;color:#C4622D;}.sl{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
-.achdr{display:flex;justify-content:space-between;align-items:center;background:#F8F7F4;border:1.5px solid #E5E3DC;border-radius:10px;padding:14px 16px;cursor:pointer;user-select:none;margin-bottom:4px;}
-.achdr.open{background:#FFF5EE;border-color:#C4622D;border-radius:10px 10px 0 0;margin-bottom:0;}
-.acbody{display:none;border:1.5px solid #C4622D;border-top:none;border-radius:0 0 10px 10px;padding:4px 14px 8px;margin-bottom:8px;}
-.acbody.open{display:block;}
-.ci{display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid #eee;}
-.ci:last-child{border-bottom:none;}
-.ci.done .cnm{text-decoration:line-through;opacity:.5;}
-.ci input[type=checkbox]{width:20px;height:20px;accent-color:#C4622D;cursor:pointer;flex-shrink:0;margin-top:2px;}
-.cinf{flex:1;}.cnm{font-weight:600;font-size:14px;}.cpx{font-size:12px;color:#777;margin-top:2px;}
-.crs{font-size:10px;color:#aaa;font-style:italic;margin-top:1px;}
-.wl{font-size:12px;color:#1D9E75;text-decoration:none;display:inline-block;margin-top:3px;}
-.cadj{margin-top:8px;display:none;flex-wrap:wrap;gap:10px;}.ci.done .cadj{display:flex;}
-.albl{font-size:10px;color:#6B7280;font-weight:700;text-transform:uppercase;min-width:48px;}
-.actrl{display:flex;align-items:center;border:1px solid #ddd;border-radius:6px;overflow:hidden;}
-.actrl button{width:28px;height:28px;border:none;background:#f9f9f9;font-size:18px;cursor:pointer;}
-.aval{min-width:32px;text-align:center;font-size:15px;font-weight:700;color:#C4622D;}
-.addbtn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:11px;background:none;border:2px dashed rgba(0,0,0,.18);border-radius:9px;font-size:13px;font-weight:600;color:#C4622D;cursor:pointer;margin-bottom:12px;}
-.xcard{background:#FFF8F5;border:1.5px solid #F5D5C0;border-radius:9px;padding:13px;margin-bottom:9px;}
-.xtop{display:flex;gap:8px;margin-bottom:9px;}.xtop input{flex:1;background:#F5F4F1;border:1.5px solid rgba(0,0,0,.18);border-radius:6px;padding:8px;font-size:14px;}
-.xtop button{background:none;border:none;font-size:22px;color:#9CA3AF;cursor:pointer;}
-.xbot{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-.pcnt{display:flex;align-items:center;gap:5px;font-size:11px;color:#6B7280;font-weight:700;text-transform:uppercase;}
-.pcnt input{width:48px;text-align:center;background:#F5F4F1;border:1.5px solid rgba(0,0,0,.18);border-radius:6px;padding:5px;}
-.pwa{display:flex;align-items:center;gap:5px;flex:1;font-size:12px;color:#6B7280;}
-.pwa input{flex:1;background:#F5F4F1;border:1.5px solid rgba(0,0,0,.18);border-radius:6px;padding:5px 8px;font-size:12px;}
-.divider{height:1px;background:#eee;margin:18px 0;}
-.field{margin-bottom:13px;}.field label{display:block;font-size:10px;font-weight:700;color:#6B7280;margin-bottom:5px;text-transform:uppercase;}
-.field textarea{width:100%;background:#F5F4F1;border:1.5px solid rgba(0,0,0,.18);border-radius:9px;padding:10px;font-size:14px;font-family:inherit;resize:vertical;min-height:70px;}
-.btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:13px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;border:none;font-family:inherit;}
-.btn-terra{background:#C4622D;color:#fff;}
-.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(10px);background:#1B2B4B;color:#fff;padding:11px 20px;border-radius:30px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;z-index:999;}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-</style></head><body>
-<div class="wrap">
-  <div class="hdr"><div class="hdr-name" id="hn"></div><div class="hdr-meta" id="hm"></div></div>
-  <div class="ct">
-    <div class="sts">
-      <div class="st"><div class="sn" id="sp">0</div><div class="sl">Presentes</div></div>
-      <div class="st"><div class="sn" id="st">0</div><div class="sl">Reservados</div></div>
-    </div>
-    <div id="cl"></div>
-    <div class="divider"></div>
-    <button class="addbtn" onclick="ae()">+ Walk-in</button>
-    <div id="ei"></div>
-    <div class="divider"></div>
-    <div class="field"><label>Notas del guía</label><textarea id="gn" placeholder="Incidentes, cambios..."></textarea></div>
-    <button class="btn btn-terra" onclick="dr()">⬇ Descargar reporte</button>
-  </div>
-</div>
-<div class="toast" id="toast"></div>
-<script>
-var _D=${dataJSON};
-var tours=_D.tours,extras=[];
-function fd(d){if(!d)return'—';var p=d.split('-'),m=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];return parseInt(p[2])+' '+m[parseInt(p[1])-1]+' '+p[0];}
-function eh(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function pl(c){var p=[];if(c.adults)p.push(c.adults+' ad.');if(c.minors)p.push(c.minors+' men.');return p.join(', ')||'1 pax';}
-function rl(c){var a=c.realAdults!=null?c.realAdults:c.adults,m=c.realMinors!=null?c.realMinors:c.minors,p=[];if(a)p.push(a+' Pax');if(m)p.push(m+'M');return(p.join(' ')||'0')+' ('+(a+m)+' PAX)';}
-function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2500);}
-document.getElementById('hn').textContent=_D.name;
-document.getElementById('hm').textContent=fd(_D.date)+' · Guía: '+_D.guide;
-function us(){var p=0,tot=0;tours.forEach(function(tx){tx.clients.forEach(function(c){var a=c.realAdults||0,m=c.realMinors||0;tot+=a+m;if(c.present)p+=a+m;});});extras.filter(Boolean).forEach(function(e){if(e&&e.name){tot+=(e.adults||0)+(e.minors||0);if(e.present)p+=(e.adults||0)+(e.minors||0);}});document.getElementById('sp').textContent=p;document.getElementById('st').textContent=tot;}
-function uts(ti){var tx=tours[ti],p=0,tot=0;tx.clients.forEach(function(c){var a=c.realAdults||0,m=c.realMinors||0;tot+=a+m;if(c.present)p+=a+m;});var el=document.getElementById('ts'+ti);if(el)el.textContent=p+'/'+tot+' PAX';}
-function tp(ti,ci,v){tours[ti].clients[ci].present=v;var r=document.getElementById('ci'+ti+'_'+ci);if(r){v?r.classList.add('done'):r.classList.remove('done');}uts(ti);us();}
-function ap(ti,ci,f,d){var k=f==='a'?'realAdults':'realMinors',nv=Math.max(0,(tours[ti].clients[ci][k]||0)+d);tours[ti].clients[ci][k]=nv;var el=document.getElementById((f==='a'?'ra':'rm')+ti+'_'+ci);if(el)el.textContent=nv;document.getElementById('px'+ti+'_'+ci).textContent=rl(tours[ti].clients[ci]);uts(ti);us();}
-function tog(ti){var body=document.getElementById('ab'+ti),hdr=document.getElementById('ah'+ti),arrow=document.getElementById('aw'+ti),isOpen=body.classList.contains('open');body.classList.toggle('open',!isOpen);hdr.classList.toggle('open',!isOpen);if(arrow)arrow.textContent=!isOpen?'▲':'▼';}
-function mkAdj(ti,ci,f,lbl,val){var row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:4px';var lb=document.createElement('span');lb.className='albl';lb.textContent=lbl;var ctrl=document.createElement('div');ctrl.className='actrl';var bm=document.createElement('button');bm.textContent='-';bm.onclick=(function(a,b,c){return function(){ap(a,b,c,-1);};})(ti,ci,f);var vs=document.createElement('span');vs.className='aval';vs.id=(f==='a'?'ra':'rm')+ti+'_'+ci;vs.textContent=val!=null?val:0;var bp=document.createElement('button');bp.textContent='+';bp.onclick=(function(a,b,c){return function(){ap(a,b,c,1);};})(ti,ci,f);ctrl.appendChild(bm);ctrl.appendChild(vs);ctrl.appendChild(bp);row.appendChild(lb);row.appendChild(ctrl);return row;}
-function rc(){var el=document.getElementById('cl');el.innerHTML='';tours.forEach(function(tx,ti){var wrap=document.createElement('div');wrap.style.cssText='margin-bottom:12px';var hdr=document.createElement('div');hdr.id='ah'+ti;hdr.className='achdr'+(ti===0?' open':'');hdr.onclick=(function(i){return function(){tog(i);};})(ti);var hl=document.createElement('div');var ht=document.createElement('div');ht.style.cssText='font-weight:700;font-size:15px;color:#1B2B4B;margin-bottom:3px';ht.textContent=tx.tourNombre;var hm=document.createElement('div');hm.style.cssText='font-size:12px;color:#6B7280;display:flex;align-items:center;gap:10px';var htime=document.createElement('span');htime.textContent='🕐 '+(tx.horario||'--')+'h';var hstat=document.createElement('span');hstat.id='ts'+ti;hstat.style.cssText='background:#FFF0E8;color:#C4622D;padding:2px 8px;border-radius:10px;font-weight:700;font-size:11px';hm.appendChild(htime);hm.appendChild(hstat);hl.appendChild(ht);hl.appendChild(hm);var hr2=document.createElement('div');hr2.style.cssText='display:flex;align-items:center;gap:8px;flex-shrink:0';var arrow=document.createElement('span');arrow.id='aw'+ti;arrow.style.cssText='font-size:11px;color:#9CA3AF';arrow.textContent=ti===0?'▲':'▼';hr2.appendChild(arrow);hdr.appendChild(hl);hdr.appendChild(hr2);var body=document.createElement('div');body.id='ab'+ti;body.className='acbody'+(ti===0?' open':'');tx.clients.forEach(function(c,ci){var div=document.createElement('div');div.className='ci'+(c.present?' done':'');div.id='ci'+ti+'_'+ci;var chk=document.createElement('input');chk.type='checkbox';chk.checked=!!c.present;chk.onchange=(function(a,b){return function(){tp(a,b,this.checked);};})(ti,ci);var inf=document.createElement('div');inf.className='cinf';var nm=document.createElement('div');nm.className='cnm';nm.textContent=c.name;var px=document.createElement('div');px.className='cpx';px.id='px'+ti+'_'+ci;px.textContent=rl(c);var rs=document.createElement('div');rs.className='crs';rs.textContent='Reservado: '+pl(c);inf.appendChild(nm);inf.appendChild(px);inf.appendChild(rs);if(c.wa){var wa=document.createElement('a');wa.href='https://wa.me/'+c.wa.replace(/[^0-9]/g,'');wa.className='wl';wa.target='_blank';wa.textContent='📱 '+c.wa;inf.appendChild(wa);}var adj=document.createElement('div');adj.className='cadj';adj.appendChild(mkAdj(ti,ci,'a','Adultos',c.realAdults));adj.appendChild(mkAdj(ti,ci,'m','Menores',c.realMinors));inf.appendChild(adj);div.appendChild(chk);div.appendChild(inf);body.appendChild(div);});wrap.appendChild(hdr);wrap.appendChild(body);el.appendChild(wrap);uts(ti);});us();}
-function ae(){var idx=extras.length;extras.push({name:'',adults:1,minors:0,wa:'',present:false});var cont=document.getElementById('ei');var d=document.createElement('div');d.className='xcard';d.id='ex'+idx;var ni=document.createElement('input');ni.type='text';ni.placeholder='Nombre walk-in';ni.oninput=(function(i){return function(){extras[i].name=this.value;};})(idx);var xb=document.createElement('button');xb.textContent='×';xb.onclick=(function(i){return function(){extras[i]=null;var el=document.getElementById('ex'+i);if(el)el.remove();us();};})(idx);var top=document.createElement('div');top.className='xtop';top.appendChild(ni);top.appendChild(xb);var ai=document.createElement('input');ai.type='number';ai.min='0';ai.value='1';ai.onchange=(function(i){return function(){extras[i].adults=parseInt(this.value)||0;us();};})(idx);var mi=document.createElement('input');mi.type='number';mi.min='0';mi.value='0';mi.onchange=(function(i){return function(){extras[i].minors=parseInt(this.value)||0;us();};})(idx);var wi=document.createElement('input');wi.type='text';wi.placeholder='+34...';wi.oninput=(function(i){return function(){extras[i].wa=this.value;};})(idx);var pc=document.createElement('input');pc.type='checkbox';pc.style.cssText='width:18px;height:18px;accent-color:#C4622D;cursor:pointer;';pc.onchange=(function(i){return function(){extras[i].present=this.checked;us();};})(idx);var pl2=document.createElement('label');pl2.style.cssText='display:flex;align-items:center;gap:5px;font-size:12px;color:#6B7280;cursor:pointer;';pl2.appendChild(pc);pl2.appendChild(document.createTextNode(' Presente'));var ap2=document.createElement('div');ap2.className='pcnt';ap2.appendChild(document.createTextNode('Ad.'));ap2.appendChild(ai);var mp2=document.createElement('div');mp2.className='pcnt';mp2.appendChild(document.createTextNode('Men.'));mp2.appendChild(mi);var wp2=document.createElement('div');wp2.className='pwa';wp2.appendChild(document.createTextNode('📱'));wp2.appendChild(wi);var bot=document.createElement('div');bot.className='xbot';bot.appendChild(ap2);bot.appendChild(mp2);bot.appendChild(wp2);bot.appendChild(pl2);d.appendChild(top);d.appendChild(bot);cont.appendChild(d);us();}
-function dr(){var notes=document.getElementById('gn').value.trim();var gP=0,gT=0;tours.forEach(function(tx){tx.clients.forEach(function(c){var a=c.realAdults!=null?c.realAdults:c.adults,m=c.realMinors!=null?c.realMinors:c.minors;gT+=a+m;if(c.present)gP+=a+m;});});extras.filter(Boolean).forEach(function(e){if(e&&e.name){gT+=(e.adults||0)+(e.minors||0);if(e.present)gP+=(e.adults||0)+(e.minors||0);}});var hdr='<thead><tr style="background:#F3F4F6"><th style="padding:8px 10px;font-size:11px;color:#6B7280;text-transform:uppercase">#</th><th style="padding:8px 10px;font-size:11px;color:#6B7280;text-transform:uppercase">Pasajero</th><th style="padding:8px 10px;font-size:11px;color:#6B7280;text-transform:uppercase">Reserva</th><th style="padding:8px 10px;font-size:11px;color:#6B7280;text-transform:uppercase">Real</th><th style="padding:8px 10px;font-size:11px;color:#6B7280;text-transform:uppercase">WhatsApp</th><th style="padding:8px 10px;text-align:center;font-size:11px;color:#6B7280;text-transform:uppercase">Asist.</th></tr></thead>';var rows=[];tours.forEach(function(tx){tx.clients.forEach(function(c,ci){var a=c.realAdults!=null?c.realAdults:c.adults,m=c.realMinors!=null?c.realMinors:c.minors,rp=[];if(a)rp.push(a+' Pax');if(m)rp.push(m+'M');rows.push('<tr><td style="padding:8px 10px;border-bottom:1px solid #eee">'+(rows.length+1)+'</td><td style="padding:8px 10px;border-bottom:1px solid #eee;font-weight:600">'+eh(c.name)+'</td><td style="padding:8px 10px;border-bottom:1px solid #eee;color:#777;font-size:12px">'+pl(c)+'</td><td style="padding:8px 10px;border-bottom:1px solid #eee">'+(rp.join(' ')||'0')+' ('+(a+m)+' PAX)</td><td style="padding:8px 10px;border-bottom:1px solid #eee">'+eh(c.wa||'')+'</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:center">'+(c.present?'<span style="color:#1D9E75;font-weight:700">✓</span>':'<span style="color:#ccc">—</span>')+'</td></tr>');});});var rhtml='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte</title><style>body{font-family:Segoe UI,Arial,sans-serif;background:#f4f4f4;padding:20px}.wrap{max-width:760px;margin:0 auto}.hdr{background:#1B2B4B;color:#fff;padding:18px 22px;border-radius:10px;margin-bottom:16px}</style></head><body><div class="wrap"><div class="hdr"><div style="font-size:20px;font-weight:700">'+eh(_D.name)+'</div><div style="font-size:13px;opacity:.8">'+fd(_D.date)+' · Guía: '+eh(_D.guide)+'</div><div style="font-size:13px;opacity:.7;margin-top:2px">✓ '+gP+'/'+gT+' presentes</div></div><table style="width:100%;border-collapse:collapse;font-size:13px;background:#fff;border-radius:8px;overflow:hidden">'+hdr+'<tbody>'+rows.join('')+'</tbody></table>'+(notes?'<div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;padding:14px;font-size:13px;margin-top:16px"><b>Notas</b><p style="margin-top:6px">'+eh(notes)+'</p></div>':'')+'</div></body></html>';var b=new Blob([rhtml],{type:'text/html;charset=utf-8'});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download='REPORTE-'+_D.date+'-'+_D.guide.replace(/\\s+/g,'-').toUpperCase()+'.html';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);toast('✓ Reporte descargado');}
-rc();
-<\/script>
-</body></html>`;
-}
-
-async function init(){
-  opsLoad();
-  loadCivitatis();
-  const cachedTours=cacheGet('gdp_tours');
-  if(cachedTours){tours=cachedTours;renderTours();populateTourSelect();renderTourCatalogChecks();setSyncStatus('ok','Desde caché');updateDashboard();}
-  const cachedBloqueos=cacheGet('gdp_bloqueos');
-  if(cachedBloqueos){bloqueos=cachedBloqueos;renderBloqueos();}
-  await refreshFromAPI();
-}
-init();
-</script>
-</body>
-</html>
