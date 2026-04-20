@@ -1048,6 +1048,7 @@ function toggleHistorico(){
 function marcarVistaIndividual(id,idx){
   const r=reservas.find(x=>x.id===id);
   if(r){r.vista='si';apiCall({action:'marcarVista',id}).catch(()=>{});}
+  document.querySelectorAll(`[onclick*="marcarVistaIndividual('${id}"]`).forEach(b=>b.remove());
 }
 
 async function eliminarReservaLista(id,idx){
@@ -1118,8 +1119,10 @@ async function cancelarReserva(id,nombre,wa,fecha,tourNombre){
   showLoading();
   try{
     await apiCall({action:'cancelReserva',id});
+    const rLocal=reservas.find(x=>x.id===id);
+    if(rLocal)rLocal.estado='cancelada';
     showToast('Cancelada ✓');
-    renderListareservas();
+    setTimeout(()=>renderListareservas(),800);
     const msg=encodeURIComponent(`Hola ${nombre} 👋\n\nTe escribimos desde *Gente de París* para informarte que tu reserva ha sido *cancelada*:\n\n📅 Fecha: ${formatDate(fecha)}\n🎯 Tour: ${tourNombre}\n\nLamentamos los inconvenientes. ¡Hasta pronto! 🗼`);
     window.open('https://wa.me/'+wa.replace(/[^0-9]/g,'')+'?text='+msg,'_blank');
   }catch(e){showToast('Error','error');}
