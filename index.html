@@ -1032,7 +1032,12 @@ async function toggleListadoGrupo(idx){
       const nuevas=g.reservas.filter(r=>String(r.vista)!=='si'&&r.estado!=='cancelada');
       if(nuevas.length){
         nuevas.forEach(r=>{r.vista='si';apiCall({action:'marcarVista',id:r.id}).catch(()=>{});});
-        if(grupoEl){grupoEl.classList.remove('listado-grupo-nueva');grupoEl.querySelectorAll('.badge.b-new').forEach(b=>b.remove());}
+        if(grupoEl){
+          grupoEl.classList.remove('listado-grupo-nueva');
+          grupoEl.querySelectorAll('.badge.b-new').forEach(b=>b.remove());
+          grupoEl.querySelectorAll('.listado-pax-nueva').forEach(r=>r.classList.remove('listado-pax-nueva'));
+          grupoEl.querySelectorAll('.lr-pax-actions .btn-ghost.btn-sm').forEach(b=>{if(b.textContent.includes('👁'))b.remove();});
+        }
       }
     }
   }
