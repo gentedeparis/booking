@@ -1104,7 +1104,8 @@ function buildSummary() {
     ${email ? `<div class="summary-row"><span class="summary-key">Email</span><span class="summary-val">${email}</span></div>` : ''}
     <div class="summary-row"><span class="summary-key">Participantes</span><span class="summary-val">${adultos} adulto${adultos!==1?'s':''}, ${menores} menor${menores!==1?'es':''}</span></div>
     <div class="summary-row"><span class="summary-key">Precio por persona</span><span class="summary-val">${precio}€ <span style="font-size:.78rem;color:var(--smoke)">(${getLabelTramo(paxTotal)})</span></span></div>
-    <div class="summary-row"><span class="summary-key">Total estimado</span><span class="summary-val summary-total">${total}€</span></div>`;\n}
+    <div class="summary-row"><span class="summary-key">Total estimado</span><span class="summary-val summary-total">${total}€</span></div>`;
+}
 
 // ── CONFIRMAR ──
 async function confirmarReserva() {
