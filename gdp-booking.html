@@ -1023,7 +1023,7 @@ function showTours(dateStr) {
           <div class="tour-card-desc">${t.descripcion||''}</div>
           <div class="tour-card-meta">
             <span>🕐 ${t.horario||'--'}</span>
-            <span>💶 ${t.precio}€/persona</span>
+            <span>💶 Desde 15€/persona</span>
             ${isFull ? '<span style="color:var(--red)">✗ Sin plazas</span>' : `<span style="color:var(--green)">✓ ${cupoRestante} plazas</span>`}
           </div>
         </div>
@@ -1055,13 +1055,26 @@ function changeCount(type, delta) {
   updateScreen3Recap();
 }
 
+function getPrecioTramo(pax) {
+  if (pax >= 6) return 15;
+  if (pax >= 3) return 17;
+  return 20;
+}
+function getLabelTramo(pax) {
+  if (pax >= 6) return 'grupo de 6+';
+  if (pax >= 3) return 'grupo de 3–5';
+  return '1–2 personas';
+}
+
 function updateScreen3Recap() {
   if (!selectedTour || !selectedDate) return;
   const cupoUsado = cupos[selectedDate + '_' + selectedTour.id] || 0;
   const cupoRestante = parseInt(selectedTour.cupo) - cupoUsado;
-  const total = (adultos + menores) * parseFloat(selectedTour.precio);
+  const paxTotal = adultos + menores;
+  const precio = getPrecioTramo(paxTotal);
+  const total = paxTotal * precio;
   const alerta = document.getElementById('paxAlert');
-  if (adultos + menores > cupoRestante) {
+  if (paxTotal > cupoRestante) {
     alerta.innerHTML = `<div class="alert alert-error">Solo quedan ${cupoRestante} plazas disponibles.</div>`;
   } else {
     alerta.innerHTML = '';
@@ -1069,7 +1082,7 @@ function updateScreen3Recap() {
   const recap = document.getElementById('selectedTourRecap');
   recap.innerHTML = `<span style="font-size:1.5rem">${selectedTour.emoji||'🗼'}</span>
     <div><strong>${selectedTour.nombre}</strong> · ${selectedTour.horario}<br>
-    <span style="font-size:0.8rem;color:var(--smoke)">${formatDateNice(selectedDate)} · ${adultos} adultos, ${menores} menores · <strong>${total}€</strong></span></div>`;
+    <span style="font-size:0.8rem;color:var(--smoke)">${formatDateNice(selectedDate)} · ${adultos} adultos, ${menores} menores · <strong>${precio}€/persona</strong> (${getLabelTramo(paxTotal)}) · <strong>${total}€</strong></span></div>`;
 }
 
 // ── RESUMEN ──
@@ -1077,7 +1090,9 @@ function buildSummary() {
   const nombre = document.getElementById('fNombre').value.trim();
   const wa = document.getElementById('fWhatsapp').value.trim();
   const email = document.getElementById('fEmail').value.trim();
-  const total = (adultos + menores) * parseFloat(selectedTour.precio||0);
+  const paxTotal = adultos + menores;
+  const precio = getPrecioTramo(paxTotal);
+  const total = paxTotal * precio;
 
   document.getElementById('summaryCard').innerHTML = `
     <div class="summary-title">Detalle de la reserva</div>
@@ -1088,6 +1103,7 @@ function buildSummary() {
     <div class="summary-row"><span class="summary-key">WhatsApp</span><span class="summary-val">${wa}</span></div>
     ${email ? `<div class="summary-row"><span class="summary-key">Email</span><span class="summary-val">${email}</span></div>` : ''}
     <div class="summary-row"><span class="summary-key">Participantes</span><span class="summary-val">${adultos} adulto${adultos!==1?'s':''}, ${menores} menor${menores!==1?'es':''}</span></div>
+    <div class="summary-row"><span class="summary-key">Precio por persona</span><span class="summary-val">${precio}€ <span style="font-size:.78rem;color:var(--smoke)">(${getLabelTramo(paxTotal)})</span></span></div>
     <div class="summary-row"><span class="summary-key">Total estimado</span><span class="summary-val summary-total">${total}€</span></div>`;\n}
 
 // ── CONFIRMAR ──
@@ -1099,7 +1115,9 @@ async function confirmarReserva() {
   const nombre = document.getElementById('fNombre').value.trim();
   const wa = document.getElementById('fWhatsapp').value.trim().replace(/\s+/g,'');
   const email = document.getElementById('fEmail').value.trim();
-  const total = (adultos + menores) * parseFloat(selectedTour.precio||0);
+  const paxTotal = adultos + menores;
+  const precioAplicado = getPrecioTramo(paxTotal);
+  const total = paxTotal * precioAplicado;
 
   const reserva = {
     id: 'res_' + Date.now(),
@@ -1113,6 +1131,7 @@ async function confirmarReserva() {
     adultos,
     menores,
     total,
+    precioUnitario: precioAplicado,
     timestamp: new Date().toISOString()
   };
 
@@ -1151,7 +1170,9 @@ async function confirmarReserva() {
 }
 
 function showSuccess(r) {
-  const total = (r.adultos + r.menores) * parseFloat(selectedTour.precio||0);
+  const paxTotal = (parseInt(r.adultos)||0) + (parseInt(r.menores)||0);
+  const precioU = r.precioUnitario || getPrecioTramo(paxTotal);
+  const total = paxTotal * precioU;
   document.getElementById('successSub').textContent = `Tu lugar en el tour ${selectedTour.nombre} del ${formatDateNice(r.fecha)} está reservado.`;
 
   const encuentroHTML = selectedTour.direccion ? `
@@ -1210,7 +1231,9 @@ function showSuccess(r) {
 }
 
 function generarHTMLVoucher(r) {
-  const total = ((parseInt(r.adultos)||0) + (parseInt(r.menores)||0)) * parseFloat(selectedTour ? selectedTour.precio||0 : 0);
+  const paxTotal = (parseInt(r.adultos)||0) + (parseInt(r.menores)||0);
+  const precioU = r.precioUnitario || getPrecioTramo(paxTotal);
+  const total = paxTotal * precioU;
   const direccion = selectedTour && selectedTour.direccion ? selectedTour.direccion : '';
   const mapsLink = selectedTour && selectedTour.mapsLink ? selectedTour.mapsLink : '';
   const msgContacto = encodeURIComponent(
@@ -1309,6 +1332,7 @@ function resetApp() {
   selectedDate = null; selectedTour = null; adultos = 1; menores = 0;
   document.getElementById('fNombre').value = '';
   document.getElementById('fWhatsapp').value = '';
+  document.getElementById('fEmail').value = '';
   document.getElementById('countAdultos').textContent = '1';
   document.getElementById('countMenores').textContent = '0';
   document.getElementById('btnSelectTour').disabled = true;
