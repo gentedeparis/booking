@@ -231,7 +231,7 @@
     color: var(--smoke);
     margin-bottom: 7px;
   }
-  input[type="text"], input[type="tel"] {
+  input[type="text"], input[type="tel"], input[type="email"] {
     width: 100%;
     background: var(--white);
     border: 1.5px solid var(--border);
@@ -470,6 +470,10 @@
     <div class="form-group">
       <label class="form-label">WhatsApp / Teléfono</label>
       <input type="tel" id="fWhatsapp" placeholder="+34 600 000 000">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email <span style="font-size:.75rem;color:var(--smoke);font-weight:400;text-transform:none">(opcional · para enviarte la confirmación)</span></label>
+      <input type="email" id="fEmail" placeholder="maria@ejemplo.com" autocomplete="email">
     </div>
     <div class="form-group">
       <label class="form-label">Número de participantes</label>
@@ -1072,6 +1076,7 @@ function updateScreen3Recap() {
 function buildSummary() {
   const nombre = document.getElementById('fNombre').value.trim();
   const wa = document.getElementById('fWhatsapp').value.trim();
+  const email = document.getElementById('fEmail').value.trim();
   const total = (adultos + menores) * parseFloat(selectedTour.precio||0);
 
   document.getElementById('summaryCard').innerHTML = `
@@ -1081,9 +1086,9 @@ function buildSummary() {
     <div class="summary-row"><span class="summary-key">Horario</span><span class="summary-val">${selectedTour.horario||'--'}</span></div>
     <div class="summary-row"><span class="summary-key">Nombre</span><span class="summary-val">${nombre}</span></div>
     <div class="summary-row"><span class="summary-key">WhatsApp</span><span class="summary-val">${wa}</span></div>
+    ${email ? `<div class="summary-row"><span class="summary-key">Email</span><span class="summary-val">${email}</span></div>` : ''}
     <div class="summary-row"><span class="summary-key">Participantes</span><span class="summary-val">${adultos} adulto${adultos!==1?'s':''}, ${menores} menor${menores!==1?'es':''}</span></div>
-    <div class="summary-row"><span class="summary-key">Total estimado</span><span class="summary-val summary-total">${total}€</span></div>`;
-}
+    <div class="summary-row"><span class="summary-key">Total estimado</span><span class="summary-val summary-total">${total}€</span></div>`;\n}
 
 // ── CONFIRMAR ──
 async function confirmarReserva() {
@@ -1093,6 +1098,7 @@ async function confirmarReserva() {
 
   const nombre = document.getElementById('fNombre').value.trim();
   const wa = document.getElementById('fWhatsapp').value.trim().replace(/\s+/g,'');
+  const email = document.getElementById('fEmail').value.trim();
   const total = (adultos + menores) * parseFloat(selectedTour.precio||0);
 
   const reserva = {
@@ -1103,6 +1109,7 @@ async function confirmarReserva() {
     horario: selectedTour.horario||'',
     nombre,
     whatsapp: wa,
+    email,
     adultos,
     menores,
     total,
