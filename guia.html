@@ -716,10 +716,6 @@ function toggleJornada(jornadaId) {
 //  FIX: data-action="enviarinforme" corregido (tenía caracteres árabes)
 // ═══════════════════════════════════════════════════════════════
 function renderJornadas() {
-  // CAMBIO 1: Inicializar walkins para esta jornada si no existe
-  var wkeys = 'wi_' + gi;
-  if (!walkins[wkeys]) walkins[wkeys] = [];
-  
   var el = document.getElementById('jornadasContent');
   var today = hoy();
   var proximas = jornadasData.filter(function(j) { return j.fecha >= today; });
@@ -856,10 +852,8 @@ function renderJornadas() {
 }
 
 function updateStatPresentes(gi) {
-  // CAMBIO 2: Comprobar que el elemento existe antes de usarlo
   var el = document.getElementById('stat-pres-' + gi);
   if (!el) return;
-  
   var presentes = 0;
   document.querySelectorAll('[data-action="presencia"][data-gi="' + gi + '"]:checked').forEach(function(chk) {
     var pkey = chk.getAttribute('data-pkey');
