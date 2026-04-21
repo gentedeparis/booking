@@ -315,6 +315,8 @@ textarea{resize:vertical;min-height:70px;}
     <div class="nav-item" onclick="nav('tours')" data-sec="tours"><span>🗺</span><span class="nav-text"> Tours</span></div>
     <div class="nav-item" onclick="nav('bloqueos')" data-sec="bloqueos"><span>🚫</span><span class="nav-text"> Bloqueos</span></div>
     <div class="nav-item" onclick="nav('listareservas')" data-sec="listareservas"><span>📋</span><span class="nav-text"> Lista Reservas</span></div>
+    <div class="nav-item" onclick="nav('clientes')" data-sec="clientes"><span>📇📇</span><span class="nav-text"> Clientes</span></div>
+    <div class="nav-item" onclick="nav('clientes')" data-sec="clientes"><span>📇</span><span class="nav-text"> Clientes</span></div>
     <div class="nav-group-sep"></div>
     <div class="nav-item" onclick="nav('civitatis')" data-sec="civitatis"><span>🟡</span><span class="nav-text"> Civitatis</span><span class="nav-badge nb-mock">MOCK</span></div>
     <div class="nav-item disabled"><span>🟣</span><span class="nav-text"> Guruwalk</span><span class="nav-badge nb-soon">Próx.</span></div>
@@ -353,6 +355,21 @@ textarea{resize:vertical;min-height:70px;}
   <div class="section" id="sec-bloqueos">
     <div class="sec-header"><h1 class="sec-title">Bloqueos</h1><button class="btn btn-gold" onclick="openBloqueoModal()">+ Nuevo bloqueo</button></div>
     <div class="bloqueos-grid" id="bloqueosGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div>
+  </div>
+
+  <div class="section" id="sec-clientes">
+    <div class="sec-header">
+      <h1 class="sec-title">Clientes</h1>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="exportarCSVClientes()">⬇ CSV clientes</button>
+        <button class="btn btn-ghost btn-sm" onclick="renderClientes()">↻ Actualizar</button>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <input type="search" id="filtroCliente" placeholder="Buscar por nombre, WhatsApp o email…" oninput="filtrarClientes()" style="flex:1;max-width:380px;background:var(--charcoal);border:1px solid var(--graphite);border-radius:6px;color:var(--white);padding:8px 12px;font-size:.84rem;outline:none">
+      <span id="clientesCount" style="font-size:.76rem;color:var(--muted)"></span>
+    </div>
+    <div id="clientesContainer"><div class="empty-state"><div class="ei">📇</div>Cargando...</div></div>
   </div>
 
   <div class="section" id="sec-listareservas">
@@ -709,6 +726,7 @@ function nav(sec){
   document.querySelector('[data-sec="'+sec+'"]')?.classList.add('active');
   if(sec==='listareservas')renderListareservas();
   if(sec==='civitatis')renderCivitatis();
+  if(sec==='clientes')renderClientes();
   if(sec==='ops'){renderOpsList();renderTourCatalogChecks();loadGuiasForDatalist();}
   if(sec==='dash')updateDashboard();
   if(sec==='dossier')initDossier();
@@ -899,16 +917,65 @@ async function accionDescargarYLimpiar(){
   const antiguas=getReservasAntiguas();if(!antiguas.length){showToast('No hay antiguas','error');return;}
   exportarCSV(true);
   setTimeout(async()=>{
-    if(!confirm('CSV descargado. ¿Confirmar eliminación de '+antiguas.length+' reservas?'))return;
-    showLoading();const errores=await borrarReservasAntiguas();hideLoading();
-    if(!errores){
+    if(!confirm('CSV descargado. ¿Confirmar archivo de '+antiguas.length+' reservas en la pestaña CLIENTES?'))return;
+    showLoading();
+    try{
+      const res=await apiCall({action:'archiveReservas',diasAviso:DIAS_AVISO});
       setLimpiezaState({ultimaLimpieza:new Date().toISOString()});
       const raw=await apiCall({action:'getReservas'});
       reservas=(Array.isArray(raw)?raw:[]).map(r=>({...r,fecha:normalizarFecha(r.fecha),horario:normalizarHorario(r.horario)}));
       document.getElementById('bannerLimpieza').innerHTML='';
-      showToast(antiguas.length+' reservas archivadas ✓');
-    }else showToast('Algunas no pudieron eliminarse','error');
+      showToast((res.archived||antiguas.length)+' reservas archivadas en CLIENTES ✓');
+    }catch(e){showToast('Error al archivar: '+e.message,'error');}
+    hideLoading();
   },800);
+}
+
+// ── CLIENTES ──
+let _clientes=[];
+async function renderClientes(){
+  const container=document.getElementById('clientesContainer');
+  container.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando clientes...</div>';
+  try{
+    const raw=await apiCall({action:'getClientes'});
+    _clientes=(Array.isArray(raw)?raw:[]);
+    filtrarClientes();
+  }catch(e){container.innerHTML=`<div class="empty-state"><div class="ei">⚠️</div>Error: ${escH(e.message)}</div>`;}
+}
+function filtrarClientes(){
+  const q=(document.getElementById('filtroCliente')?.value||'').toLowerCase().trim();
+  const lista=q?_clientes.filter(c=>
+    (c.nombre||'').toLowerCase().includes(q)||
+    (c.whatsapp||'').replace(/\s/g,'').includes(q.replace(/\s/g,''))||
+    (c.email||'').toLowerCase().includes(q)
+  ):_clientes;
+  const count=document.getElementById('clientesCount');
+  if(count)count.textContent=lista.length+' cliente'+( lista.length!==1?'s':'');
+  const container=document.getElementById('clientesContainer');
+  if(!lista.length){container.innerHTML='<div class="empty-state"><div class="ei">📇</div>'+(q?'Sin resultados para "'+escH(q)+'"':'Aún no hay clientes archivados.')+'</div>';return;}
+  const sorted=[...lista].sort((a,b)=>(b.ultima_fecha||'')>(a.ultima_fecha||'')?1:-1);
+  container.innerHTML=`<div class="table-wrap"><table>
+    <thead><tr>
+      <th>Cliente</th><th>WhatsApp</th><th>Email</th><th>Primer tour</th><th>Último tour</th><th style="text-align:right">Reservas</th><th style="text-align:right">PAX total</th>
+    </tr></thead><tbody>${sorted.map(c=>`<tr>
+      <td style="font-weight:500;color:var(--white)">${escH(c.nombre||'—')}</td>
+      <td><a href="https://wa.me/${(c.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold);text-decoration:none">${escH(c.whatsapp||'—')}</a></td>
+      <td style="color:var(--muted)">${escH(c.email||'—')}</td>
+      <td style="font-size:.78rem;color:var(--muted)">${escH(c.primer_tour||'—')}<br>${escH(c.primer_fecha||'')}</td>
+      <td style="font-size:.78rem">${escH(c.ultimo_tour||'—')}<br><span style="color:var(--muted)">${escH(c.ultima_fecha||'')}</span></td>
+      <td style="text-align:right"><span class="badge b-gold">${c.cant_reservas||1}</span></td>
+      <td style="text-align:right;color:var(--light)">${c.total_pax||0} pax</td>
+    </tr>`).join('')}</tbody></table></div>`;
+}
+function exportarCSVClientes(){
+  if(!_clientes.length){showToast('No hay clientes','error');return;}
+  const sorted=[..._clientes].sort((a,b)=>(b.ultima_fecha||'')>(a.ultima_fecha||'')?1:-1);
+  const esc=v=>'\"'+String(v==null?'':v).replace(/"/g,'""')+'\"';
+  const h=['WhatsApp','Nombre','Email','Primer tour','Primera fecha','Último tour','Última fecha','Reservas','PAX total'];
+  const filas=sorted.map(c=>[c.whatsapp,c.nombre,c.email,c.primer_tour,c.primer_fecha,c.ultimo_tour,c.ultima_fecha,c.cant_reservas,c.total_pax].map(esc).join(','));
+  const blob=new Blob(['\uFEFF'+[h.join(','),...filas].join('\r\n')],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='clientes_gdp_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
 }
 
 function evaluarLimpieza(){
