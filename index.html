@@ -239,6 +239,17 @@ textarea{resize:vertical;min-height:70px;}
 .listado-grupo-meta{font-size:.76rem;color:var(--muted);}
 .listado-grupo-stats{display:flex;gap:10px;align-items:center;}
 .listado-grupo-body{padding:12px 18px;}
+/* Estilos para reservas canceladas */
+.lr-pax-row.lr-cancelada {
+  background: rgba(192, 57, 43, 0.08);
+  border-left: 3px solid rgba(192, 57, 43, 0.5);
+  padding-left: 10px;
+  margin-bottom: 4px;
+}
+.lr-pax-name.lr-pax-cancelada {
+  text-decoration: line-through;
+  color: var(--muted);
+}
 .lr-pax-row{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.82rem;}
 .lr-pax-row:last-child{border-bottom:none;}
 .lr-pax-name{color:var(--white);}
@@ -1033,16 +1044,18 @@ async function renderListareservas(){
     const tieneNuevas=confirmadas.some(r=>String(r.vista)!=='si');
     const paxRows=confirmadas.map(r=>{
       const esNueva=String(r.vista)!=='si';
-      return `<div class="lr-pax-row${esNueva?' listado-pax-nueva':''}">
+      const esCancelada = r.estado === 'cancelada';
+      return `<div class="lr-pax-row${esNueva?' listado-pax-nueva':''}${esCancelada?' lr-cancelada':''}">
         <div style="display:flex;align-items:center;gap:7px;min-width:0">
-          <span class="lr-pax-name">${escH(r.nombre||'—')}</span>
+          <span class="lr-pax-name${esCancelada?' lr-pax-cancelada':''}">${escH(r.nombre||'—')}</span>
           ${esNueva?'<span class="badge b-new" style="font-size:.6rem">NUEVA</span>':''}
+          ${esCancelada?'<span class="badge b-muted" style="font-size:.6rem">CANCELADA</span>':''}
         </div>
         <div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div>
         <a href="https://wa.me/${String(r.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="lr-wa">📱 ${escH(r.whatsapp||'')}</a>
         <div class="lr-pax-actions">
-          ${esNueva?`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();marcarVistaIndividual('${r.id}',${idx})">👁</button>`:''}
-          <button class="btn btn-cancel-res btn-sm" onclick="event.stopPropagation();cancelarReserva('${r.id}','${escH(r.nombre||'')}','${escH(r.whatsapp||'')}','${r.fecha}','${escH(r.tourNombre||'')}')">✕</button>
+          ${esNueva && !esCancelada ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();marcarVistaIndividual('${r.id}',${idx})">👁</button>` : ''}
+          ${!esCancelada ? `<button class="btn btn-cancel-res btn-sm" onclick="event.stopPropagation();cancelarReserva('${r.id}','${escH(r.nombre||'')}','${escH(r.whatsapp||'')}','${r.fecha}','${escH(r.tourNombre||'')}')">✕</button>` : ''}
           <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${idx})">🗑</button>
         </div>
       </div>`;
@@ -1151,13 +1164,14 @@ async function eliminarReservaLista(id,idx){
       const tieneNuevas=confirmadas.some(r=>String(r.vista)!=='si');
       const paxRows=confirmadas.map(r=>{
         const esNueva=String(r.vista)!=='si';
-        return `<div class="lr-pax-row${esNueva?' listado-pax-nueva':''}">
-          <div style="display:flex;align-items:center;gap:7px;min-width:0"><span class="lr-pax-name">${escH(r.nombre||'—')}</span>${esNueva?'<span class="badge b-new" style="font-size:.6rem">NUEVA</span>':''}</div>
+        const esCancelada = r.estado === 'cancelada';
+        return `<div class="lr-pax-row${esNueva?' listado-pax-nueva':''}${esCancelada?' lr-cancelada':''}">
+          <div style="display:flex;align-items:center;gap:7px;min-width:0"><span class="lr-pax-name${esCancelada?' lr-pax-cancelada':''}">${escH(r.nombre||'—')}</span>${esNueva?'<span class="badge b-new" style="font-size:.6rem">NUEVA</span>':''}${esCancelada?'<span class="badge b-muted" style="font-size:.6rem">CANCELADA</span>':''}</div>
           <div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div>
           <a href="https://wa.me/${String(r.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="lr-wa">📱 ${escH(r.whatsapp||'')}</a>
           <div class="lr-pax-actions">
-            ${esNueva?`<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();marcarVistaIndividual('${r.id}',${gi})">👁</button>`:''}
-            <button class="btn btn-cancel-res btn-sm" onclick="event.stopPropagation();cancelarReserva('${r.id}','${escH(r.nombre||'')}','${escH(r.whatsapp||'')}','${r.fecha}','${escH(r.tourNombre||'')}')">✕</button>
+            ${esNueva && !esCancelada ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();marcarVistaIndividual('${r.id}',${gi})">👁</button>` : ''}
+            ${!esCancelada ? `<button class="btn btn-cancel-res btn-sm" onclick="event.stopPropagation();cancelarReserva('${r.id}','${escH(r.nombre||'')}','${escH(r.whatsapp||'')}','${r.fecha}','${escH(r.tourNombre||'')}')">✕</button>` : ''}
             <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${gi})">🗑</button>
           </div></div>`;
       }).join('');
