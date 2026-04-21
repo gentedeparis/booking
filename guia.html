@@ -1,32 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="GDP Guía">
-<meta name="theme-color" content="#1B2B4B">
-<title>Gente de París · Guía</title>
-<style>
-:root{
-  --noir:#0f0f0f;--charcoal:#1a1a1a;--graphite:#2c2c2c;--smoke:#3d3d3d;
-  --muted:#888;--light:#c8c8c8;--white:#f5f2ec;
-  --gold:#c9a84c;--gold-l:#e8c97a;
-  --green:#27ae60;--red:#c0392b;--blue:#2980b9;
-  --terra:#C4622D;--navy:#1B2B4B;
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans-serif;font-weight:300;min-height:100vh;}
-
-/* ── LOGIN ── */
-.login-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
-.login-brand{font-family:Georgia,serif;font-size:1.6rem;color:var(--gold);letter-spacing:0.05em;margin-bottom:6px;text-align:center;}
-.login-sub{font-size:0.82rem;color:var(--muted);margin-bottom:36px;text-align:center;}
-.login-card{background:var(--charcoal);border:1px solid var(--graphite);border-radius:14px;padding:28px 24px;width:100%;max-width:340px;}
-.login-title{font-family:Georgia,serif;font-size:1.1rem;color:var(--white);margin-bottom:6px;text-align:center;}
-.login-hint{font-size:0.76rem;color:var(--muted);text-align:center;margin-bottom:20px;}
-.pin-input{width:100%;background:var(--graphite);border:2px solid var(--smoke);border-radius:10px;color:var(--white);font-size:2rem;font-weight:700;padding:16px;text-align:center;letter-spacing:0.3em;outline:none;transition:border-color 0.2s;font-family:monospace;}
+t-family:monospace;}
 .pin-input:focus{border-color:var(--gold);}
 .pin-input.error{border-color:var(--red);}
 .login-btn{width:100%;margin-top:14px;padding:14px;background:var(--gold);color:var(--noir);border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;transition:opacity 0.2s;font-family:'Segoe UI',Arial,sans-serif;}
@@ -716,7 +688,6 @@ function toggleJornada(jornadaId) {
 //  FIX: data-action="enviarinforme" corregido (tenía caracteres árabes)
 // ═══════════════════════════════════════════════════════════════
 function renderJornadas() {
-  if (!walkins[wkeys]) walkins[wkeys] = [];
   var el = document.getElementById('jornadasContent');
   var today = hoy();
   var proximas = jornadasData.filter(function(j) { return j.fecha >= today; });
