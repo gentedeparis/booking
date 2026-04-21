@@ -1080,9 +1080,15 @@ function updateScreen3Recap() {
     alerta.innerHTML = '';
   }
   const recap = document.getElementById('selectedTourRecap');
+  const precioSolo = 20;
+  const ahorroPorPax = precioSolo - precio;
+  const ahorroTotal = ahorroPorPax * paxTotal;
+  const ahorroHTML = ahorroPorPax > 0
+    ? `<span style="color:var(--green);font-weight:600"> · ✨ Ahorras ${ahorroTotal}€ vs precio individual</span>`
+    : '';
   recap.innerHTML = `<span style="font-size:1.5rem">${selectedTour.emoji||'🗼'}</span>
     <div><strong>${selectedTour.nombre}</strong> · ${selectedTour.horario}<br>
-    <span style="font-size:0.8rem;color:var(--smoke)">${formatDateNice(selectedDate)} · ${adultos} adultos, ${menores} menores · <strong>${precio}€/persona</strong> (${getLabelTramo(paxTotal)}) · <strong>${total}€</strong></span></div>`;
+    <span style="font-size:0.8rem;color:var(--smoke)">${formatDateNice(selectedDate)} · ${adultos} adultos, ${menores} menores · <strong>${precio}€/persona</strong>${ahorroHTML} · <strong>${total}€</strong></span></div>`;
 }
 
 // ── RESUMEN ──
@@ -1103,7 +1109,7 @@ function buildSummary() {
     <div class="summary-row"><span class="summary-key">WhatsApp</span><span class="summary-val">${wa}</span></div>
     ${email ? `<div class="summary-row"><span class="summary-key">Email</span><span class="summary-val">${email}</span></div>` : ''}
     <div class="summary-row"><span class="summary-key">Participantes</span><span class="summary-val">${adultos} adulto${adultos!==1?'s':''}, ${menores} menor${menores!==1?'es':''}</span></div>
-    <div class="summary-row"><span class="summary-key">Precio por persona</span><span class="summary-val">${precio}€ <span style="font-size:.78rem;color:var(--smoke)">(${getLabelTramo(paxTotal)})</span></span></div>
+    <div class="summary-row"><span class="summary-key">Precio por persona</span><span class="summary-val">${precio}€ ${ahorroPorPax > 0 ? `<span style="font-size:.78rem;background:#edf7f1;color:#2d7a4f;padding:2px 7px;border-radius:10px;font-weight:600">Ahorras ${ahorroTotal}€</span>` : '<span style="font-size:.78rem;color:var(--smoke)">(1–2 personas)</span>'}</span></div>
     <div class="summary-row"><span class="summary-key">Total estimado</span><span class="summary-val summary-total">${total}€</span></div>`;
 }
 
