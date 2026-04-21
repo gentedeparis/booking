@@ -1106,16 +1106,19 @@ function buildSummary() {
   const paxTotal = adultos + menores;
   const precio = getPrecioTramo(paxTotal);
   const total = paxTotal * precio;
+  const precioIndividual = 20;
+  const ahorroPorPax = precioIndividual - precio;
+  const ahorroTotal = ahorroPorPax * paxTotal;
 
   document.getElementById('summaryCard').innerHTML = `
     <div class="summary-title">Detalle de la reserva</div>
-    <div class="summary-row"><span class="summary-key">Tour</span><span class="summary-val">${selectedTour.emoji||''} ${selectedTour.nombre}</span></div>
+    <div class="summary-row"><span class="summary-key">Tour</span><span class="summary-val">${selectedTour?.emoji || '🗼'} ${selectedTour?.nombre || ''}</span></div>
     <div class="summary-row"><span class="summary-key">Fecha</span><span class="summary-val">${formatDateNice(selectedDate)}</span></div>
-    <div class="summary-row"><span class="summary-key">Horario</span><span class="summary-val">${selectedTour.horario||'--'}</span></div>
+    <div class="summary-row"><span class="summary-key">Horario</span><span class="summary-val">${selectedTour?.horario || '--'}</span></div>
     <div class="summary-row"><span class="summary-key">Nombre</span><span class="summary-val">${nombre}</span></div>
     <div class="summary-row"><span class="summary-key">WhatsApp</span><span class="summary-val">${wa}</span></div>
     ${email ? `<div class="summary-row"><span class="summary-key">Email</span><span class="summary-val">${email}</span></div>` : ''}
-    <div class="summary-row"><span class="summary-key">Participantes</span><span class="summary-val">${adultos} adulto${adultos!==1?'s':''}, ${menores} menor${menores!==1?'es':''}</span></div>
+    <div class="summary-row"><span class="summary-key">Participantes</span><span class="summary-val">${adultos} adulto${adultos !== 1 ? 's' : ''}, ${menores} menor${menores !== 1 ? 'es' : ''}</span></div>
     <div class="summary-row"><span class="summary-key">Precio por persona</span><span class="summary-val">${precio}€ ${ahorroPorPax > 0 ? `<span style="font-size:.78rem;background:#edf7f1;color:#2d7a4f;padding:2px 7px;border-radius:10px;font-weight:600">Ahorras ${ahorroTotal}€</span>` : '<span style="font-size:.78rem;color:var(--smoke)">(1–2 personas)</span>'}</span></div>
     <div class="summary-row"><span class="summary-key">Total estimado</span><span class="summary-val summary-total">${total}€</span></div>`;
 }
@@ -1149,37 +1152,35 @@ async function confirmarReserva() {
     timestamp: new Date().toISOString()
   };
 
+  let guardadoExitoso = false;
+
   try {
     await apiCall({ action: 'saveReserva', data: reserva });
-    // Actualizar cupos localmente para reflejar la nueva reserva sin recargar
+    guardadoExitoso = true;
+  } catch(e) {
+    const esErrorRed = e.message && (
+      e.message.includes('no-JSON') ||
+      e.message.includes('NetworkError') ||
+      e.message.includes('Failed to fetch')
+    );
+    if (esErrorRed) {
+      guardadoExitoso = true;
+    } else {
+      guardadoExitoso = false;
+    }
+  }
+
+  if (guardadoExitoso) {
     const cupoKey = reserva.fecha + '_' + reserva.tourId;
     cupos[cupoKey] = (cupos[cupoKey] || 0) + (parseInt(reserva.adultos)||0) + (parseInt(reserva.menores)||0);
     cacheSet(CACHE_KEYS.cupos, cupos);
     currentReserva = reserva;
     stopConfirmLoading();
     showSuccess(reserva);
-  } catch(e) {
-    // Apps Script a veces devuelve respuesta no parseable aunque guardó bien.
-    // Si el error es de parsing (no un error lógico del servidor), mostrar éxito igualmente.
-    const esErrorRed = e.message && (
-      e.message.includes('no-JSON') ||
-      e.message.includes('NetworkError') ||
-      e.message.includes('Failed to fetch') ||
-      e.message.includes('Respuesta')
-    );
-    if (esErrorRed) {
-      // La reserva probablemente se guardó — mostrar éxito
-      const cupoKey2 = reserva.fecha + '_' + reserva.tourId;
-      cupos[cupoKey2] = (cupos[cupoKey2] || 0) + (parseInt(reserva.adultos)||0) + (parseInt(reserva.menores)||0);
-      cacheSet(CACHE_KEYS.cupos, cupos);
-      currentReserva = reserva;
-      stopConfirmLoading();
-      showSuccess(reserva);
-    } else {
-      btn.disabled = false;
-      stopConfirmLoading();
-      alert('Error al guardar la reserva: ' + e.message);
-    }
+  } else {
+    btn.disabled = false;
+    stopConfirmLoading();
+    alert('Error al guardar la reserva. Por favor intenta de nuevo o contáctanos por WhatsApp.');
   }
 }
 
@@ -1189,7 +1190,7 @@ function showSuccess(r) {
   const total = paxTotal * precioU;
   document.getElementById('successSub').textContent = `Tu lugar en el tour ${selectedTour.nombre} del ${formatDateNice(r.fecha)} está reservado.`;
 
-  const encuentroHTML = selectedTour.direccion ? `
+  const encuentroHTML = selectedTour?.direccion ? `
     <div class="summary-row">
       <span class="summary-key">📍 Punto de encuentro</span>
       <span class="summary-val">
@@ -1201,7 +1202,7 @@ function showSuccess(r) {
   document.getElementById('voucherCard').innerHTML = `
     <div class="summary-title">🎟 Voucher de reserva</div>
     <div class="summary-row"><span class="summary-key">Referencia</span><span class="summary-val">${r.id}</span></div>
-    <div class="summary-row"><span class="summary-key">Tour</span><span class="summary-val">${selectedTour.emoji||''} ${r.tourNombre}</span></div>
+    <div class="summary-row"><span class="summary-key">Tour</span><span class="summary-val">${selectedTour?.emoji || ''} ${r.tourNombre}</span></div>
     <div class="summary-row"><span class="summary-key">Fecha</span><span class="summary-val">${formatDateNice(r.fecha)}</span></div>
     <div class="summary-row"><span class="summary-key">Horario</span><span class="summary-val">${r.horario}</span></div>
     ${encuentroHTML}
