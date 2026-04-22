@@ -110,11 +110,10 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
 .loading-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;}
 .loading-overlay.open{display:flex;}
 .voucher-card{background:var(--charcoal);border:1px solid var(--graphite);border-radius:12px;padding:20px;margin-top:20px;}
-.voucher-cliente-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
-.voucher-cliente-item:last-child{border-bottom:none;}
-.voucher-cliente-check{width:20px;height:20px;accent-color:var(--gold);cursor:pointer;flex-shrink:0;}
+.voucher-cliente-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;margin-bottom:6px;border-radius:8px;cursor:pointer;transition:all 0.2s;}
+.voucher-cliente-item:hover{background:rgba(201,168,76,0.15);}
 .voucher-cliente-info{flex:1;}
-.voucher-cliente-nombre{font-size:0.85rem;color:var(--white);font-weight:500;}
+.voucher-cliente-nombre{font-size:0.9rem;color:var(--white);font-weight:500;}
 .voucher-cliente-pax{font-size:0.72rem;color:var(--muted);margin-top:2px;}
 .voucher-cliente-wa{font-size:0.7rem;color:var(--gold);}
 .tour-selector{background:var(--graphite);border-radius:10px;padding:16px;margin-bottom:20px;}
@@ -131,7 +130,14 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
 .btn-generar-voucher{background:var(--gold);color:var(--noir);border:none;border-radius:8px;padding:14px;font-size:0.9rem;font-weight:700;cursor:pointer;width:100%;margin-top:16px;font-family:'Segoe UI',Arial,sans-serif;}
 .btn-generar-voucher:hover{opacity:0.88;}
 .btn-generar-voucher:disabled{opacity:0.5;cursor:default;}
-.cliente-existente-select{background:var(--charcoal);border:1px solid var(--smoke);border-radius:6px;color:var(--white);font-size:0.8rem;padding:8px;width:100%;margin-bottom:12px;}
+.btn-agregar-cliente{background:var(--terra);color:var(--white);border:none;border-radius:6px;padding:10px;font-size:0.8rem;font-weight:600;cursor:pointer;width:100%;margin-top:10px;}
+.btn-agregar-cliente:hover{opacity:0.88;}
+.lista-seleccionados-title{font-size:0.7rem;font-weight:600;text-transform:uppercase;color:var(--muted);margin-top:16px;margin-bottom:10px;}
+.seleccionado-item{display:flex;justify-content:space-between;align-items:center;background:rgba(39,174,96,0.1);border:1px solid rgba(39,174,96,0.3);border-radius:8px;padding:8px 12px;margin-bottom:6px;}
+.seleccionado-info{flex:1;}
+.seleccionado-nombre{font-size:0.85rem;color:var(--white);font-weight:500;}
+.seleccionado-pax{font-size:0.7rem;color:var(--muted);}
+.seleccionado-eliminar{background:none;border:none;color:var(--red);font-size:1.2rem;cursor:pointer;padding:0 8px;}
 @media(max-width:500px){.app-content{padding:12px;}.jornada-stats{flex-wrap:wrap;}.nuevo-cliente-voucher-form{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -325,6 +331,18 @@ function getCupoRestante(tourId, fecha) {
   return cupoMax - usado;
 }
 
+function preseleccionarTourActual() {
+  const hoyStr = hoy();
+  const jornadaHoy = jornadasData.find(function(j) { return j.fecha === hoyStr; });
+  if (jornadaHoy && jornadaHoy.tourId) {
+    const select = document.getElementById('voucherTourSelect');
+    if (select) {
+      select.value = jornadaHoy.tourId;
+      onVoucherTourChange();
+    }
+  }
+}
+
 function renderVoucherPanel() {
   const container = document.getElementById('voucherContainer');
   if (!container) return;
@@ -332,72 +350,85 @@ function renderVoucherPanel() {
     container.innerHTML = '<div class="empty"><div class="empty-icon">🎫</div><div>No hay tours activos disponibles.</div><div class="empty-hint">El administrador debe activar tours desde el panel de admin.</div></div>';
     return;
   }
-  let html = '<div class="tour-selector"><label style="display:block;font-size:0.7rem;text-transform:uppercase;color:var(--muted);margin-bottom:6px">🎯 Selecciona un tour</label><select id="voucherTourSelect" onchange="onVoucherTourChange()"><option value="">— Selecciona un tour —</option>';
-  toursActivos.forEach(function(t) {
-    html += '<option value="' + escH(t.id) + '" data-nombre="' + escH(t.nombre) + '" data-horario="' + escH(t.horario || '') + '" data-precio="' + (t.precio || 20) + '" data-cupo="' + (t.cupo || 15) + '" data-direccion="' + escH(t.direccion || '') + '" data-maps="' + escH(t.mapsLink || '') + '">' + escH(t.nombre) + ' · ' + (t.horario || '--') + '</option>';
+  let html = `
+    <div class="tour-selector">
+      <label style="display:block;font-size:0.7rem;text-transform:uppercase;color:var(--muted);margin-bottom:6px">🎯 Selecciona un tour</label>
+      <select id="voucherTourSelect" onchange="onVoucherTourChange()">
+        <option value="">— Selecciona un tour —</option>
+        ${toursActivos.map(function(t) {
+          return '<option value="' + escH(t.id) + '" data-nombre="' + escH(t.nombre) + '" data-horario="' + escH(t.horario || '') + '" data-precio="' + (t.precio || 20) + '" data-cupo="' + (t.cupo || 15) + '" data-direccion="' + escH(t.direccion || '') + '" data-maps="' + escH(t.mapsLink || '') + '">' + escH(t.nombre) + ' · ' + (t.horario || '--') + '</option>';
+        }).join('')}
+      </select>
+      <div class="fecha-selector">
+        <input type="date" id="voucherFecha" onchange="onVoucherFechaChange()">
+        <div id="voucherCupoInfo" class="cupo-info">Selecciona fecha</div>
+      </div>
+    </div>
+    <div id="voucherClienteSection" style="display:none">
+      <div style="margin-top:16px;margin-bottom:12px">
+        <label style="font-size:0.7rem;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block">👥 Clientes de tu jornada actual (haz clic para seleccionar)</label>
+        <div id="voucherClientesAcordeon"></div>
+      </div>
+      <div style="margin-top:20px;margin-bottom:12px">
+        <label style="font-size:0.7rem;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block">➕ Agregar nuevo cliente manualmente</label>
+        <div class="nuevo-cliente-voucher-form">
+          <input type="text" id="voucherNuevoNombre" placeholder="Nombre completo *">
+          <input type="tel" id="voucherNuevoWhatsapp" placeholder="WhatsApp *">
+          <input type="email" id="voucherNuevoEmail" placeholder="Email (opcional)">
+          <input type="number" id="voucherNuevoAdultos" placeholder="Adultos" min="1" value="1">
+          <input type="number" id="voucherNuevoMenores" placeholder="Menores" min="0" value="0">
+        </div>
+        <button class="btn-agregar-cliente" onclick="agregarClienteNuevoALista()">+ Agregar nuevo cliente a la lista</button>
+      </div>
+      <div id="voucherClientesSeleccionados"></div>
+      <button class="btn-generar-voucher" id="btnGenerarVoucher" onclick="generarVoucher()" disabled>🎫 Generar Voucher</button>
+    </div>
+  `;
+  container.innerHTML = html;
+  preseleccionarTourActual();
+}
+
+function renderClientesAcordeon() {
+  const container = document.getElementById('voucherClientesAcordeon');
+  if (!container) return;
+  const hoyStr = hoy();
+  const jornadaHoy = jornadasData.find(function(j) { return j.fecha === hoyStr; });
+  if (!jornadaHoy || !jornadaHoy.clientes || !jornadaHoy.clientes.length) {
+    container.innerHTML = '<div style="font-size:0.8rem;color:var(--muted);padding:10px;text-align:center">No hay clientes en tu jornada de hoy.</div>';
+    return;
+  }
+  let html = '';
+  jornadaHoy.clientes.forEach(function(cliente, idx) {
+    if (!cliente.name) return;
+    html += `
+      <div class="voucher-cliente-item" style="background:var(--graphite);" onclick="seleccionarClienteExistente(${idx})">
+        <div class="voucher-cliente-info">
+          <div class="voucher-cliente-nombre">${escH(cliente.name)}</div>
+          <div class="voucher-cliente-pax">👥 ${cliente.adults || 0} adultos, ${cliente.minors || 0} menores</div>
+          ${cliente.wa ? '<div class="voucher-cliente-wa">📱 ' + escH(cliente.wa) + '</div>' : ''}
+        </div>
+        <div style="font-size:0.7rem;color:var(--gold);">Seleccionar →</div>
+      </div>
+    `;
   });
-  html += '</select><div class="fecha-selector"><input type="date" id="voucherFecha" onchange="onVoucherFechaChange()"><div id="voucherCupoInfo" class="cupo-info">Selecciona fecha</div></div></div><div id="voucherClienteSection" style="display:none"><div style="margin-top:16px;margin-bottom:12px"><label style="font-size:0.7rem;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block">👥 Clientes existentes</label><select id="voucherClienteSelect" class="cliente-existente-select" onchange="onVoucherClienteSelectChange()"><option value="nuevo">+ AÑADIR NUEVO CLIENTE</option></select></div><div id="voucherClienteForm"></div><div id="voucherClientesSeleccionados"></div><button class="btn-generar-voucher" id="btnGenerarVoucher" onclick="generarVoucher()" disabled>🎫 Generar Voucher</button></div>';
   container.innerHTML = html;
 }
 
-function onVoucherTourChange() {
-  const select = document.getElementById('voucherTourSelect');
-  const tourId = select.value;
-  if (!tourId) {
-    voucherTourSeleccionado = null;
-    document.getElementById('voucherClienteSection').style.display = 'none';
-    return;
-  }
-  const tour = toursActivos.find(function(t) { return String(t.id) === String(tourId); });
-  voucherTourSeleccionado = tour;
-  document.getElementById('voucherClienteSection').style.display = 'block';
-  cargarClientesDelTourEnSelector();
-  onVoucherFechaChange();
-}
-
-function cargarClientesDelTourEnSelector() {
-  const clientesDelTour = [];
-  jornadasData.forEach(function(j) {
-    if (String(j.tourId) === String(voucherTourSeleccionado?.id) || String(j.tourNombre) === String(voucherTourSeleccionado?.nombre)) {
-      (j.clientes || []).forEach(function(c) {
-        if (c.name && c.name.trim()) {
-          clientesDelTour.push({ nombre: c.name, adultos: parseInt(c.adults) || 1, menores: parseInt(c.minors) || 0, wa: c.wa || '' });
-        }
-      });
-    }
+function seleccionarClienteExistente(idx) {
+  const hoyStr = hoy();
+  const jornadaHoy = jornadasData.find(function(j) { return j.fecha === hoyStr; });
+  if (!jornadaHoy || !jornadaHoy.clientes[idx]) return;
+  const cliente = jornadaHoy.clientes[idx];
+  voucherClientesSeleccionados.push({
+    nombre: cliente.name,
+    whatsapp: cliente.wa || '',
+    email: '',
+    adultos: parseInt(cliente.adults) || 1,
+    menores: parseInt(cliente.minors) || 0
   });
-  const clientesUnicos = [];
-  const nombresVistos = {};
-  clientesDelTour.forEach(function(c) {
-    const clave = c.nombre.toLowerCase();
-    if (!nombresVistos[clave]) {
-      nombresVistos[clave] = true;
-      clientesUnicos.push(c);
-    }
-  });
-  const select = document.getElementById('voucherClienteSelect');
-  if (select) {
-    let options = '<option value="nuevo">+ AÑADIR NUEVO CLIENTE</option>';
-    clientesUnicos.forEach(function(c) {
-      options += '<option value="' + escH(c.nombre) + '" data-adultos="' + (c.adultos || 1) + '" data-menores="' + (c.menores || 0) + '" data-wa="' + escH(c.wa || '') + '">' + escH(c.nombre) + ' (' + (c.adultos || 1) + 'A, ' + (c.menores || 0) + 'M)</option>';
-    });
-    select.innerHTML = options;
-  }
-}
-
-function onVoucherClienteSelectChange() {
-  const select = document.getElementById('voucherClienteSelect');
-  const valor = select.value;
-  const selectedOption = select.options[select.selectedIndex];
-  const container = document.getElementById('voucherClienteForm');
-  if (valor === 'nuevo') {
-    container.innerHTML = '<div class="nuevo-cliente-voucher"><div class="nuevo-cliente-voucher-title">📝 Datos del nuevo cliente</div><div class="nuevo-cliente-voucher-form"><input type="text" id="voucherNuevoNombre" placeholder="Nombre completo *"><input type="tel" id="voucherNuevoWhatsapp" placeholder="WhatsApp *"><input type="email" id="voucherNuevoEmail" placeholder="Email (opcional)"><input type="number" id="voucherNuevoAdultos" placeholder="Adultos" min="1" value="1"><input type="number" id="voucherNuevoMenores" placeholder="Menores" min="0" value="0"></div><button class="walkin-btn" style="margin-top:10px;width:auto" onclick="agregarClienteNuevoALista()">+ Agregar este cliente</button></div>';
-  } else {
-    const adultos = parseInt(selectedOption.getAttribute('data-adultos')) || 1;
-    const menores = parseInt(selectedOption.getAttribute('data-menores')) || 0;
-    const wa = selectedOption.getAttribute('data-wa') || '';
-    container.innerHTML = '<div class="nuevo-cliente-voucher" style="background:rgba(39,174,96,0.1);border:1px solid rgba(39,174,96,0.3)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span style="font-weight:600">' + escH(valor) + '</span><button class="walkin-del" onclick="agregarClienteExistenteALista()" style="padding:4px 12px">+ Agregar</button></div><div style="font-size:0.8rem;color:var(--muted)">👥 ' + adultos + ' adultos, ' + menores + ' menores · 📱 ' + (wa || 'Sin WhatsApp') + '</div><input type="hidden" id="voucherExistenteNombre" value="' + escH(valor) + '"><input type="hidden" id="voucherExistenteAdultos" value="' + adultos + '"><input type="hidden" id="voucherExistenteMenores" value="' + menores + '"><input type="hidden" id="voucherExistenteWa" value="' + escH(wa) + '"></div>';
-  }
+  actualizarListaClientesSeleccionados();
+  showToast('Cliente ' + cliente.name + ' agregado al voucher');
+  habilitarBotonGenerar();
 }
 
 function agregarClienteNuevoALista() {
@@ -410,32 +441,32 @@ function agregarClienteNuevoALista() {
   if (!whatsapp) { showToast('Escribe el WhatsApp del cliente'); return; }
   voucherClientesSeleccionados.push({ nombre: nombre, whatsapp: whatsapp, email: email, adultos: adultos, menores: menores });
   actualizarListaClientesSeleccionados();
-  document.getElementById('voucherClienteForm').innerHTML = '';
-  document.getElementById('voucherClienteSelect').value = 'nuevo';
+  document.getElementById('voucherNuevoNombre').value = '';
+  document.getElementById('voucherNuevoWhatsapp').value = '';
+  document.getElementById('voucherNuevoEmail').value = '';
+  document.getElementById('voucherNuevoAdultos').value = '1';
+  document.getElementById('voucherNuevoMenores').value = '0';
   habilitarBotonGenerar();
-}
-
-function agregarClienteExistenteALista() {
-  const nombre = document.getElementById('voucherExistenteNombre')?.value;
-  const adultos = parseInt(document.getElementById('voucherExistenteAdultos')?.value) || 1;
-  const menores = parseInt(document.getElementById('voucherExistenteMenores')?.value) || 0;
-  const wa = document.getElementById('voucherExistenteWa')?.value || '';
-  voucherClientesSeleccionados.push({ nombre: nombre, whatsapp: wa, adultos: adultos, menores: menores });
-  actualizarListaClientesSeleccionados();
-  document.getElementById('voucherClienteForm').innerHTML = '';
-  document.getElementById('voucherClienteSelect').value = 'nuevo';
-  habilitarBotonGenerar();
+  showToast('Cliente agregado a la lista ✓');
 }
 
 function actualizarListaClientesSeleccionados() {
   const container = document.getElementById('voucherClientesSeleccionados');
   if (!voucherClientesSeleccionados.length) {
-    container.innerHTML = '<div style="font-size:0.75rem;color:var(--muted);padding:10px 0">No hay clientes seleccionados. Agrega al menos uno.</div>';
+    container.innerHTML = '<div class="lista-seleccionados-title">📋 Clientes seleccionados</div><div style="font-size:0.75rem;color:var(--muted);padding:10px 0">No hay clientes seleccionados. Agrega al menos uno.</div>';
     return;
   }
-  let html = '<div style="margin-top:16px;margin-bottom:12px"><label style="font-size:0.7rem;text-transform:uppercase;color:var(--muted)">✅ Clientes seleccionados</label></div>';
+  let html = '<div class="lista-seleccionados-title">📋 Clientes seleccionados (' + voucherClientesSeleccionados.length + ')</div>';
   voucherClientesSeleccionados.forEach(function(c, idx) {
-    html += '<div class="voucher-cliente-item"><div class="voucher-cliente-info"><div class="voucher-cliente-nombre">' + escH(c.nombre) + '</div><div class="voucher-cliente-pax">👥 ' + (c.adultos || 0) + ' adultos, ' + (c.menores || 0) + ' menores</div>' + (c.whatsapp ? '<div class="voucher-cliente-wa">📱 ' + escH(c.whatsapp) + '</div>' : '') + '</div><button class="walkin-del" onclick="eliminarClienteSeleccionado(' + idx + ')">✕</button></div>';
+    html += `
+      <div class="seleccionado-item">
+        <div class="seleccionado-info">
+          <div class="seleccionado-nombre">${escH(c.nombre)}</div>
+          <div class="seleccionado-pax">👥 ${c.adultos} adultos, ${c.menores} menores | 📱 ${escH(c.whatsapp)}</div>
+        </div>
+        <button class="seleccionado-eliminar" onclick="eliminarClienteSeleccionado(${idx})">✕</button>
+      </div>
+    `;
   });
   container.innerHTML = html;
 }
@@ -449,6 +480,21 @@ function eliminarClienteSeleccionado(idx) {
 function habilitarBotonGenerar() {
   const btn = document.getElementById('btnGenerarVoucher');
   if (btn) btn.disabled = voucherClientesSeleccionados.length === 0 || !voucherFechaSeleccionada || !voucherTourSeleccionado;
+}
+
+function onVoucherTourChange() {
+  const select = document.getElementById('voucherTourSelect');
+  const tourId = select.value;
+  if (!tourId) {
+    voucherTourSeleccionado = null;
+    document.getElementById('voucherClienteSection').style.display = 'none';
+    return;
+  }
+  const tour = toursActivos.find(function(t) { return String(t.id) === String(tourId); });
+  voucherTourSeleccionado = tour;
+  document.getElementById('voucherClienteSection').style.display = 'block';
+  renderClientesAcordeon();
+  onVoucherFechaChange();
 }
 
 function onVoucherFechaChange() {
@@ -507,15 +553,15 @@ function generarVoucher() {
     generarYDescargarVoucher(reservasGuardadas);
     reservasGuardadas.forEach(function(r) {
       if (r.email && r.email.trim()) {
-        const msgLink = 'https://wa.me/' + r.whatsapp.replace(/[^0-9]/g, '');
-        showToast('Cliente notificado por WhatsApp');
+        enviarEmailVoucher(r);
       }
+      const waLink = 'https://wa.me/' + r.whatsapp.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent('Hola ' + r.nombre + ', tu voucher de reserva ha sido generado. Adjunto encontrarás el archivo. ¡Gracias por confiar en Gente de París! 🗼');
+      window.open(waLink, '_blank');
     });
     btn.disabled = false;
     btn.textContent = '🎫 Generar Voucher';
     voucherClientesSeleccionados = [];
     actualizarListaClientesSeleccionados();
-    document.getElementById('voucherClienteForm').innerHTML = '';
     document.getElementById('voucherFecha').value = '';
     voucherFechaSeleccionada = null;
     habilitarBotonGenerar();
@@ -527,9 +573,30 @@ function generarVoucher() {
   });
 }
 
+function enviarEmailVoucher(reserva) {
+  const htmlVoucher = generarHTMLVoucher(reserva);
+  apiCall({
+    action: 'enviarEmail',
+    data: {
+      destinatario: reserva.email,
+      asunto: 'Tu voucher de reserva - Gente de París',
+      cuerpo: 'Hola ' + reserva.nombre + ',\n\nAdjunto encontrarás tu voucher de reserva.\n\nGracias por confiar en Gente de París.\n\n🗼 El equipo de Gente de París',
+      adjuntoHtml: htmlVoucher,
+      nombreArchivo: 'voucher-' + reserva.id + '.html'
+    }
+  }).catch(function(e) { console.warn('Error enviando email:', e); });
+}
+
+function generarHTMLVoucher(reserva) {
+  const encuentroHTML = voucherTourSeleccionado.direccion ? '<div class="row"><span class="key">📍 Punto de encuentro</span><span class="val">' + escH(voucherTourSeleccionado.direccion) + (voucherTourSeleccionado.mapsLink ? ' &nbsp;<a href="' + voucherTourSeleccionado.mapsLink + '" target="_blank" style="color:#b8860b">Ver en Maps →</a>' : '') + '</span></div>' : '';
+  const msgContacto = encodeURIComponent('Hola, tengo una reserva generada por el guía ' + guiaNombre + ':\nTour: ' + reserva.tourNombre + '\nFecha: ' + formatDateNice(reserva.fecha) + '\nReferencia: ' + reserva.id + '\n\nY quiero...');
+  const waContactoURL = 'https://wa.me/' + ADMIN_WA + '?text=' + msgContacto;
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Voucher GDP - ' + reserva.tourNombre + '</title><style>body{font-family:Georgia,serif;max-width:480px;margin:40px auto;padding:20px;color:#111}h1{font-size:1.6rem;color:#b8860b;border-bottom:2px solid #b8860b;padding-bottom:8px}.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:0.9rem;gap:12px}.key{color:#666}.val{font-weight:600;text-align:right}.total{font-size:1.3rem;color:#111;font-weight:700}.footer{margin-top:24px;font-size:0.78rem;color:#999;text-align:center}.contacto{margin-top:28px;padding:16px;background:#fdf6e3;border-radius:8px;font-size:0.85rem;color:#555;text-align:center}.wa-btn{display:inline-block;margin-top:12px;background:#25d366;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:0.9rem}</style></head><body><h1>🗼 Gente de París · Voucher</h1><div class="row"><span class="key">Referencia</span><span class="val">' + reserva.id + '</span></div><div class="row"><span class="key">Tour</span><span class="val">' + escH(reserva.tourNombre) + '</span></div><div class="row"><span class="key">Fecha</span><span class="val">' + formatDateNice(reserva.fecha) + '</span></div><div class="row"><span class="key">Horario</span><span class="val">' + reserva.horario + '</span></div>' + encuentroHTML + '<div class="row"><span class="key">Nombre</span><span class="val">' + escH(reserva.nombre) + '</span></div><div class="row"><span class="key">Participantes</span><span class="val">' + (reserva.adultos || 0) + ' adultos, ' + (reserva.menores || 0) + ' menores</span></div><div class="row"><span class="key">Total</span><span class="val total">' + ((reserva.adultos + reserva.menores) * (parseFloat(voucherTourSeleccionado.precio) || 20)) + '€</span></div><div class="row"><span class="key">Generado por</span><span class="val">' + escH(guiaNombre) + '</span></div><div class="contacto">¿Deseas cambiar de fecha, cancelar o contactarnos? Escríbenos:<br><a class="wa-btn" href="' + waContactoURL + '">💬 Contactar por WhatsApp</a></div><div class="footer">Gente de París · Reserva confirmada · ' + new Date().toLocaleDateString('es-ES') + '</div></body></html>';
+}
+
 function generarYDescargarVoucher(reservas) {
   const primeraReserva = reservas[0];
-  const totalGeneral = reservas.reduce(function(s, r) { return s + (r.total || 0); }, 0);
+  const totalGeneral = reservas.reduce(function(s, r) { return s + ((r.adultos + r.menores) * (parseFloat(voucherTourSeleccionado.precio) || 20)); }, 0);
   const encuentroHTML = voucherTourSeleccionado.direccion ? '<div class="row"><span class="key">📍 Punto de encuentro</span><span class="val">' + escH(voucherTourSeleccionado.direccion) + (voucherTourSeleccionado.mapsLink ? ' &nbsp;<a href="' + voucherTourSeleccionado.mapsLink + '" target="_blank" style="color:#b8860b">Ver en Maps →</a>' : '') + '</span></div>' : '';
   let clientesHTML = '<div style="margin-top:16px;margin-bottom:8px"><strong>👥 Clientes incluidos:</strong></div>';
   reservas.forEach(function(r, idx) {
