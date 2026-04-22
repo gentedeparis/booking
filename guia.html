@@ -110,7 +110,7 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
 .loading-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;}
 .loading-overlay.open{display:flex;}
 .voucher-card{background:var(--charcoal);border:1px solid var(--graphite);border-radius:12px;padding:20px;margin-top:20px;}
-.voucher-cliente-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;margin-bottom:6px;border-radius:8px;cursor:pointer;transition:all 0.2s;}
+.voucher-cliente-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;margin-bottom:6px;border-radius:8px;cursor:pointer;transition:all 0.2s;background:var(--graphite);}
 .voucher-cliente-item:hover{background:rgba(201,168,76,0.15);}
 .voucher-cliente-info{flex:1;}
 .voucher-cliente-nombre{font-size:0.9rem;color:var(--white);font-weight:500;}
@@ -138,6 +138,9 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
 .seleccionado-nombre{font-size:0.85rem;color:var(--white);font-weight:500;}
 .seleccionado-pax{font-size:0.7rem;color:var(--muted);}
 .seleccionado-eliminar{background:none;border:none;color:var(--red);font-size:1.2rem;cursor:pointer;padding:0 8px;}
+.acordeon-grupo{margin-bottom:12px;border:1px solid var(--smoke);border-radius:8px;overflow:hidden;}
+.acordeon-grupo-header{background:var(--navy);padding:8px 12px;font-size:0.8rem;font-weight:600;color:var(--gold);}
+.acordeon-grupo-body{padding:4px 0;}
 @media(max-width:500px){.app-content{padding:12px;}.jornada-stats{flex-wrap:wrap;}.nuevo-cliente-voucher-form{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -366,7 +369,7 @@ function renderVoucherPanel() {
     </div>
     <div id="voucherClienteSection" style="display:none">
       <div style="margin-top:16px;margin-bottom:12px">
-        <label style="font-size:0.7rem;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block">👥 Clientes de tu jornada actual (haz clic para seleccionar)</label>
+        <label style="font-size:0.7rem;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block">👥 Clientes de tu jornada de hoy (haz clic para seleccionar)</label>
         <div id="voucherClientesAcordeon"></div>
       </div>
       <div style="margin-top:20px;margin-bottom:12px">
@@ -392,33 +395,45 @@ function renderClientesAcordeon() {
   const container = document.getElementById('voucherClientesAcordeon');
   if (!container) return;
   const hoyStr = hoy();
-  const jornadaHoy = jornadasData.find(function(j) { return j.fecha === hoyStr; });
-  if (!jornadaHoy || !jornadaHoy.clientes || !jornadaHoy.clientes.length) {
-    container.innerHTML = '<div style="font-size:0.8rem;color:var(--muted);padding:10px;text-align:center">No hay clientes en tu jornada de hoy.</div>';
+  const jornadasHoy = jornadasData.filter(function(j) { return j.fecha === hoyStr; });
+  if (!jornadasHoy.length) {
+    container.innerHTML = '<div style="font-size:0.8rem;color:var(--muted);padding:10px;text-align:center">No hay jornadas asignadas para hoy.</div>';
     return;
   }
   let html = '';
-  jornadaHoy.clientes.forEach(function(cliente, idx) {
-    if (!cliente.name) return;
-    html += `
-      <div class="voucher-cliente-item" style="background:var(--graphite);" onclick="seleccionarClienteExistente(${idx})">
-        <div class="voucher-cliente-info">
-          <div class="voucher-cliente-nombre">${escH(cliente.name)}</div>
-          <div class="voucher-cliente-pax">👥 ${cliente.adults || 0} adultos, ${cliente.minors || 0} menores</div>
-          ${cliente.wa ? '<div class="voucher-cliente-wa">📱 ' + escH(cliente.wa) + '</div>' : ''}
+  jornadasHoy.forEach(function(jornada, idxJ) {
+    if (!jornada.clientes || !jornada.clientes.length) return;
+    html += '<div class="acordeon-grupo">';
+    html += '<div class="acordeon-grupo-header">🎯 ' + escH(jornada.tourNombre || 'Sin tour') + ' · ' + (jornada.horario || '--') + '</div>';
+    html += '<div class="acordeon-grupo-body">';
+    jornada.clientes.forEach(function(cliente, idxC) {
+      if (!cliente.name) return;
+      html += `
+        <div class="voucher-cliente-item" onclick="seleccionarClienteExistente('${idxJ}', '${idxC}')">
+          <div class="voucher-cliente-info">
+            <div class="voucher-cliente-nombre">${escH(cliente.name)}</div>
+            <div class="voucher-cliente-pax">👥 ${cliente.adults || 0} adultos, ${cliente.minors || 0} menores</div>
+            ${cliente.wa ? '<div class="voucher-cliente-wa">📱 ' + escH(cliente.wa) + '</div>' : ''}
+          </div>
+          <div style="font-size:0.7rem;color:var(--gold);">Seleccionar →</div>
         </div>
-        <div style="font-size:0.7rem;color:var(--gold);">Seleccionar →</div>
-      </div>
-    `;
+      `;
+    });
+    html += '</div></div>';
   });
-  container.innerHTML = html;
+  if (html === '') {
+    container.innerHTML = '<div style="font-size:0.8rem;color:var(--muted);padding:10px;text-align:center">No hay clientes en tus jornadas de hoy.</div>';
+  } else {
+    container.innerHTML = html;
+  }
 }
 
-function seleccionarClienteExistente(idx) {
+function seleccionarClienteExistente(idxJ, idxC) {
   const hoyStr = hoy();
-  const jornadaHoy = jornadasData.find(function(j) { return j.fecha === hoyStr; });
-  if (!jornadaHoy || !jornadaHoy.clientes[idx]) return;
-  const cliente = jornadaHoy.clientes[idx];
+  const jornadasHoy = jornadasData.filter(function(j) { return j.fecha === hoyStr; });
+  const jornada = jornadasHoy[idxJ];
+  if (!jornada || !jornada.clientes[idxC]) return;
+  const cliente = jornada.clientes[idxC];
   voucherClientesSeleccionados.push({
     nombre: cliente.name,
     whatsapp: cliente.wa || '',
