@@ -43,7 +43,7 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
 .app-tabs{display:flex;background:var(--charcoal);border-bottom:1px solid var(--graphite);flex-shrink:0;}
 .app-tab{flex:1;padding:14px 8px;text-align:center;font-size:0.84rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.18s;user-select:none;}
 .app-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
-.app-content{flex:1;padding:18px;max-width:700px;width:100%;margin:0 auto;}
+.app-content{flex:1;padding:18px;max-width:800px;width:100%;margin:0 auto;}
 .tab-panel{display:none;}
 .tab-panel.active{display:block;}
 .status-bar{display:flex;align-items:center;gap:8px;font-size:0.72rem;color:var(--muted);margin-bottom:16px;}
@@ -82,16 +82,6 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
 .nuevo-cliente-section{padding:10px 16px;border-top:1px solid var(--graphite);}
 .nuevo-cliente-title{font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:8px;}
 .nuevo-cliente-form{display:flex;gap:6px;flex-wrap:wrap;}
-.walkin-section{padding:12px 16px;border-top:1px solid var(--graphite);}
-.walkin-title{font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:10px;}
-.walkin-form{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
-.walkin-input{background:var(--graphite);border:1px solid var(--smoke);border-radius:6px;color:var(--white);font-size:0.84rem;padding:8px 11px;outline:none;flex:1;min-width:120px;font-family:'Segoe UI',Arial,sans-serif;}
-.walkin-input:focus{border-color:var(--gold);}
-.walkin-num{width:60px;flex:none;text-align:center;}
-.walkin-btn{background:var(--terra);color:var(--white);border:none;border-radius:6px;padding:8px 14px;font-size:0.82rem;cursor:pointer;white-space:nowrap;font-family:'Segoe UI',Arial,sans-serif;}
-.walkin-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
-.walkin-row:last-child{border-bottom:none;}
-.walkin-del{background:none;border:1px solid rgba(255,255,255,0.2);border-radius:5px;color:rgba(255,255,255,0.5);font-size:0.7rem;padding:3px 7px;cursor:pointer;}
 .jornada-header-top{display:flex;justify-content:space-between;align-items:flex-start;}
 .jornada-chevron{font-size:0.9rem;color:rgba(255,255,255,0.5);margin-left:8px;transition:transform 0.2s;flex-shrink:0;margin-top:2px;}
 .jornada-body{display:none;}
@@ -125,7 +115,30 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .loading-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;}
 .loading-overlay.open{display:flex;}
-@media(max-width:500px){.app-content{padding:12px;}.jornada-stats{flex-wrap:wrap;}.walkin-form{flex-wrap:wrap;}}
+.voucher-card{background:var(--charcoal);border:1px solid var(--graphite);border-radius:12px;padding:20px;margin-top:20px;}
+.voucher-cliente-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.voucher-cliente-item:last-child{border-bottom:none;}
+.voucher-cliente-check{width:20px;height:20px;accent-color:var(--gold);cursor:pointer;flex-shrink:0;}
+.voucher-cliente-info{flex:1;}
+.voucher-cliente-nombre{font-size:0.85rem;color:var(--white);font-weight:500;}
+.voucher-cliente-pax{font-size:0.72rem;color:var(--muted);margin-top:2px;}
+.voucher-cliente-wa{font-size:0.7rem;color:var(--gold);}
+.tour-selector{background:var(--graphite);border-radius:10px;padding:16px;margin-bottom:20px;}
+.tour-selector select{width:100%;background:var(--charcoal);border:1px solid var(--smoke);border-radius:6px;color:var(--white);font-size:0.9rem;padding:12px;outline:none;font-family:'Segoe UI',Arial,sans-serif;}
+.tour-selector select:focus{border-color:var(--gold);}
+.fecha-selector{display:flex;gap:10px;margin-top:12px;}
+.fecha-selector input{flex:1;background:var(--charcoal);border:1px solid var(--smoke);border-radius:6px;color:var(--white);font-size:0.85rem;padding:10px;outline:none;}
+.fecha-selector .cupo-info{background:rgba(201,168,76,0.15);border-radius:6px;padding:10px;font-size:0.75rem;color:var(--gold);text-align:center;min-width:100px;}
+.nuevo-cliente-voucher{background:var(--graphite);border-radius:8px;padding:12px;margin-top:16px;margin-bottom:16px;}
+.nuevo-cliente-voucher-title{font-size:0.7rem;font-weight:600;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.nuevo-cliente-voucher-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;}
+.nuevo-cliente-voucher-form input{background:var(--charcoal);border:1px solid var(--smoke);border-radius:6px;color:var(--white);font-size:0.8rem;padding:10px;outline:none;}
+.nuevo-cliente-voucher-form input:focus{border-color:var(--gold);}
+.btn-generar-voucher{background:var(--gold);color:var(--noir);border:none;border-radius:8px;padding:14px;font-size:0.9rem;font-weight:700;cursor:pointer;width:100%;margin-top:16px;font-family:'Segoe UI',Arial,sans-serif;}
+.btn-generar-voucher:hover{opacity:0.88;}
+.btn-generar-voucher:disabled{opacity:0.5;cursor:default;}
+.cliente-existente-select{background:var(--charcoal);border:1px solid var(--smoke);border-radius:6px;color:var(--white);font-size:0.8rem;padding:8px;width:100%;margin-bottom:12px;}
+@media(max-width:500px){.app-content{padding:12px;}.jornada-stats{flex-wrap:wrap;}.nuevo-cliente-voucher-form{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -154,6 +167,7 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
   <div class="app-tabs">
     <div class="app-tab active" data-tab="jornadas">📋 Mis Jornadas</div>
     <div class="app-tab" data-tab="dossier">📁 Mi Dossier</div>
+    <div class="app-tab" data-tab="voucher">🎫 Generar Voucher</div>
   </div>
   <div class="app-content">
     <div class="status-bar">
@@ -167,12 +181,22 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
     <div class="tab-panel" id="panel-dossier">
       <div id="dossierContent"><div class="spinner-wrap"><div class="spinner"></div></div></div>
     </div>
+    <div class="tab-panel" id="panel-voucher">
+      <div style="margin-bottom:20px">
+        <h1 class="screen-title" style="font-size:1.4rem">🎫 Generar Voucher de Reserva</h1>
+        <p class="screen-sub">Crea un voucher para que un cliente reserve un tour</p>
+      </div>
+      <div id="voucherContainer">
+        <div class="spinner-wrap"><div class="spinner"></div></div>
+      </div>
+    </div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
 <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbzublsoEo4DlJ0QIEbuH86iC-Ztjzxuj6UO4Z1YMmHBqDcAaQsVdOr1a5pE2rS_06gk/exec';
+const ADMIN_WA = '33760940851';
 const REFRESH_INTERVAL = 3 * 60 * 1000;
 
 let guiaNombre = '';
@@ -185,6 +209,8 @@ let jornadaOpen = {};
 let saveTimers = {};
 let refreshTimer = null;
 let activeTab = 'jornadas';
+let toursActivos = [];
+let cuposDisponibles = {};
 
 function apiCall(params) {
   return fetch(API, { method: 'POST', body: JSON.stringify(params) })
@@ -203,6 +229,7 @@ function normalizeId(str){ return str.normalize('NFD').replace(/[\u0300-\u036f]/
 function normalizarFecha(val) { if (!val) return ''; var s=String(val).trim(); if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s; try{ var d=new Date(s); if(!isNaN(d.getTime())) return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }catch(e){} return s; }
 function normalizarHorario(val) { if (!val) return ''; var s=String(val).trim(); if(/^\d{1,2}:\d{2}$/.test(s)) return s; try{ var d=new Date(s); if(!isNaN(d.getTime())) return String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0'); }catch(e){} return s; }
 function formatDate(str){ if(!str)return''; var s=normalizarFecha(String(str)); if(!s)return String(str); var p=s.split('-'); var mn=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][parseInt(p[1])-1]; return mn?parseInt(p[2])+' '+mn+' '+p[0]:s; }
+function formatDateNice(str){ if(!str)return''; var p=str.split('-'); var months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']; return parseInt(p[2])+' de '+months[parseInt(p[1])-1]+' de '+p[0]; }
 function formatDateDDMMYYYY(str){ if(!str)return''; var s=normalizarFecha(String(str)); if(!s)return String(str); var p=s.split('-'); return String(parseInt(p[2])).padStart(2,'0')+'/'+String(parseInt(p[1])).padStart(2,'0')+'/'+p[0]; }
 function showToast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); },2500); }
 function setStatus(state,text){ document.getElementById('statusDot').className='status-dot '+state; document.getElementById('statusText').textContent=text; }
@@ -226,7 +253,15 @@ function doLogin() {
     .finally(function() { btn.disabled = false; btn.textContent = 'Entrar'; });
 }
 
-function enterApp() { document.getElementById('loginWrap').style.display = 'none'; document.getElementById('appWrap').classList.add('visible'); document.getElementById('appGuiaNombre').textContent = '👋 ' + guiaNombre; document.getElementById('appFechaHoy').textContent = formatHoy(); loadAll(); startAutoRefresh(); }
+function enterApp() { 
+  document.getElementById('loginWrap').style.display = 'none'; 
+  document.getElementById('appWrap').classList.add('visible'); 
+  document.getElementById('appGuiaNombre').textContent = '👋 ' + guiaNombre; 
+  document.getElementById('appFechaHoy').textContent = formatHoy(); 
+  loadAll(); 
+  cargarToursActivos();
+  startAutoRefresh(); 
+}
 function logout() { guiaNombre = ''; jornadasData = []; dossierData = []; pagosData = []; walkins = {}; presencia = {}; stopAutoRefresh(); document.getElementById('appWrap').classList.remove('visible'); document.getElementById('loginWrap').style.display = 'flex'; document.getElementById('pinInput').value = ''; document.getElementById('pinInput').classList.remove('error'); document.getElementById('loginError').textContent = ''; clearJornadasError(); }
 
 function parseJornadas(raw) {
@@ -277,6 +312,364 @@ function loadJornadas() {
   }).catch(function(e) { setStatus('error', 'Error al actualizar'); showJornadasError(e.message || 'Error de conexión'); });
 }
 
+async function cargarToursActivos() {
+  try {
+    const resp = await apiCall({ action: 'getTours' });
+    toursActivos = (Array.isArray(resp) ? resp : []).filter(function(t) {
+      return (t.activo === true || t.activo === 'true' || t.activo === 'TRUE') && !(t.interno === true || t.interno === 'true');
+    });
+    const cuposResp = await apiCall({ action: 'getCupos' });
+    cuposDisponibles = (cuposResp && typeof cuposResp === 'object') ? cuposResp : {};
+    renderVoucherPanel();
+  } catch(e) {
+    console.warn('Error cargando tours:', e);
+    renderVoucherPanelError(e.message);
+  }
+}
+
+function renderVoucherPanelError(errMsg) {
+  const container = document.getElementById('voucherContainer');
+  container.innerHTML = '<div class="error-banner" style="margin-top:20px"><div class="error-banner-icon">⚠️</div><div class="error-banner-msg">Error cargando tours: ' + escH(errMsg) + '<br><button onclick="cargarToursActivos()">↻ Reintentar</button></div></div>';
+}
+
+function getCupoRestante(tourId, fecha) {
+  const usado = cuposDisponibles[fecha + '_' + tourId] || 0;
+  const tour = toursActivos.find(function(t) { return String(t.id) === String(tourId); });
+  const cupoMax = tour ? parseInt(tour.cupo) || 15 : 15;
+  return cupoMax - usado;
+}
+
+function renderVoucherPanel() {
+  const container = document.getElementById('voucherContainer');
+  if (!toursActivos.length) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">🎫</div><div>No hay tours activos disponibles.</div><div class="empty-hint">El administrador debe activar tours desde el panel de admin.</div></div>';
+    return;
+  }
+  let html = `
+    <div class="tour-selector">
+      <label style="display:block;font-size:0.7rem;text-transform:uppercase;color:var(--muted);margin-bottom:6px">🎯 Selecciona un tour</label>
+      <select id="voucherTourSelect" onchange="onVoucherTourChange()">
+        <option value="">— Selecciona un tour —</option>
+        ${toursActivos.map(function(t) { return '<option value="' + escH(t.id) + '" data-nombre="' + escH(t.nombre) + '" data-horario="' + escH(t.horario || '') + '" data-precio="' + (t.precio || 20) + '" data-cupo="' + (t.cupo || 15) + '" data-direccion="' + escH(t.direccion || '') + '" data-maps="' + escH(t.mapsLink || '') + '" data-descripcion="' + escH(t.descripcion || '') + '">' + escH(t.nombre) + ' · ' + (t.horario || '--') + '</option>'; }).join('')}
+      </select>
+      <div class="fecha-selector">
+        <input type="date" id="voucherFecha" onchange="onVoucherFechaChange()">
+        <div id="voucherCupoInfo" class="cupo-info">Selecciona fecha</div>
+      </div>
+    </div>
+    <div id="voucherClienteSection" style="display:none">
+      <div style="margin-top:16px;margin-bottom:12px">
+        <label style="font-size:0.7rem;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block">👥 Clientes (selecciona o añade nuevos)</label>
+        <select id="voucherClienteSelect" class="cliente-existente-select" onchange="onVoucherClienteSelectChange()">
+          <option value="nuevo">+ AÑADIR NUEVO CLIENTE</option>
+        </select>
+      </div>
+      <div id="voucherClienteForm"></div>
+      <div id="voucherClientesSeleccionados"></div>
+      <button class="btn-generar-voucher" id="btnGenerarVoucher" onclick="generarVoucher()" disabled>🎫 Generar Voucher</button>
+    </div>
+  `;
+  container.innerHTML = html;
+}
+
+let voucherTourSeleccionado = null;
+let voucherFechaSeleccionada = null;
+let voucherClientesSeleccionados = [];
+let voucherClienteFormActual = 'nuevo';
+
+function onVoucherTourChange() {
+  const select = document.getElementById('voucherTourSelect');
+  const tourId = select.value;
+  if (!tourId) {
+    voucherTourSeleccionado = null;
+    document.getElementById('voucherClienteSection').style.display = 'none';
+    return;
+  }
+  const tour = toursActivos.find(function(t) { return String(t.id) === String(tourId); });
+  voucherTourSeleccionado = tour;
+  document.getElementById('voucherClienteSection').style.display = 'block';
+  cargarClientesDelTourEnSelector();
+  onVoucherFechaChange();
+}
+
+function cargarClientesDelTourEnSelector() {
+  const clientesDelTour = [];
+  jornadasData.forEach(function(j) {
+    if (String(j.tourId) === String(voucherTourSeleccionado?.id)) {
+      (j.clientes || []).forEach(function(c) {
+        if (!c.walkin && c.name && c.name.trim()) {
+          clientesDelTour.push({ nombre: c.name, adultos: c.adults || 0, menores: c.minors || 0, wa: c.wa || '' });
+        }
+      });
+    }
+  });
+  const clientesUnicos = [];
+  const nombresVistos = {};
+  clientesDelTour.forEach(function(c) {
+    if (!nombresVistos[c.nombre.toLowerCase()]) {
+      nombresVistos[c.nombre.toLowerCase()] = true;
+      clientesUnicos.push(c);
+    }
+  });
+  const select = document.getElementById('voucherClienteSelect');
+  if (select) {
+    let options = '<option value="nuevo">+ AÑADIR NUEVO CLIENTE</option>';
+    clientesUnicos.forEach(function(c) {
+      options += '<option value="' + escH(c.nombre) + '" data-adultos="' + (c.adultos || 1) + '" data-menores="' + (c.minores || 0) + '" data-wa="' + escH(c.wa || '') + '">' + escH(c.nombre) + ' (' + (c.adultos || 1) + 'A, ' + (c.minores || 0) + 'M)</option>';
+    });
+    select.innerHTML = options;
+  }
+}
+
+function onVoucherClienteSelectChange() {
+  const select = document.getElementById('voucherClienteSelect');
+  const valor = select.value;
+  const selectedOption = select.options[select.selectedIndex];
+  if (valor === 'nuevo') {
+    voucherClienteFormActual = 'nuevo';
+    mostrarFormularioClienteNuevo();
+  } else {
+    voucherClienteFormActual = 'existente';
+    const adultos = parseInt(selectedOption.getAttribute('data-adultos')) || 1;
+    const menores = parseInt(selectedOption.getAttribute('data-menores')) || 0;
+    const wa = selectedOption.getAttribute('data-wa') || '';
+    mostrarFormularioClienteExistente(valor, adultos, menores, wa);
+  }
+}
+
+function mostrarFormularioClienteNuevo() {
+  const container = document.getElementById('voucherClienteForm');
+  container.innerHTML = `
+    <div class="nuevo-cliente-voucher">
+      <div class="nuevo-cliente-voucher-title">📝 Datos del nuevo cliente</div>
+      <div class="nuevo-cliente-voucher-form">
+        <input type="text" id="voucherNuevoNombre" placeholder="Nombre completo *">
+        <input type="tel" id="voucherNuevoWhatsapp" placeholder="WhatsApp *">
+        <input type="email" id="voucherNuevoEmail" placeholder="Email (opcional)">
+        <input type="number" id="voucherNuevoAdultos" placeholder="Adultos" min="1" value="1">
+        <input type="number" id="voucherNuevoMenores" placeholder="Menores" min="0" value="0">
+      </div>
+      <button class="walkin-btn" style="margin-top:10px;width:auto" onclick="agregarClienteNuevoALista()">+ Agregar este cliente</button>
+    </div>
+  `;
+}
+
+function mostrarFormularioClienteExistente(nombre, adultos, menores, wa) {
+  const container = document.getElementById('voucherClienteForm');
+  container.innerHTML = `
+    <div class="nuevo-cliente-voucher" style="background:rgba(39,174,96,0.1);border:1px solid rgba(39,174,96,0.3)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-weight:600">${escH(nombre)}</span>
+        <button class="walkin-del" onclick="agregarClienteExistenteALista()" style="padding:4px 12px">+ Agregar</button>
+      </div>
+      <div style="font-size:0.8rem;color:var(--muted)">
+        👥 ${adultos} adultos, ${menores} menores · 📱 ${wa || 'Sin WhatsApp'}
+      </div>
+      <input type="hidden" id="voucherExistenteNombre" value="${escH(nombre)}">
+      <input type="hidden" id="voucherExistenteAdultos" value="${adultos}">
+      <input type="hidden" id="voucherExistenteMenores" value="${menores}">
+      <input type="hidden" id="voucherExistenteWa" value="${escH(wa)}">
+    </div>
+  `;
+}
+
+function agregarClienteNuevoALista() {
+  const nombre = document.getElementById('voucherNuevoNombre')?.value.trim();
+  const whatsapp = document.getElementById('voucherNuevoWhatsapp')?.value.trim();
+  const email = document.getElementById('voucherNuevoEmail')?.value.trim();
+  const adultos = parseInt(document.getElementById('voucherNuevoAdultos')?.value) || 1;
+  const menores = parseInt(document.getElementById('voucherNuevoMenores')?.value) || 0;
+  if (!nombre) { showToast('Escribe el nombre del cliente', 'error'); return; }
+  if (!whatsapp) { showToast('Escribe el WhatsApp del cliente', 'error'); return; }
+  voucherClientesSeleccionados.push({ nombre: nombre, whatsapp: whatsapp, email: email, adultos: adultos, menores: menores, esNuevo: true });
+  actualizarListaClientesSeleccionados();
+  limpiarFormularioCliente();
+  habilitarBotonGenerar();
+}
+
+function agregarClienteExistenteALista() {
+  const nombre = document.getElementById('voucherExistenteNombre')?.value;
+  const adultos = parseInt(document.getElementById('voucherExistenteAdultos')?.value) || 1;
+  const menores = parseInt(document.getElementById('voucherExistenteMenores')?.value) || 0;
+  const wa = document.getElementById('voucherExistenteWa')?.value || '';
+  voucherClientesSeleccionados.push({ nombre: nombre, whatsapp: wa, adultos: adultos, menores: menores, esNuevo: false });
+  actualizarListaClientesSeleccionados();
+  limpiarFormularioCliente();
+  habilitarBotonGenerar();
+}
+
+function actualizarListaClientesSeleccionados() {
+  const container = document.getElementById('voucherClientesSeleccionados');
+  if (!voucherClientesSeleccionados.length) {
+    container.innerHTML = '<div style="font-size:0.75rem;color:var(--muted);padding:10px 0">No hay clientes seleccionados. Agrega al menos uno.</div>';
+    return;
+  }
+  let html = '<div style="margin-top:16px;margin-bottom:12px"><label style="font-size:0.7rem;text-transform:uppercase;color:var(--muted)">✅ Clientes seleccionados</label></div>';
+  voucherClientesSeleccionados.forEach(function(c, idx) {
+    html += '<div class="voucher-cliente-item">';
+    html += '<div class="voucher-cliente-info">';
+    html += '<div class="voucher-cliente-nombre">' + escH(c.nombre) + '</div>';
+    html += '<div class="voucher-cliente-pax">👥 ' + (c.adultos || 0) + ' adultos, ' + (c.menores || 0) + ' menores</div>';
+    if (c.whatsapp) html += '<div class="voucher-cliente-wa">📱 ' + escH(c.whatsapp) + '</div>';
+    html += '</div>';
+    html += '<button class="walkin-del" onclick="eliminarClienteSeleccionado(' + idx + ')">✕</button>';
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function eliminarClienteSeleccionado(idx) {
+  voucherClientesSeleccionados.splice(idx, 1);
+  actualizarListaClientesSeleccionados();
+  habilitarBotonGenerar();
+}
+
+function limpiarFormularioCliente() {
+  const container = document.getElementById('voucherClienteForm');
+  container.innerHTML = '';
+  const select = document.getElementById('voucherClienteSelect');
+  if (select) select.value = 'nuevo';
+  voucherClienteFormActual = 'nuevo';
+}
+
+function habilitarBotonGenerar() {
+  const btn = document.getElementById('btnGenerarVoucher');
+  if (btn) btn.disabled = voucherClientesSeleccionados.length === 0 || !voucherFechaSeleccionada || !voucherTourSeleccionado;
+}
+
+function onVoucherFechaChange() {
+  const fechaInput = document.getElementById('voucherFecha');
+  const fecha = fechaInput.value;
+  voucherFechaSeleccionada = fecha;
+  if (fecha && voucherTourSeleccionado) {
+    const cupoRestante = getCupoRestante(voucherTourSeleccionado.id, fecha);
+    const cupoInfo = document.getElementById('voucherCupoInfo');
+    if (cupoInfo) cupoInfo.innerHTML = cupoRestante > 0 ? '✅ ' + cupoRestante + ' plazas disponibles' : '❌ Sin plazas disponibles';
+    if (cupoRestante <= 0) {
+      showToast('No hay plazas disponibles para esta fecha', 'error');
+      document.getElementById('btnGenerarVoucher').disabled = true;
+    } else {
+      habilitarBotonGenerar();
+    }
+  }
+  habilitarBotonGenerar();
+}
+
+function generarVoucher() {
+  if (!voucherTourSeleccionado || !voucherFechaSeleccionada || !voucherClientesSeleccionados.length) {
+    showToast('Completa todos los datos', 'error');
+    return;
+  }
+  const btn = document.getElementById('btnGenerarVoucher');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generando...';
+  showLoading();
+  
+  const reservasPromises = voucherClientesSeleccionados.map(function(cliente) {
+    const paxTotal = (cliente.adultos || 0) + (cliente.menores || 0);
+    const precioUnitario = parseFloat(voucherTourSeleccionado.precio) || 20;
+    const total = paxTotal * precioUnitario;
+    const reserva = {
+      id: 'res_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+      fecha: voucherFechaSeleccionada,
+      tourId: voucherTourSeleccionado.id,
+      tourNombre: voucherTourSeleccionado.nombre,
+      horario: voucherTourSeleccionado.horario || '',
+      nombre: cliente.nombre,
+      whatsapp: cliente.whatsapp,
+      email: cliente.email || '',
+      adultos: cliente.adultos || 0,
+      menores: cliente.menores || 0,
+      total: total,
+      precioUnitario: precioUnitario,
+      timestamp: new Date().toISOString(),
+      creadoPor: guiaNombre,
+      estado: 'confirmada'
+    };
+    return apiCall({ action: 'saveReserva', data: reserva }).then(function() { return reserva; });
+  });
+  
+  Promise.all(reservasPromises).then(function(reservasGuardadas) {
+    hideLoading();
+    showToast('✓ ' + reservasGuardadas.length + ' reserva(s) creada(s)');
+    generarYDescargarVoucher(reservasGuardadas);
+    enviarNotificaciones(reservasGuardadas);
+    btn.disabled = false;
+    btn.textContent = '🎫 Generar Voucher';
+    voucherClientesSeleccionados = [];
+    actualizarListaClientesSeleccionados();
+    limpiarFormularioCliente();
+    document.getElementById('voucherFecha').value = '';
+    voucherFechaSeleccionada = null;
+    habilitarBotonGenerar();
+  }).catch(function(e) {
+    hideLoading();
+    showToast('Error al guardar: ' + e.message, 'error');
+    btn.disabled = false;
+    btn.textContent = '🎫 Generar Voucher';
+  });
+}
+
+function generarYDescargarVoucher(reservas) {
+  const primeraReserva = reservas[0];
+  const paxTotal = reservas.reduce(function(s, r) { return s + (r.adultos || 0) + (r.menores || 0); }, 0);
+  const totalGeneral = reservas.reduce(function(s, r) { return s + (r.total || 0); }, 0);
+  const encuentroHTML = voucherTourSeleccionado.direccion ? `
+    <div class="row"><span class="key">📍 Punto de encuentro</span><span class="val">${voucherTourSeleccionado.direccion}${voucherTourSeleccionado.mapsLink ? ' &nbsp;<a href="' + voucherTourSeleccionado.mapsLink + '" target="_blank" style="color:#b8860b">Ver en Maps →</a>' : ''}</span></div>` : '';
+  
+  let clientesHTML = '<div style="margin-top:16px;margin-bottom:8px"><strong>👥 Clientes incluidos:</strong></div>';
+  reservas.forEach(function(r, idx) {
+    clientesHTML += '<div style="padding:6px 0;border-bottom:1px solid #eee;font-size:0.85rem">' + (idx+1) + '. ' + escH(r.nombre) + ' · ' + (r.adultos || 0) + 'A, ' + (r.menores || 0) + 'M · 📱 ' + escH(r.whatsapp) + '</div>';
+  });
+  
+  const msgContacto = encodeURIComponent('Hola, tengo una reserva generada por el guía ' + guiaNombre + ':\nTour: ' + primeraReserva.tourNombre + '\nFecha: ' + formatDateNice(primeraReserva.fecha) + '\nReferencias: ' + reservas.map(function(r) { return r.id; }).join(', ') + '\n\nY quiero...');
+  const waContactoURL = 'https://wa.me/' + ADMIN_WA + '?text=' + msgContacto;
+  
+  const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Voucher GDP - ${primeraReserva.tourNombre}</title>
+  <style>body{font-family:Georgia,serif;max-width:480px;margin:40px auto;padding:20px;color:#111}h1{font-size:1.6rem;color:#b8860b;border-bottom:2px solid #b8860b;padding-bottom:8px}.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:0.9rem;gap:12px}.key{color:#666}.val{font-weight:600;text-align:right}.total{font-size:1.3rem;color:#111;font-weight:700}.footer{margin-top:24px;font-size:0.78rem;color:#999;text-align:center}.contacto{margin-top:28px;padding:16px;background:#fdf6e3;border-radius:8px;font-size:0.85rem;color:#555;text-align:center}.wa-btn{display:inline-block;margin-top:12px;background:#25d366;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:0.9rem}.voucher-ref{font-family:monospace;font-size:0.75rem;color:#888;margin-top:4px}</style></head><body>
+  <h1>🗼 Gente de París · Voucher</h1>
+  <div class="row"><span class="key">Referencia(s)</span><span class="val">${reservas.map(function(r) { return r.id; }).join(', ')}</span></div>
+  <div class="row"><span class="key">Tour</span><span class="val">${escH(primeraReserva.tourNombre)}</span></div>
+  <div class="row"><span class="key">Fecha</span><span class="val">${formatDateNice(primeraReserva.fecha)}</span></div>
+  <div class="row"><span class="key">Horario</span><span class="val">${primeraReserva.horario}</span></div>
+  ${encuentroHTML}
+  ${clientesHTML}
+  <div class="row"><span class="key">Total</span><span class="val total">${totalGeneral}€</span></div>
+  <div class="row"><span class="key">Generado por</span><span class="val">${escH(guiaNombre)}</span></div>
+  <div class="contacto">¿Deseas cambiar de fecha, cancelar o contactarnos? Escríbenos:<br><a class="wa-btn" href="${waContactoURL}">💬 Contactar por WhatsApp</a></div>
+  <div class="footer">Gente de París · Reserva confirmada · ${new Date().toLocaleDateString('es-ES')}</div>
+  </body></html>`;
+  
+  const blob = new Blob([htmlContent], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'voucher-GDP-' + primeraReserva.tourNombre.replace(/\s+/g, '-') + '-' + primeraReserva.fecha + '.html';
+  a.click();
+  showToast('Voucher descargado ✓');
+}
+
+function enviarNotificaciones(reservas) {
+  reservas.forEach(function(reserva) {
+    const mensajeWhatsApp = encodeURIComponent(
+      '🗼 *Gente de París - Voucher de reserva*\n\n' +
+      '✅ Tu reserva ha sido confirmada\n\n' +
+      '📅 Fecha: ' + formatDateNice(reserva.fecha) + '\n' +
+      '🎯 Tour: ' + reserva.tourNombre + '\n' +
+      '🕐 Horario: ' + reserva.horario + '\n' +
+      '👤 Nombre: ' + reserva.nombre + '\n' +
+      '👥 Pax: ' + ((reserva.adultos || 0) + (reserva.menores || 0)) + '\n' +
+      '🔖 Referencia: ' + reserva.id + '\n\n' +
+      '📎 Adjunto encontrarás tu voucher.\n\n' +
+      '¡Gracias por confiar en Gente de París! 🗼'
+    );
+    const waLink = 'https://wa.me/' + reserva.whatsapp.replace(/[^0-9]/g, '') + '?text=' + mensajeWhatsApp;
+    window.open(waLink, '_blank');
+    if (reserva.email && reserva.email.trim()) {
+      showToast('Email enviado a ' + reserva.email, 'success');
+    }
+  });
+}
+
 function startAutoRefresh() { stopAutoRefresh(); refreshTimer = setInterval(function() { if (activeTab === 'jornadas') loadJornadas(); }, REFRESH_INTERVAL); }
 function stopAutoRefresh() { if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; } }
 
@@ -305,22 +698,10 @@ function guardarClientesJornada(jornadaId, gi, isAuto) {
       walkin: false
     });
   });
-  var wkeys = 'wi_' + gi;
-  (walkins[wkeys] || []).forEach(function(w) {
-    clientes.push({
-      name:   w.nombre,
-      adults: w.adultos || 0,
-      minors: w.menores || 0,
-      wa:     '',
-      present: !!w.presente,
-      walkin: true
-    });
-  });
   apiCall({ action: 'updateJornadaClientes', id: jornadaId, data: clientes })
     .then(function() {
       j.clientes = clientes;
       clientes.forEach(function(c, ci) { presencia[jornadaId + '_' + ci] = !!c.present; });
-      walkins[wkeys] = [];
       if (btn) { btn.disabled = false; btn.textContent = '💾 Guardar'; }
       if (indicator) { indicator.textContent = isAuto ? '✅ Guardado automáticamente' : ''; setTimeout(function(){ if(indicator) indicator.textContent=''; }, 3000); }
       if (statusEl) { statusEl.textContent = isAuto ? '' : '✅ Guardado'; setTimeout(function(){ if(statusEl) statusEl.textContent=''; }, 3000); }
@@ -393,13 +774,6 @@ function renderJornadas() {
     var totalPax = clientes.reduce(function(s,c) { return s + (parseInt(c.adults)||0) + (parseInt(c.minors)||0); }, 0);
     var presentes = clientes.filter(function(c, ci) { return presencia[j.id+'_'+ci]; }).reduce(function(s,c){ return s+(parseInt(c.adults)||0)+(parseInt(c.minors)||0); }, 0);
     var esHoy = j.fecha === today;
-    var wkeys = 'wi_' + gi;
-    if (!walkins[wkeys]) walkins[wkeys] = [];
-    if (j.walkinsRestaurados && j.walkinsRestaurados.length && walkins[wkeys].length === 0) {
-      walkins[wkeys] = j.walkinsRestaurados;
-    }
-    var totalWalkin = walkins[wkeys].reduce(function(s,w) { return s + (w.adultos||0) + (w.menores||0); }, 0);
-    var presentesWalkin = walkins[wkeys].filter(function(w) { return w.presente; }).reduce(function(s,w){ return s+(w.adultos||0)+(w.menores||0); }, 0);
     if (jornadaOpen[j.id] === undefined) jornadaOpen[j.id] = esHoy;
     var isOpen = !!jornadaOpen[j.id];
     html += '<div class="jornada-card">';
@@ -412,11 +786,11 @@ function renderJornadas() {
     html += '<div id="jchev-' + escH(j.id) + '" class="jornada-chevron" style="transform:' + (isOpen ? 'rotate(180deg)' : '') + '">▼</div>';
     html += '</div>';
     html += '<div class="jornada-stats">';
-    html += '<div class="jornada-stat" id="stat-pres-' + gi + '">Presentes: <span>' + (presentes + presentesWalkin) + '/' + (totalPax + totalWalkin) + '</span></div>';
+    html += '<div class="jornada-stat" id="stat-pres-' + gi + '">Presentes: <span>' + presentes + '/' + totalPax + '</span></div>';
     html += '</div>';
     html += '</div>';
     html += '<div class="jornada-body' + (isOpen ? ' open' : '') + '" id="jbody-' + escH(j.id) + '">';
-    if (clientes.length === 0 && (!walkins[wkeys] || walkins[wkeys].length === 0)) {
+    if (clientes.length === 0) {
       html += '<div class="cliente-vacio">Sin clientes registrados.</div>';
     }
     clientes.forEach(function(c, ci) {
@@ -444,24 +818,6 @@ function renderJornadas() {
     html += '<input type="text" class="walkin-input" id="nc-wa-' + gi + '" placeholder="WhatsApp" style="min-width:110px">';
     html += '<button class="walkin-btn" data-action="addcliente" data-gi="' + gi + '" data-jid="' + escH(j.id) + '">+ Añadir</button>';
     html += '</div></div>';
-    html += '<div class="walkin-section">';
-    html += '<div class="walkin-title">Walk-ins (sin reserva)</div>';
-    html += '<div class="walkin-form">';
-    html += '<input type="text" class="walkin-input" id="wi-nombre-' + gi + '" placeholder="Nombre walk-in">';
-    html += '<input type="number" class="walkin-input walkin-num" id="wi-ad-' + gi + '" placeholder="Ad." min="0" value="1">';
-    html += '<input type="number" class="walkin-input walkin-num" id="wi-men-' + gi + '" placeholder="Men." min="0" value="0">';
-    html += '<button class="walkin-btn" data-action="addwalkin" data-gi="' + gi + '">+ Añadir</button>';
-    html += '</div>';
-    html += '<div id="walkin-list-' + gi + '">';
-    (walkins[wkeys] || []).forEach(function(w, wi) {
-      html += '<div class="walkin-row">';
-      html += '<input type="checkbox" class="cliente-check" data-action="walkinpres" data-gi="' + gi + '" data-wi="' + wi + '" data-jid="' + escH(j.id) + '" ' + (w.presente ? 'checked' : '') + '>';
-      html += '<div class="cliente-info"><div class="cliente-nombre' + (w.presente ? ' presente' : '') + '">' + escH(w.nombre) + '</div>';
-      html += '<div class="cliente-pax">' + w.adultos + ' ad. ' + w.menores + ' men.</div></div>';
-      html += '<button class="walkin-del" data-action="removewalkin" data-gi="' + gi + '" data-wi="' + wi + '">✕</button>';
-      html += '</div>';
-    });
-    html += '</div></div>';
     html += '<div class="autosave-indicator" id="autosave-' + gi + '"></div>';
     html += '<div class="jornada-save-section">';
     html += '<button class="btn-guardar-jornada" id="btn-guardar-' + gi + '" data-action="guardarclientesjornada" data-jid="' + escH(j.id) + '" data-gi="' + gi + '">💾 Guardar</button>';
@@ -477,29 +833,29 @@ function renderJornadas() {
   });
 }
 
-function updateStatPresentes(gi) { var el = document.getElementById('stat-pres-' + gi); if (!el) return; var presentes = 0; document.querySelectorAll('[data-action="presencia"][data-gi="' + gi + '"]:checked').forEach(function(chk) { var pkey = chk.getAttribute('data-pkey'); var sep = pkey.lastIndexOf('_'); var jid = pkey.substring(0, sep); var ci = pkey.substring(sep + 1); var ad = document.getElementById('ca-' + jid + '-' + ci); var men = document.getElementById('cm-' + jid + '-' + ci); presentes += (parseInt(ad ? ad.value : 0) || 0) + (parseInt(men ? men.value : 0) || 0); }); var totalClientes = 0; document.querySelectorAll('[data-action="presencia"][data-gi="' + gi + '"]').forEach(function(chk) { var pkey = chk.getAttribute('data-pkey'); var sep = pkey.lastIndexOf('_'); var jid = pkey.substring(0, sep); var ci = pkey.substring(sep + 1); var ad = document.getElementById('ca-' + jid + '-' + ci); var men = document.getElementById('cm-' + jid + '-' + ci); totalClientes += (parseInt(ad ? ad.value : 0) || 0) + (parseInt(men ? men.value : 0) || 0); }); var wkeys = 'wi_' + gi; var wiList = walkins[wkeys] || []; var wPresentes = wiList.filter(function(w){return w.presente;}).reduce(function(s,w){return s+(parseInt(w.adultos)||0)+(parseInt(w.menores)||0);},0); var totalWalkin = wiList.reduce(function(s,w){return s+(parseInt(w.adultos)||0)+(parseInt(w.menores)||0);},0); el.innerHTML = 'Presentes: <span>' + (presentes + wPresentes) + '/' + (totalClientes + totalWalkin) + '</span>'; }
+function updateStatPresentes(gi) { var el = document.getElementById('stat-pres-' + gi); if (!el) return; var presentes = 0; document.querySelectorAll('[data-action="presencia"][data-gi="' + gi + '"]:checked').forEach(function(chk) { var pkey = chk.getAttribute('data-pkey'); var sep = pkey.lastIndexOf('_'); var jid = pkey.substring(0, sep); var ci = pkey.substring(sep + 1); var ad = document.getElementById('ca-' + jid + '-' + ci); var men = document.getElementById('cm-' + jid + '-' + ci); presentes += (parseInt(ad ? ad.value : 0) || 0) + (parseInt(men ? men.value : 0) || 0); }); var totalClientes = 0; document.querySelectorAll('[data-action="presencia"][data-gi="' + gi + '"]').forEach(function(chk) { var pkey = chk.getAttribute('data-pkey'); var sep = pkey.lastIndexOf('_'); var jid = pkey.substring(0, sep); var ci = pkey.substring(sep + 1); var ad = document.getElementById('ca-' + jid + '-' + ci); var men = document.getElementById('cm-' + jid + '-' + ci); totalClientes += (parseInt(ad ? ad.value : 0) || 0) + (parseInt(men ? men.value : 0) || 0); }); el.innerHTML = 'Presentes: <span>' + presentes + '/' + totalClientes + '</span>'; }
 
 function renderDossier() { var el = document.getElementById('dossierContent'); if (!dossierData.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><div>Sin registros aún.</div></div>'; return; } var byMonth = {}; var mesMap = {}; dossierData.forEach(function(e) { if (!e.fecha) return; var fn = normalizarFecha(e.fecha); if (!fn) return; var p = fn.split('-'); var mkey = p[0] + '-' + p[1]; if (!byMonth[mkey]) byMonth[mkey] = []; byMonth[mkey].push(e); if (!mesMap[mkey]) { var lastDay = new Date(parseInt(p[0]), parseInt(p[1]), 0).getDate(); mesMap[mkey] = { inicio: p[0]+'-'+p[1]+'-01', fin: p[0]+'-'+p[1]+'-'+String(lastDay).padStart(2,'0'), total: 0, pagado: 0 }; } mesMap[mkey].total += parseFloat(e.creditos) || 0; if (e.estadoPago === 'pagado') mesMap[mkey].pagado += parseFloat(e.creditos) || 0; }); var monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']; var monthsShort = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']; var nowM = new Date(); var mesActualGuia = nowM.getFullYear() + '-' + String(nowM.getMonth()+1).padStart(2,'0'); var html = ''; html += '<div style="margin-bottom:24px;">'; var totalGlobal = Object.keys(mesMap).reduce(function(s,k){return s+mesMap[k].total;},0); var pagadoGlobal = Object.keys(mesMap).reduce(function(s,k){return s+mesMap[k].pagado;},0); var pendienteGlobal = totalGlobal - pagadoGlobal; html += '<div style="font-family:Georgia,serif;font-size:1rem;color:var(--white);margin-bottom:12px;">📅 Score mensual</div>'; html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">'; html += '<div style="background:var(--graphite);border:1px solid var(--smoke);border-radius:8px;padding:12px;text-align:center"><div style="font-family:Georgia,serif;font-size:1.3rem;color:var(--white)">' + (totalGlobal % 1 === 0 ? totalGlobal : totalGlobal.toFixed(2)) + ' cr.</div><div style="font-size:.66rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em">Total</div></div>'; html += '<div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:12px;text-align:center"><div style="font-family:Georgia,serif;font-size:1.3rem;color:var(--gold)">' + (pendienteGlobal % 1 === 0 ? pendienteGlobal : pendienteGlobal.toFixed(2)) + ' cr.</div><div style="font-size:.66rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em">⏳ Pendiente</div></div>'; html += '<div style="background:rgba(39,174,96,.06);border:1px solid rgba(39,174,96,.3);border-radius:8px;padding:12px;text-align:center"><div style="font-family:Georgia,serif;font-size:1.3rem;color:var(--green)">' + (pagadoGlobal % 1 === 0 ? pagadoGlobal : pagadoGlobal.toFixed(2)) + ' cr.</div><div style="font-size:.66rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em">✅ Cobrado</div></div>'; html += '</div>'; Object.keys(mesMap).sort().reverse().forEach(function(mkey) { var sm = mesMap[mkey]; var pend = sm.total - sm.pagado; var todo = (pend === 0 && sm.total > 0); var p = mkey.split('-'); var nm = monthNames[parseInt(p[1])-1] + ' ' + p[0]; html += '<div class="dossier-mes' + (todo ? ' pagado' : '') + '">'; html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;">'; html += '<div><div class="dossier-mes-title">' + nm + '</div>'; html += '<div class="dossier-mes-range">' + formatDate(sm.inicio) + ' → ' + formatDate(sm.fin) + '</div></div>'; html += '<div style="text-align:right;">'; html += '<div class="dossier-mes-cred" style="color:' + (todo ? 'var(--green)' : 'var(--gold)') + '">' + sm.total + ' cr.</div>'; if (todo) { html += '<div class="dossier-mes-estado" style="color:var(--green);">✅ Todo cobrado</div>'; } else { html += '<div class="dossier-mes-estado" style="color:var(--gold);">⏳ ' + pend + ' pend.</div>'; if (sm.pagado > 0) html += '<div class="dossier-mes-estado" style="color:var(--green);">✅ ' + sm.pagado + ' cob.</div>'; } html += '</div></div></div>'; }); html += '</div>'; html += '<div style="font-family:Georgia,serif;font-size:1rem;color:var(--white);margin-bottom:14px;">📋 Historial de tours</div>'; Object.keys(byMonth).sort().reverse().forEach(function(mkey) { var p = mkey.split('-'); var nm = (monthsShort[parseInt(p[1])-1]||'').toUpperCase() + ' ' + p[0]; var isCurr = (mkey === mesActualGuia); var acId = 'gm-' + mkey.replace('-','_'); html += '<div class="dossier-sep" onclick="toggleGuiaMes(\'' + acId + '\')">'; html += '<span>/////// ' + nm + ' ///////</span>'; html += '<span id="garr-' + acId + '">' + (isCurr ? '▲' : '▼') + '</span></div>'; html += '<div id="' + acId + '" style="display:' + (isCurr ? 'block' : 'none') + '">'; byMonth[mkey].sort(function(a,b) { return a.fecha > b.fecha ? -1 : 1; }).forEach(function(e) { var ep = e.estadoPago || 'pendiente'; var ip = (ep === 'pagado'); html += '<div class="dossier-entry">'; html += '<div><div class="dossier-entry-tour">' + escH(e.tourNombre||'—') + '</div>'; html += '<div class="dossier-entry-fecha">' + formatDateDDMMYYYY(normalizarFecha(e.fecha)) + (e.horario ? ' · ' + e.horario : '') + '</div>'; html += '<div class="dossier-entry-fecha" style="margin-top:3px;">PAX: ' + (e.paxTotal||0) + ' · Asist: ' + (e.asistentes||0) + '</div></div>'; html += '<div><div class="dossier-entry-cred" style="color:' + (ip ? 'var(--green)' : 'var(--gold)') + '">' + (e.creditos||0) + '</div>'; html += '<div class="dossier-entry-estado" style="color:' + (ip ? 'var(--green)' : 'var(--gold)') + '">' + (ip ? '✅' : '⏳') + '</div></div>'; html += '</div>'; }); html += '</div>'; }); el.innerHTML = html; }
 
 function toggleGuiaMes(id){ var body=document.getElementById(id); if(!body) return; var arr=document.getElementById('garr-'+id); var isOpen=body.style.display!=='none'; body.style.display=isOpen?'none':'block'; if(arr) arr.innerHTML=isOpen?'▼':'▲'; }
 
+function showLoading() { document.getElementById('loadingOverlay').classList.add('open'); }
+function hideLoading() { document.getElementById('loadingOverlay').classList.remove('open'); }
+
 document.addEventListener('click', function(e) {
   if (e.target.id === 'loginBtn') { doLogin(); return; }
   if (e.target.id === 'btnLogout') { if (confirm('¿Cerrar sesión?')) logout(); return; }
-  if (e.target.id === 'btnRefresh') { loadAll(); return; }
+  if (e.target.id === 'btnRefresh') { loadAll(); cargarToursActivos(); return; }
   var tab = e.target.closest('.app-tab');
-  if (tab) { var tabName = tab.getAttribute('data-tab'); document.querySelectorAll('.app-tab').forEach(function(t) { t.classList.remove('active'); }); document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); }); tab.classList.add('active'); document.getElementById('panel-' + tabName).classList.add('active'); activeTab = tabName; return; }
+  if (tab) { var tabName = tab.getAttribute('data-tab'); document.querySelectorAll('.app-tab').forEach(function(t) { t.classList.remove('active'); }); document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); }); tab.classList.add('active'); document.getElementById('panel-' + tabName).classList.add('active'); activeTab = tabName; if (tabName === 'voucher') cargarToursActivos(); return; }
   var btn = e.target.closest('[data-action]');
   if (!btn) return;
   var action = btn.getAttribute('data-action');
   var gi = btn.getAttribute('data-gi');
-  var wkeys = 'wi_' + gi;
   if (action === 'guardarclientesjornada') { var jid = btn.getAttribute('data-jid'); guardarClientesJornada(jid, gi); return; }
   if (action === 'enviarinforme') { var jid = btn.getAttribute('data-jid'); if (confirm('¿Enviar el informe de asistencia al administrador?')) { enviarInforme(jid, gi); } return; }
   if (action === 'addcliente') { var jid = btn.getAttribute('data-jid'); var nombreEl = document.getElementById('nc-nombre-' + gi); var adEl = document.getElementById('nc-ad-' + gi); var menEl = document.getElementById('nc-men-' + gi); var waEl = document.getElementById('nc-wa-' + gi); var nombre = nombreEl ? nombreEl.value.trim() : ''; if (!nombre) { showToast('Escribe el nombre del cliente'); return; } var j = jornadasData.find(function(x) { return x.id === jid; }); if (!j) return; j.clientes.push({ name: nombre, adults: parseInt(adEl ? adEl.value : 1) || 1, minors: parseInt(menEl ? menEl.value : 0) || 0, wa: waEl ? waEl.value.trim() : '', present: false, walkin: false }); renderJornadas(); showToast('Cliente añadido — pulsa Guardar para confirmar'); return; }
   if (action === 'deletecliente') { var jid = btn.getAttribute('data-jid'); var ci = parseInt(btn.getAttribute('data-ci')); var j = jornadasData.find(function(x) { return x.id === jid; }); if (!j) return; j.clientes.splice(ci, 1); renderJornadas(); showToast('Cliente eliminado — pulsa Guardar para confirmar'); return; }
-  if (action === 'addwalkin') { var nombreEl = document.getElementById('wi-nombre-' + gi); var adEl = document.getElementById('wi-ad-' + gi); var menEl = document.getElementById('wi-men-' + gi); var nombre = nombreEl ? nombreEl.value.trim() : ''; if (!nombre) { showToast('Escribe el nombre del walk-in'); return; } if (!walkins[wkeys]) walkins[wkeys] = []; walkins[wkeys].push({ nombre: nombre, adultos: parseInt(adEl.value)||1, menores: parseInt(menEl.value)||0, presente: false }); renderJornadas(); showToast('Walk-in añadido — pulsa Guardar para confirmar'); return; }
-  if (action === 'removewalkin') { var wi = parseInt(btn.getAttribute('data-wi')); if (!walkins[wkeys]) return; walkins[wkeys].splice(wi, 1); renderJornadas(); return; }
 });
 
 document.addEventListener('change', function(e) {
@@ -507,15 +863,23 @@ document.addEventListener('change', function(e) {
   if (!el.classList.contains('cliente-check')) return;
   var action = el.getAttribute('data-action');
   var gi = el.getAttribute('data-gi');
-  var wkeys = 'wi_' + gi;
   if (action === 'presencia') { var pkey = el.getAttribute('data-pkey'); var jid2 = el.getAttribute('data-jid'); presencia[pkey] = el.checked; var row = el.closest('.cliente-row'); if (row) { row.classList.toggle('presente-row', el.checked); var nombreEl = row.querySelector('.cliente-edit-input.wide'); if (nombreEl) nombreEl.style.opacity = el.checked ? '0.5' : '1'; } updateStatPresentes(gi); if (jid2) scheduleAutoSave(jid2, gi); }
-  if (action === 'walkinpres') { var wi = parseInt(el.getAttribute('data-wi')); if (walkins[wkeys] && walkins[wkeys][wi]) { walkins[wkeys][wi].presente = el.checked; var row2 = el.closest('.walkin-row'); if (row2) { var nombreEl2 = row2.querySelector('.cliente-nombre'); if (nombreEl2) nombreEl2.classList.toggle('presente', el.checked); } updateStatPresentes(gi); } }
 });
 
 document.addEventListener('keydown', function(e) { if (e.key === 'Enter' && document.getElementById('loginWrap').style.display !== 'none') { doLogin(); } if (document.getElementById('pinInput') === document.activeElement) { document.getElementById('pinInput').classList.remove('error'); document.getElementById('loginError').textContent = ''; } });
 
 document.getElementById('appFechaHoy').textContent = formatHoy();
 document.getElementById('pinInput').focus();
+window.showLoading = showLoading;
+window.hideLoading = hideLoading;
+window.onVoucherTourChange = onVoucherTourChange;
+window.onVoucherFechaChange = onVoucherFechaChange;
+window.onVoucherClienteSelectChange = onVoucherClienteSelectChange;
+window.agregarClienteNuevoALista = agregarClienteNuevoALista;
+window.agregarClienteExistenteALista = agregarClienteExistenteALista;
+window.eliminarClienteSeleccionado = eliminarClienteSeleccionado;
+window.generarVoucher = generarVoucher;
+window.cargarToursActivos = cargarToursActivos;
 </script>
 </body>
 </html>
