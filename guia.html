@@ -139,11 +139,8 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
 .seleccionado-pax{font-size:0.7rem;color:var(--muted);}
 .seleccionado-eliminar{background:none;border:none;color:var(--red);font-size:1.2rem;cursor:pointer;padding:0 8px;}
 .acordeon-grupo{margin-bottom:12px;border:1px solid var(--smoke);border-radius:8px;overflow:hidden;}
-.acordeon-grupo-header{background:var(--navy);padding:8px 12px;font-size:0.8rem;font-weight:600;color:var(--gold);cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
-.acordeon-grupo-header:hover{background:rgba(27,43,75,0.8);}
-.acordeon-grupo-arrow{font-size:0.7rem;transition:transform 0.2s;}
-.acordeon-grupo-body{padding:4px 0;display:none;}
-.acordeon-grupo-body.open{display:block;}
+.acordeon-grupo-header{background:var(--navy);padding:8px 12px;font-size:0.8rem;font-weight:600;color:var(--gold);}
+.acordeon-grupo-body{padding:4px 0;}
 @media(max-width:500px){.app-content{padding:12px;}.jornada-stats{flex-wrap:wrap;}.nuevo-cliente-voucher-form{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -394,18 +391,6 @@ function renderVoucherPanel() {
   preseleccionarTourActual();
 }
 
-function toggleAcordeonGrupo(header) {
-  const body = header.nextElementSibling;
-  const arrow = header.querySelector('.acordeon-grupo-arrow');
-  if (body.classList.contains('open')) {
-    body.classList.remove('open');
-    arrow.innerHTML = '▼';
-  } else {
-    body.classList.add('open');
-    arrow.innerHTML = '▲';
-  }
-}
-
 function renderClientesAcordeon() {
   const container = document.getElementById('voucherClientesAcordeon');
   if (!container) return;
@@ -419,7 +404,7 @@ function renderClientesAcordeon() {
   jornadasHoy.forEach(function(jornada, idxJ) {
     if (!jornada.clientes || !jornada.clientes.length) return;
     html += '<div class="acordeon-grupo">';
-    html += '<div class="acordeon-grupo-header" onclick="toggleAcordeonGrupo(this)"><span>🎯 ' + escH(jornada.tourNombre || 'Sin tour') + ' · ' + (jornada.horario || '--') + '</span><span class="acordeon-grupo-arrow">▼</span></div>';
+    html += '<div class="acordeon-grupo-header">🎯 ' + escH(jornada.tourNombre || 'Sin tour') + ' · ' + (jornada.horario || '--') + '</div>';
     html += '<div class="acordeon-grupo-body">';
     jornada.clientes.forEach(function(cliente, idxC) {
       if (!cliente.name) return;
@@ -492,8 +477,7 @@ function actualizarListaClientesSeleccionados() {
       <div class="seleccionado-item">
         <div class="seleccionado-info">
           <div class="seleccionado-nombre">${escH(c.nombre)}</div>
-          <div class="seleccionado-pax">👥 ${c.adultos} adultos, ${c.menores} menores</div>
-          <div class="seleccionado-email">📧 ${c.email || 'Sin email'}</div>
+          <div class="seleccionado-pax">👥 ${c.adultos} adultos, ${c.menores} menores | 📱 ${escH(c.whatsapp)}</div>
         </div>
         <button class="seleccionado-eliminar" onclick="eliminarClienteSeleccionado(${idx})">✕</button>
       </div>
@@ -585,8 +569,9 @@ function generarVoucher() {
     reservasGuardadas.forEach(function(r) {
       if (r.email && r.email.trim()) {
         enviarEmailVoucher(r);
-        showToast('📧 Voucher enviado a ' + r.email);
       }
+      const waLink = 'https://wa.me/' + r.whatsapp.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent('Hola ' + r.nombre + ', tu voucher de reserva ha sido generado. Adjunto encontrarás el archivo. ¡Gracias por confiar en Gente de París! 🗼');
+      window.open(waLink, '_blank');
     });
     btn.disabled = false;
     btn.textContent = '🎫 Generar Voucher';
@@ -604,7 +589,7 @@ function generarVoucher() {
 }
 
 function enviarEmailVoucher(reserva) {
-  const htmlVoucher = generarHTMLVoucherIndividual(reserva);
+  const htmlVoucher = generarHTMLVoucher(reserva);
   apiCall({
     action: 'enviarEmail',
     data: {
@@ -617,7 +602,7 @@ function enviarEmailVoucher(reserva) {
   }).catch(function(e) { console.warn('Error enviando email:', e); });
 }
 
-function generarHTMLVoucherIndividual(reserva) {
+function generarHTMLVoucher(reserva) {
   const encuentroHTML = voucherTourSeleccionado.direccion ? '<div class="row"><span class="key">📍 Punto de encuentro</span><span class="val">' + escH(voucherTourSeleccionado.direccion) + (voucherTourSeleccionado.mapsLink ? ' &nbsp;<a href="' + voucherTourSeleccionado.mapsLink + '" target="_blank" style="color:#b8860b">Ver en Maps →</a>' : '') + '</span></div>' : '';
   const msgContacto = encodeURIComponent('Hola, tengo una reserva generada por el guía ' + guiaNombre + ':\nTour: ' + reserva.tourNombre + '\nFecha: ' + formatDateNice(reserva.fecha) + '\nReferencia: ' + reserva.id + '\n\nY quiero...');
   const waContactoURL = 'https://wa.me/' + ADMIN_WA + '?text=' + msgContacto;
@@ -630,7 +615,7 @@ function generarYDescargarVoucher(reservas) {
   const encuentroHTML = voucherTourSeleccionado.direccion ? '<div class="row"><span class="key">📍 Punto de encuentro</span><span class="val">' + escH(voucherTourSeleccionado.direccion) + (voucherTourSeleccionado.mapsLink ? ' &nbsp;<a href="' + voucherTourSeleccionado.mapsLink + '" target="_blank" style="color:#b8860b">Ver en Maps →</a>' : '') + '</span></div>' : '';
   let clientesHTML = '<div style="margin-top:16px;margin-bottom:8px"><strong>👥 Clientes incluidos:</strong></div>';
   reservas.forEach(function(r, idx) {
-    clientesHTML += '<div style="padding:6px 0;border-bottom:1px solid #eee;font-size:0.85rem">' + (idx+1) + '. ' + escH(r.nombre) + ' · ' + (r.adultos || 0) + 'A, ' + (r.menores || 0) + 'M · 📱 ' + escH(r.whatsapp) + (r.email ? ' · 📧 ' + escH(r.email) : '') + '</div>';
+    clientesHTML += '<div style="padding:6px 0;border-bottom:1px solid #eee;font-size:0.85rem">' + (idx+1) + '. ' + escH(r.nombre) + ' · ' + (r.adultos || 0) + 'A, ' + (r.menores || 0) + 'M · 📱 ' + escH(r.whatsapp) + '</div>';
   });
   const msgContacto = encodeURIComponent('Hola, tengo una reserva generada por el guía ' + guiaNombre + ':\nTour: ' + primeraReserva.tourNombre + '\nFecha: ' + formatDateNice(primeraReserva.fecha) + '\nReferencias: ' + reservas.map(function(r) { return r.id; }).join(', ') + '\n\nY quiero...');
   const waContactoURL = 'https://wa.me/' + ADMIN_WA + '?text=' + msgContacto;
