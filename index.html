@@ -55,7 +55,6 @@ body{background:var(--noir);color:var(--white);font-family:'DM Sans',sans-serif;
 .recent-tag{font-size:.68rem;padding:2px 7px;border-radius:4px;font-weight:500;flex-shrink:0;}
 .rt-direct{background:rgba(41,128,185,.15);color:#5dade2;}
 .rt-civitatis{background:rgba(196,98,45,.15);color:var(--terra);}
-.rt-jornada{background:rgba(139,92,246,.15);color:#a78bfa;}
 .sec-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;}
 .sec-title{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:600;}
 .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:6px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:500;transition:all .18s;}
@@ -85,7 +84,6 @@ body{background:var(--noir);color:var(--white);font-family:'DM Sans',sans-serif;
 .b-navy{background:rgba(27,43,75,.4);color:#7fa7d9;}
 .b-new{background:rgba(201,168,76,.25);color:var(--gold);border:1px solid rgba(201,168,76,.5);}
 .b-informe{background:rgba(139,92,246,.2);color:#a78bfa;border:1px solid rgba(139,92,246,.4);}
-.b-jornada{background:rgba(139,92,246,.25);color:#c4b5fd;border:1px solid rgba(139,92,246,.4);}
 .table-wrap{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;font-size:.83rem;}
 thead tr{border-bottom:1px solid var(--graphite);}
@@ -241,8 +239,17 @@ textarea{resize:vertical;min-height:70px;}
 .listado-grupo-meta{font-size:.76rem;color:var(--muted);}
 .listado-grupo-stats{display:flex;gap:10px;align-items:center;}
 .listado-grupo-body{padding:12px 18px;}
-.lr-pax-row.lr-cancelada{background:rgba(192,57,43,0.08);border-left:3px solid rgba(192,57,43,0.5);padding-left:10px;margin-bottom:4px;}
-.lr-pax-name.lr-pax-cancelada{text-decoration:line-through;color:var(--muted);}
+/* Estilos para reservas canceladas */
+.lr-pax-row.lr-cancelada {
+  background: rgba(192, 57, 43, 0.08);
+  border-left: 3px solid rgba(192, 57, 43, 0.5);
+  padding-left: 10px;
+  margin-bottom: 4px;
+}
+.lr-pax-name.lr-pax-cancelada {
+  text-decoration: line-through;
+  color: var(--muted);
+}
 .lr-pax-row{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.82rem;}
 .lr-pax-row:last-child{border-bottom:none;}
 .lr-pax-name{color:var(--white);}
@@ -258,15 +265,6 @@ textarea{resize:vertical;min-height:70px;}
 .pin-dots{display:inline-flex;gap:3px;align-items:center;}
 .pin-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);}
 .guia-actions{display:flex;gap:7px;flex-wrap:wrap;}
-.clientes-grid{background:var(--charcoal);border:1px solid var(--graphite);border-radius:10px;margin-bottom:10px;overflow:hidden;}
-.cliente-card{display:grid;grid-template-columns:2fr 1.5fr 1.5fr 1fr 1fr 1fr 0.5fr;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.05);align-items:center;font-size:.82rem;}
-.cliente-card-header{background:var(--navy);color:var(--gold);font-weight:600;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--gold);}
-.cliente-card:last-child{border-bottom:none;}
-.cliente-card:hover{background:rgba(255,255,255,0.02);}
-.cliente-wa{color:var(--gold);text-decoration:none;}
-.cliente-wa:hover{text-decoration:underline;}
-.btn-cliente-eliminar{background:transparent;color:var(--red);border:1px solid var(--red);border-radius:5px;padding:4px 8px;font-size:.7rem;cursor:pointer;transition:all .2s;}
-.btn-cliente-eliminar:hover{background:var(--red);color:var(--white);}
 .informes-header-banner{background:linear-gradient(135deg,rgba(139,92,246,.12),rgba(27,43,75,.2));border:1px solid rgba(139,92,246,.3);border-radius:12px;padding:18px 22px;margin-bottom:22px;display:flex;align-items:center;gap:16px;}
 .informes-header-icon{font-size:2rem;flex-shrink:0;}
 .informes-header-body{flex:1;}
@@ -309,7 +307,6 @@ textarea{resize:vertical;min-height:70px;}
   .dossier-row{grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;}
   .informe-card{grid-template-columns:1fr;gap:12px;}
   .informe-card-right{justify-content:flex-end;}
-  .cliente-card{grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto auto;}
 }
 @media(max-width:600px){
   .topbar-nav .nav-item span.nav-text{display:none;}
@@ -328,11 +325,13 @@ textarea{resize:vertical;min-height:70px;}
     <div class="nav-group-sep"></div>
     <div class="nav-item" onclick="nav('tours')" data-sec="tours"><span>🗺</span><span class="nav-text"> Tours</span></div>
     <div class="nav-item" onclick="nav('bloqueos')" data-sec="bloqueos"><span>🚫</span><span class="nav-text"> Bloqueos</span></div>
-    <div class="nav-item" onclick="nav('operaciones')" data-sec="operaciones"><span>📋</span><span class="nav-text"> Operaciones</span></div>
+    <div class="nav-item" onclick="nav('listareservas')" data-sec="listareservas"><span>📋</span><span class="nav-text"> Lista Reservas</span></div>
+    <div class="nav-item" onclick="nav('clientes')" data-sec="clientes"><span>📇</span><span class="nav-text"> Clientes</span></div>
+    <div class="nav-group-sep"></div>
     <div class="nav-item" onclick="nav('civitatis')" data-sec="civitatis"><span>🟡</span><span class="nav-text"> Civitatis</span><span class="nav-badge nb-mock">MOCK</span></div>
     <div class="nav-item disabled"><span>🟣</span><span class="nav-text"> Guruwalk</span><span class="nav-badge nb-soon">Próx.</span></div>
     <div class="nav-group-sep"></div>
-    <div class="nav-item" onclick="nav('clientes')" data-sec="clientes"><span>📇</span><span class="nav-text"> Clientes</span></div>
+    <div class="nav-item" onclick="nav('ops')" data-sec="ops"><span>👥</span><span class="nav-text"> Tour Manager</span></div>
     <div class="nav-item" onclick="nav('informes')" data-sec="informes" id="nav-informes"><span>📥</span><span class="nav-text"> Informes</span></div>
     <div class="nav-item" onclick="nav('dossier')" data-sec="dossier"><span>📁</span><span class="nav-text"> Dossier</span></div>
     <div class="nav-item" onclick="nav('guias')" data-sec="guias"><span>👤</span><span class="nav-text"> Guías</span></div>
@@ -368,31 +367,35 @@ textarea{resize:vertical;min-height:70px;}
     <div class="bloqueos-grid" id="bloqueosGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div>
   </div>
 
-  <div class="section" id="sec-operaciones">
+  <div class="section" id="sec-clientes">
     <div class="sec-header">
-      <h1 class="sec-title">Operaciones</h1>
+      <h1 class="sec-title">Clientes</h1>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-terra" onclick="initOpsCreate();showOpsForm()">+ Crear jornada</button>
-        <button class="btn btn-ghost btn-sm" onclick="exportarCSV()">⬇ CSV reservas</button>
-        <button class="btn btn-ghost btn-sm" onclick="renderOperaciones()">↻ Actualizar</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportarCSVClientes()">⬇ CSV clientes</button>
+        <button class="btn btn-ghost btn-sm" onclick="renderClientes()">↻ Actualizar</button>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <input type="search" id="filtroCliente" placeholder="Buscar por nombre, WhatsApp o email…" oninput="filtrarClientes()" style="flex:1;max-width:380px;background:var(--charcoal);border:1px solid var(--graphite);border-radius:6px;color:var(--white);padding:8px 12px;font-size:.84rem;outline:none">
+      <span id="clientesCount" style="font-size:.76rem;color:var(--muted)"></span>
+    </div>
+    <div id="clientesContainer"><div class="empty-state"><div class="ei">📇</div>Cargando...</div></div>
+  </div>
+
+  <div class="section" id="sec-listareservas">
+    <div class="sec-header">
+      <h1 class="sec-title">Lista Reservas</h1>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="exportarCSV()">⬇ CSV</button>
+        <button class="btn btn-ghost btn-sm" onclick="renderListareservas()">↻ Actualizar</button>
       </div>
     </div>
     <div id="bannerLimpieza"></div>
     <div class="filter-bar">
-      <input type="date" id="filtroOperacionesFecha" onchange="renderOperaciones()" style="width:auto">
-      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('filtroOperacionesFecha').value='';renderOperaciones()">Ver todas</button>
-      <span style="flex:1"></span>
-      <span id="operacionesCount" style="font-size:.76rem;color:var(--muted)"></span>
+      <input type="date" id="filtroListadoFecha" onchange="renderListareservas()" style="width:auto">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('filtroListadoFecha').value='';renderListareservas()">Ver todas</button>
     </div>
-    <div id="operacionesContainer"><div class="empty-state"><div class="ei">📋</div>Cargando operaciones...</div></div>
-    
-    <div class="backup-box" style="margin-top:20px">
-      <div class="backup-title">💾 Copia de seguridad del Tour Manager</div>
-      <div class="btn-row" style="margin-top:0">
-        <button class="btn btn-ghost btn-sm" onclick="opsDownloadBackup()">⬇ Descargar jornadas</button>
-        <label class="btn btn-ghost btn-sm" style="cursor:pointer">⬆ Cargar jornadas<input type="file" id="opsBackupInput" accept=".json,.html" style="display:none" onchange="opsUploadBackup(this)"></label>
-      </div>
-    </div>
+    <div id="listadosContainer"><div class="empty-state"><div class="ei">📋</div>Cargando...</div></div>
   </div>
 
   <div class="section" id="sec-civitatis">
@@ -424,19 +427,47 @@ textarea{resize:vertical;min-height:70px;}
     </div>
   </div>
 
-  <div class="section" id="sec-clientes">
-    <div class="sec-header">
-      <h1 class="sec-title">Clientes</h1>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-ghost btn-sm" onclick="exportarCSVClientes()">⬇ CSV clientes</button>
-        <button class="btn btn-ghost btn-sm" onclick="renderClientes()">↻ Actualizar</button>
+  <div class="section" id="sec-ops">
+    <div class="ops-subscreen active" id="ops-main">
+      <div class="sec-header">
+        <h1 class="sec-title">Tour Manager</h1>
+        <button class="btn btn-terra" onclick="initOpsCreate();showOpsForm()">+ Crear jornada</button>
+      </div>
+      <div id="opsList"><div class="empty-state"><div class="ei">🗂</div>Sin jornadas.</div></div>
+      <div class="backup-box">
+        <div class="backup-title">💾 Copia de seguridad</div>
+        <div class="btn-row" style="margin-top:0">
+          <button class="btn btn-ghost btn-sm" onclick="opsDownloadBackup()">⬇ Descargar</button>
+          <label class="btn btn-ghost btn-sm" style="cursor:pointer">⬆ Cargar<input type="file" id="opsBackupInput" accept=".json,.html" style="display:none" onchange="opsUploadBackup(this)"></label>
+        </div>
       </div>
     </div>
-    <div class="filter-bar">
-      <input type="search" id="filtroCliente" placeholder="Buscar por nombre, WhatsApp o email…" oninput="filtrarClientes()" style="flex:1;max-width:380px;background:var(--charcoal);border:1px solid var(--graphite);border-radius:6px;color:var(--white);padding:8px 12px;font-size:.84rem;outline:none">
-      <span id="clientesCount" style="font-size:.76rem;color:var(--muted)"></span>
+    <div class="ops-subscreen" id="ops-form">
+      <button class="back-btn" onclick="showOpsList()">← Volver</button>
+      <div class="sec-header"><h1 class="sec-title" id="opsFormTitle">Nueva jornada</h1></div>
+      <div style="background:var(--charcoal);border:1px solid var(--graphite);border-radius:10px;padding:20px;margin-bottom:14px">
+        <div class="form-row">
+          <div class="form-group"><label>Guía asignado</label><select id="ot-guide"><option value="">— Selecciona un guía —</option></select></div>
+          <div class="form-group"><label>Fecha</label><input type="date" id="ot-date"></div>
+        </div>
+      </div>
+      <div style="background:var(--charcoal);border:1px solid var(--graphite);border-radius:10px;padding:20px;margin-bottom:14px">
+        <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px">Tours del día <span style="color:var(--terra);font-weight:400;text-transform:none;letter-spacing:0">— selecciona los que operará</span></div>
+        <div class="tour-checks-grid" id="tourCatalogChecks"><div style="color:var(--muted);font-size:.82rem">Cargando...</div></div>
+      </div>
+      <div id="opsToursAccordion"></div>
+      <div class="btn-row"><button class="btn btn-terra" style="flex:1" id="opsSaveBtn" onclick="saveOpsTour()">💾 Guardar jornada</button></div>
+      <div id="opsJornadaLog" style="display:none"></div>
+      <div id="opsExportSection" style="display:none">
+        <div class="export-box">
+          <h3>📤 Enviar al guía</h3>
+          <p>Descarga el archivo HTML y envíalo por WhatsApp al guía.</p>
+          <div class="btn-row" style="margin-top:6px"><button class="btn btn-ghost" style="flex:1" onclick="opsDownloadGuideFile()">⬇ Descargar archivo del guía</button></div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <button class="btn btn-danger btn-sm" id="opsDeleteBtn" style="display:none" onclick="deleteOpsTour()">🗑 Eliminar esta jornada</button>
     </div>
-    <div id="clientesContainer"><div class="empty-state"><div class="ei">📇</div>Cargando...</div></div>
   </div>
 
   <div class="section" id="sec-informes">
@@ -562,17 +593,6 @@ textarea{resize:vertical;min-height:70px;}
   </div>
 </div>
 
-<div class="modal-overlay" id="editClienteModal">
-  <div class="modal">
-    <div class="modal-title">✏️ Editar Cliente</div>
-    <input type="hidden" id="editClienteWhatsapp">
-    <div class="form-group"><label>Nombre</label><input type="text" id="editClienteNombre"></div>
-    <div class="form-group"><label>WhatsApp</label><input type="tel" id="editClienteWhatsappInput"></div>
-    <div class="form-group"><label>Email</label><input type="email" id="editClienteEmail"></div>
-    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeEditClienteModal()">Cancelar</button><button class="btn btn-gold" onclick="saveEditCliente()">Guardar cambios</button></div>
-  </div>
-</div>
-
 <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
 <div class="toast" id="toast"></div>
 
@@ -591,16 +611,15 @@ const CIV_MOCK = {
   ]
 };
 
-let tours=[], bloqueos=[], reservas=[], jornadasList=[];
+let tours=[], bloqueos=[], reservas=[];
 let editingTourId=null, editingOpsId=null, editingGuiaNombre=null;
 let opsTours={};
 let civData=null;
 let USE_MOCK_CIV=true;
 let dossierGuias=[], dossierActivo=null, dossierEntries={}, pagosEntries={};
 let guiasData=[];
-let _operacionesGrupos=[];
+let _listadosGrupos=[];
 let informesPendientes=[];
-let _clientes=[];
 
 async function apiCall(params, timeout = 30000) {
   const controller = new AbortController();
@@ -715,15 +734,14 @@ function nav(sec){
   document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));
   document.getElementById('sec-'+sec).classList.add('active');
   document.querySelector('[data-sec="'+sec+'"]')?.classList.add('active');
-  if(sec==='operaciones')renderOperaciones();
+  if(sec==='listareservas')renderListareservas();
   if(sec==='civitatis')renderCivitatis();
   if(sec==='clientes')renderClientes();
+  if(sec==='ops'){renderOpsList();renderTourCatalogChecks();loadGuiasForDatalist();}
   if(sec==='dash')updateDashboard();
   if(sec==='dossier')initDossier();
   if(sec==='guias')initGuias();
   if(sec==='informes')initInformes();
-  if(sec==='tours')loadTours();
-  if(sec==='bloqueos')loadBloqueos();
 }
 
 async function loadTours(){
@@ -892,8 +910,8 @@ function exportarCSV(soloAntiguas){
   if(!lista.length){showToast('No hay reservas','error');return;}
   const sorted=[...lista].sort((a,b)=>String(a.fecha)>String(b.fecha)?1:-1);
   const esc=v=>'"'+String(v).replace(/"/g,'""')+'"';
-  const headers=['ID','Fecha','Tour','Horario','Cliente','WhatsApp','Adultos','Menores','Total','Estado','Vista','Timestamp','CreadoPor'];
-  const filas=sorted.map(r=>[r.id,r.fecha,r.tourNombre,r.horario,r.nombre,r.whatsapp,r.adultos,r.menores,r.total,r.estado||'confirmada',r.vista||'no',r.timestamp,r.creadoPor||''].map(esc).join(','));
+  const headers=['ID','Fecha','Tour','Horario','Cliente','WhatsApp','Adultos','Menores','Total','Estado','Vista','Timestamp'];
+  const filas=sorted.map(r=>[r.id,r.fecha,r.tourNombre,r.horario,r.nombre,r.whatsapp,r.adultos,r.menores,r.total,r.estado||'confirmada',r.vista||'no',r.timestamp].map(esc).join(','));
   const blob=new Blob(['\uFEFF'+[headers.join(','),...filas].join('\r\n')],{type:'text/csv;charset=utf-8;'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='reservas_'+(sorted[0]?.fecha||'export')+'.csv';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
@@ -918,202 +936,176 @@ async function accionDescargarYLimpiar(){
       reservas=(Array.isArray(raw)?raw:[]).map(r=>({...r,fecha:normalizarFecha(r.fecha),horario:normalizarHorario(r.horario)}));
       document.getElementById('bannerLimpieza').innerHTML='';
       showToast((res.archived||antiguas.length)+' reservas archivadas en CLIENTES ✓');
-      renderOperaciones();
     }catch(e){showToast('Error al archivar: '+e.message,'error');}
     hideLoading();
   },800);
 }
 
-function cargarJornadasFromBackend(){
-  return apiCall({ action: 'getAllJornadas' }).catch(()=>[]);
+// ── CLIENTES ──
+let _clientes=[];
+async function renderClientes(){
+  const container=document.getElementById('clientesContainer');
+  container.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando clientes...</div>';
+  try{
+    const raw=await apiCall({action:'getClientes'});
+    _clientes=(Array.isArray(raw)?raw:[]);
+    filtrarClientes();
+  }catch(e){container.innerHTML=`<div class="empty-state"><div class="ei">⚠️</div>Error: ${escH(e.message)}</div>`;}
+}
+function filtrarClientes(){
+  const q=(document.getElementById('filtroCliente')?.value||'').toLowerCase().trim();
+  const lista=q?_clientes.filter(c=>
+    (c.nombre||'').toLowerCase().includes(q)||
+    (c.whatsapp||'').replace(/\s/g,'').includes(q.replace(/\s/g,''))||
+    (c.email||'').toLowerCase().includes(q)
+  ):_clientes;
+  const count=document.getElementById('clientesCount');
+  if(count)count.textContent=lista.length+' cliente'+( lista.length!==1?'s':'');
+  const container=document.getElementById('clientesContainer');
+  if(!lista.length){container.innerHTML='<div class="empty-state"><div class="ei">📇</div>'+(q?'Sin resultados para "'+escH(q)+'"':'Aún no hay clientes archivados.')+'</div>';return;}
+  const sorted=[...lista].sort((a,b)=>(b.ultima_fecha||'')>(a.ultima_fecha||'')?1:-1);
+  container.innerHTML=`<div class="table-wrap"><table>
+    <thead><tr>
+      <th>Cliente</th><th>WhatsApp</th><th>Email</th><th>Primer tour</th><th>Último tour</th><th style="text-align:right">Reservas</th><th style="text-align:right">PAX total</th>
+    </tr></thead><tbody>${sorted.map(c=>`<tr>
+      <td style="font-weight:500;color:var(--white)">${escH(c.nombre||'—')}</td>
+      <td><a href="https://wa.me/${(c.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold);text-decoration:none">${escH(c.whatsapp||'—')}</a></td>
+      <td style="color:var(--muted)">${escH(c.email||'—')}</td>
+      <td style="font-size:.78rem;color:var(--muted)">${escH(c.primer_tour||'—')}<br>${escH(c.primer_fecha||'')}</td>
+      <td style="font-size:.78rem">${escH(c.ultimo_tour||'—')}<br><span style="color:var(--muted)">${escH(c.ultima_fecha||'')}</span></td>
+      <td style="text-align:right"><span class="badge b-gold">${c.cant_reservas||1}</span></td>
+      <td style="text-align:right;color:var(--light)">${c.total_pax||0} pax</td>
+    </tr>`).join('')}</tbody></table></div>`;
+}
+function exportarCSVClientes(){
+  if(!_clientes.length){showToast('No hay clientes','error');return;}
+  const sorted=[..._clientes].sort((a,b)=>(b.ultima_fecha||'')>(a.ultima_fecha||'')?1:-1);
+  const esc=v=>'\"'+String(v==null?'':v).replace(/"/g,'""')+'\"';
+  const h=['WhatsApp','Nombre','Email','Primer tour','Primera fecha','Último tour','Última fecha','Reservas','PAX total'];
+  const filas=sorted.map(c=>[c.whatsapp,c.nombre,c.email,c.primer_tour,c.primer_fecha,c.ultimo_tour,c.ultima_fecha,c.cant_reservas,c.total_pax].map(esc).join(','));
+  const blob=new Blob(['\uFEFF'+[h.join(','),...filas].join('\r\n')],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='clientes_gdp_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
 }
 
-async function renderOperaciones(){
-  const filtro=document.getElementById('filtroOperacionesFecha').value;
-  const container=document.getElementById('operacionesContainer');
-  container.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando operaciones...</div>';
+function evaluarLimpieza(){
+  const antiguas=getReservasAntiguas();if(!antiguas.length)return;
+  const state=getLimpiezaState();const hoy=new Date();
+  if(state.ultimaLimpieza&&Math.floor((hoy-new Date(state.ultimaLimpieza))/86400000)<DIAS_AVISO)return;
+  const sorted=[...antiguas].sort((a,b)=>String(a.fecha)>String(b.fecha)?1:-1);
+  const dias=Math.floor((hoy-new Date(sorted[0].fecha+'T00:00:00'))/86400000);
+  const banner=document.getElementById('bannerLimpieza');
+  if(dias>=DIAS_ULTIMATUM){
+    const rest=DIAS_BORRADO_AUTO-dias;
+    banner.innerHTML=`<div class="banner-lim ultimatum"><div class="banner-icon">🚨</div><div class="banner-body"><div class="banner-title" style="color:#e74c3c">Último aviso — borrado en ${rest} día${rest!==1?'s':''}</div><div class="banner-text">${antiguas.length} reservas sin archivar.</div><div class="banner-acts"><button class="btn btn-gold btn-sm" onclick="accionDescargarYLimpiar()">⬇ Descargar y limpiar</button></div></div></div>`;
+  }else{
+    banner.innerHTML=`<div class="banner-lim aviso"><div class="banner-icon">🗂</div><div class="banner-body"><div class="banner-title" style="color:var(--gold)">Hay reservas para archivar</div><div class="banner-text">${antiguas.length} reservas con más de ${DIAS_AVISO} días.</div><div class="banner-acts"><button class="btn btn-gold btn-sm" onclick="accionDescargarYLimpiar()">⬇ Descargar y limpiar</button><button class="btn btn-ghost btn-sm" onclick="document.getElementById('bannerLimpieza').innerHTML=''">Luego</button></div></div></div>`;
+  }
+}
+
+async function renderListareservas(){
+  const filtro=document.getElementById('filtroListadoFecha').value;
+  const container=document.getElementById('listadosContainer');
+  container.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando reservas...</div>';
   try{
-    const [reservasRaw, jornadasRaw] = await Promise.all([
-      apiCall({action:'getReservas'}),
-      apiCall({action:'getAllJornadas'})
-    ]);
-    reservas=(Array.isArray(reservasRaw)?reservasRaw:[]).map(r=>({...r,fecha:normalizarFecha(r.fecha),horario:normalizarHorario(r.horario),tipo:'reserva'}));
-    jornadasList=(Array.isArray(jornadasRaw)?jornadasRaw:[]).map(j=>{
-      let clientes=[];
-      try{clientes=JSON.parse(j.clientesJSON || '[]');}catch(e){clientes=[];}
-      return {...j, fecha:normalizarFecha(j.fecha), horario:normalizarHorario(j.horario), clientes, tipo:'jornada'};
-    });
+    const raw=await apiCall({action:'getReservas'});
+    reservas=(Array.isArray(raw)?raw:[]).map(r=>({...r,fecha:normalizarFecha(r.fecha),horario:normalizarHorario(r.horario)}));
   }catch(e){container.innerHTML=`<div class="empty-state"><div class="ei">⚠️</div>Error: ${escH(e.message)}</div>`;return;}
   evaluarLimpieza();
-  let todos=[...reservas, ...jornadasList];
-  if(filtro)todos=todos.filter(r=>r.fecha===filtro);
-  todos.sort((a,b)=>{
-    if(a.fecha!==b.fecha)return a.fecha>b.fecha?1:-1;
-    return (a.horario||'')>(b.horario||'')?1:-1;
-  });
+  let lista=reservas.filter(r=>r.estado!=='cancelada');
+  if(filtro)lista=lista.filter(r=>r.fecha===filtro);
   const grupos={};
-  todos.forEach(item=>{
-    const key=item.fecha+'|'+(item.tourId||item.tourNombre)+'|'+item.horario;
-    if(!grupos[key])grupos[key]={fecha:item.fecha,tourNombre:item.tourNombre||'—',tourId:item.tourId||'',horario:item.horario||'',items:[],tipo:item.tipo};
-    grupos[key].items.push(item);
+  lista.forEach(r=>{
+    const key=r.fecha+'|'+(r.tourId||r.tourNombre)+'|'+r.horario;
+    if(!grupos[key])grupos[key]={fecha:r.fecha,tourNombre:r.tourNombre,tourId:r.tourId,horario:r.horario,reservas:[]};
+    grupos[key].reservas.push(r);
   });
-  _operacionesGrupos=Object.values(grupos);
-  document.getElementById('operacionesCount').textContent=_operacionesGrupos.length+' grupo(s)';
-  if(!_operacionesGrupos.length){
-    container.innerHTML=`<div class="empty-state"><div class="ei">✅</div>${filtro?'No hay operaciones para esta fecha.':'No hay operaciones registradas.'}</div>`;
-    return;
+  reservas.filter(r=>r.estado==='cancelada').forEach(r=>{
+    const key=r.fecha+'|'+(r.tourId||r.tourNombre)+'|'+r.horario;
+    if(!grupos[key])grupos[key]={fecha:r.fecha,tourNombre:r.tourNombre,tourId:r.tourId,horario:r.horario,reservas:[]};
+    grupos[key].reservas.push(r);
+  });
+  const sorted=Object.values(grupos).sort((a,b)=>{
+    if(a.fecha!==b.fecha)return a.fecha>b.fecha?1:-1;
+    return(a.horario||'')>(b.horario||'')?1:-1;
+  });
+  _listadosGrupos=sorted;
+
+  const hoy2=new Date();hoy2.setHours(0,0,0,0);
+  const futuros=sorted.filter(g=>{const d=new Date(g.fecha+'T00:00:00');return d>=hoy2;});
+  const pasados=sorted.filter(g=>{const d=new Date(g.fecha+'T00:00:00');return d<hoy2;});
+  if(!futuros.length&&!pasados.length){
+    container.innerHTML=`<div class="empty-state"><div class="ei">✅</div>${filtro?'No hay reservas para esta fecha.':'No hay reservas activas.'}</div>`;return;
   }
   function renderGrupo(g,idx){
-    const reservasGrupo=g.items.filter(i=>i.tipo==='reserva' && i.estado!=='cancelada');
-    const canceladasGrupo=g.items.filter(i=>i.tipo==='reserva' && i.estado==='cancelada');
-    const jornadasGrupo=g.items.filter(i=>i.tipo==='jornada');
-    const totalPax=reservasGrupo.reduce((s,r)=>s+(parseInt(r.adultos)||0)+(parseInt(r.menores)||0),0);
-    const tieneNuevas=reservasGrupo.some(r=>String(r.vista)!=='si');
-    const tieneJornada=jornadasGrupo.length>0;
-    const paxRows=reservasGrupo.map(r=>{
+    const confirmadas=g.reservas.filter(r=>r.estado!=='cancelada');
+    const canceladas=g.reservas.filter(r=>r.estado==='cancelada');
+    const totalPax=confirmadas.reduce((s,r)=>(parseInt(r.adultos)||0)+(parseInt(r.menores)||0)+s,0);
+    const tieneNuevas=confirmadas.some(r=>String(r.vista)!=='si');
+    const paxRows=confirmadas.map(r=>{
       const esNueva=String(r.vista)!=='si';
-      const esCancelada=r.estado==='cancelada';
+      const esCancelada = r.estado === 'cancelada';
       return `<div class="lr-pax-row${esNueva?' listado-pax-nueva':''}${esCancelada?' lr-cancelada':''}">
         <div style="display:flex;align-items:center;gap:7px;min-width:0">
           <span class="lr-pax-name${esCancelada?' lr-pax-cancelada':''}">${escH(r.nombre||'—')}</span>
           ${esNueva?'<span class="badge b-new" style="font-size:.6rem">NUEVA</span>':''}
           ${esCancelada?'<span class="badge b-muted" style="font-size:.6rem">CANCELADA</span>':''}
-          <a href="#" onclick="verCliente('${escH(r.whatsapp||'')}');return false;" style="color:var(--gold);font-size:.7rem;margin-left:5px;">👤 Cliente</a>
         </div>
         <div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div>
         <a href="https://wa.me/${String(r.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="lr-wa">📱 ${escH(r.whatsapp||'')}</a>
         <div class="lr-pax-actions">
           ${esNueva && !esCancelada ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();marcarVistaIndividual('${r.id}',${idx})">👁</button>` : ''}
           ${!esCancelada ? `<button class="btn btn-cancel-res btn-sm" onclick="event.stopPropagation();cancelarReserva('${r.id}','${escH(r.nombre||'')}','${escH(r.whatsapp||'')}','${r.fecha}','${escH(r.tourNombre||'')}')">✕</button>` : ''}
-          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaOperaciones('${r.id}',${idx})">🗑</button>
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${idx})">🗑</button>
         </div>
       </div>`;
     }).join('');
-    const jornadaRows=jornadasGrupo.map(j=>{
-      const paxTotalJ=(j.clientes||[]).reduce((s,c)=>s+(parseInt(c.adults)||0)+(parseInt(c.minors)||0),0);
-      return `<div class="lr-pax-row" style="background:rgba(139,92,246,0.08);border-left:3px solid #a78bfa;">
-        <div style="display:flex;align-items:center;gap:7px;min-width:0">
-          <span class="lr-pax-name" style="color:#a78bfa;">📋 JORNADA · Guía: ${escH(j.guia||'—')}</span>
-        </div>
-        <div class="lr-pax-meta">${paxTotalJ} PAX</div>
-        <div></div>
-        <div class="lr-pax-actions">
-          <button class="btn btn-terra btn-sm" onclick="event.stopPropagation();editarJornadaDesdeOps('${j.id}')">✏️ Editar</button>
-          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarJornadaOps('${j.id}',${idx})">🗑</button>
-        </div>
-      </div>`;
-    }).join('');
-    const canceladasRows=canceladasGrupo.length?
+    const canceladasRows=canceladas.length?
       '<div style="padding:6px 0 2px;font-size:.7rem;color:var(--muted);text-transform:uppercase">Canceladas</div>'+
-      canceladasGrupo.map(r=>`<div class="lr-pax-row" style="background:rgba(192,57,43,0.08);border-left:3px solid rgba(192,57,43,0.5);padding-left:10px;opacity:.75">
+      canceladas.map(r=>`<div class="lr-pax-row" style="background:rgba(192,57,43,0.08);border-left:3px solid rgba(192,57,43,0.5);padding-left:10px;opacity:.75">
         <div style="display:flex;align-items:center;gap:8px;min-width:0"><span class="lr-pax-name" style="text-decoration:line-through;color:var(--muted)">${escH(r.nombre||'—')}</span><span style="font-size:.6rem;background:rgba(192,57,43,.25);color:#e74c3c;border:1px solid rgba(192,57,43,.4);border-radius:4px;padding:1px 6px;white-space:nowrap">✕ Cancelada</span></div>
         <div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div>
         <div class="lr-wa" style="color:var(--muted)">${escH(r.whatsapp||'')}</div>
-        <div class="lr-pax-actions"><button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaOperaciones('${r.id}',${idx})">🗑</button></div>
+        <div class="lr-pax-actions"><button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${idx})">🗑</button></div>
       </div>`).join(''):'';
     return `<div class="listado-grupo${tieneNuevas?' listado-grupo-nueva':''}" id="grupo-${idx}">
       <div class="listado-acord-header" onclick="toggleListadoGrupo(${idx})">
         <div class="listado-grupo-info">
-          <div class="listado-grupo-title">🎯 ${escH(g.tourNombre||'—')}${tieneNuevas?'<span class="badge b-new" style="font-size:.68rem;vertical-align:middle;margin-left:6px">NUEVA</span>':''}${tieneJornada?'<span class="badge b-jornada" style="font-size:.68rem;vertical-align:middle;margin-left:6px">📋 Jornada</span>':''}</div>
+          <div class="listado-grupo-title">🎯 ${escH(g.tourNombre||'—')}${tieneNuevas?'<span class="badge b-new" style="font-size:.68rem;vertical-align:middle;margin-left:6px">NUEVA</span>':''}</div>
           <div class="listado-grupo-meta">📅 ${formatDate(g.fecha)} · 🕐 ${g.horario||'--'}</div>
         </div>
         <div class="listado-grupo-stats">
           <span class="badge b-gold">${totalPax} PAX</span>
-          <span class="badge b-muted">${reservasGrupo.length} res.</span>
-          ${tieneJornada?`<span class="badge b-informe">${jornadasGrupo.length} jornada(s)</span>`:''}
+          <span class="badge b-muted">${confirmadas.length} res.</span>
           <span class="listado-acord-arrow">▼</span>
+          <button class="btn btn-terra btn-sm" onclick="event.stopPropagation();precargarJornada('${g.fecha}','${escH(g.tourId||'')}','${escH(g.tourNombre||'')}','${escH(g.horario||'')}')">→ Crear jornada</button>
         </div>
       </div>
       <div class="listado-acord-body" id="acord-body-${idx}">
-        <div class="listado-grupo-body">
-          ${paxRows}
-          ${jornadaRows}
-          ${canceladasRows}
-        </div>
+        <div class="listado-grupo-body">${paxRows}${canceladasRows}</div>
       </div>
     </div>`;
   }
-  let html=_operacionesGrupos.map((g,i)=>renderGrupo(g,i)).join('');
+  let html='';
+  if(!futuros.length){
+    html+='<div class="empty-state" style="padding:30px 20px"><div class="ei">📅</div>No hay reservas próximas.</div>';
+  }else{
+    html+=futuros.map((g,i)=>renderGrupo(g,sorted.indexOf(g))).join('');
+  }
+  if(pasados.length){
+    html+=`<div style="margin-top:18px">
+      <button onclick="toggleHistorico()" id="btn-historico" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center">
+        📦 Ver histórico (${pasados.length} grupos pasados)
+      </button>
+      <div id="historico-wrap" style="display:none;margin-top:12px">
+        <div style="font-size:.72rem;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em">— Tours pasados —</div>
+        ${pasados.map((g,i)=>renderGrupo(g,sorted.indexOf(g))).join('')}
+      </div>
+    </div>`;
+  }
   container.innerHTML=html;
 }
-
-function verCliente(whatsapp){
-  if(!whatsapp)return;
-  nav('clientes');
-  document.getElementById('filtroCliente').value=whatsapp;
-  filtrarClientes();
-}
-
-function editarJornadaDesdeOps(jornadaId){
-  const jornada=jornadasList.find(j=>j.id===jornadaId);
-  if(!jornada)return;
-  editingOpsId=jornadaId;
-  const guide=jornada.guia;
-  const date=jornada.fecha;
-  const toursData=[{tourId:jornada.tourId,tourNombre:jornada.tourNombre,horario:jornada.horario,clients:jornada.clientes||[]}];
-  opsTours[jornadaId]={guide,date,tours:toursData,createdAt:Date.now()};
-  opsSave();
-  initOpsCreate();
-  renderTourCatalogChecks();
-  loadGuiasForDatalist();
-  showOpsForm();
-  document.getElementById('ot-guide').value=guide;
-  document.getElementById('ot-date').value=date;
-  document.querySelectorAll('input[name="tourCheck"]').forEach(c=>{c.checked=c.value===jornada.tourId;});
-  onTourCheckChange();
-  setTimeout(()=>{
-    let wrap=null;
-    document.querySelectorAll('.acord-wrap').forEach(w=>{if(w.dataset.tourid===jornada.tourId)wrap=w;});
-    if(wrap){
-      wrap.querySelectorAll('.pax-card').forEach(p=>p.remove());
-      const pc=wrap.querySelector('.pax-inputs');
-      (jornada.clientes||[]).forEach(c=>opsAddRowInAcord(pc,c));
-    }
-  },200);
-}
-
-function eliminarJornadaOps(jornadaId,idx){
-  if(!confirm('¿Eliminar esta jornada?'))return;
-  showLoading();
-  apiCall({action:'deleteJornada',id:jornadaId}).then(()=>{
-    showToast('Jornada eliminada ✓');
-    renderOperaciones();
-    if(opsTours[jornadaId]){delete opsTours[jornadaId];opsSave();}
-    hideLoading();
-  }).catch(e=>{showToast('Error al eliminar','error');hideLoading();});
-}
-
-async function eliminarReservaOperaciones(id,idx){
-  if(!confirm('¿Eliminar esta reserva?'))return;
-  showLoading();
-  try{
-    await apiCall({action:'deleteReserva',id});
-    showToast('Eliminada ✓');
-    renderOperaciones();
-  }catch(e){showToast('Error','error');}
-  hideLoading();
-}
-
-async function cancelarReserva(id,nombre,wa,fecha,tourNombre){
-  if(!confirm('¿Cancelar reserva de '+nombre+'?'))return;
-  showLoading();
-  try{
-    await apiCall({action:'cancelReserva',id});
-    showToast('Cancelada ✓');
-    renderOperaciones();
-    const msg=encodeURIComponent(`Hola ${nombre} 👋\n\nTe escribimos desde *Gente de París* para informarte que tu reserva ha sido *cancelada*:\n\n📅 Fecha: ${formatDate(fecha)}\n🎯 Tour: ${tourNombre}\n\nLamentamos los inconvenientes. ¡Hasta pronto! 🗼`);
-    window.open('https://wa.me/'+wa.replace(/[^0-9]/g,'')+'?text='+msg,'_blank');
-  }catch(e){showToast('Error','error');}
-  hideLoading();
-}
-
-function marcarVistaIndividual(id,idx){
-  const r=reservas.find(x=>x.id===id);
-  if(r){r.vista='si';apiCall({action:'marcarVista',id}).catch(()=>{});}
-  renderOperaciones();
-}
-
-function toggleListadoGrupo(idx){
+async function toggleListadoGrupo(idx){
   const body=document.getElementById('acord-body-'+idx);
   const grupoEl=document.getElementById('grupo-'+idx);
   if(!body)return;
@@ -1123,9 +1115,9 @@ function toggleListadoGrupo(idx){
   if(!isOpen){
     body.classList.add('open');
     grupoEl?.querySelector('.listado-acord-arrow')?.classList.add('open');
-    const g=_operacionesGrupos[idx];
+    const g=_listadosGrupos[idx];
     if(g){
-      const nuevas=g.items.filter(i=>i.tipo==='reserva' && String(i.vista)!=='si' && i.estado!=='cancelada');
+      const nuevas=g.reservas.filter(r=>String(r.vista)!=='si'&&r.estado!=='cancelada');
       if(nuevas.length){
         nuevas.forEach(r=>{r.vista='si';apiCall({action:'marcarVista',id:r.id}).catch(()=>{});});
         if(grupoEl){
@@ -1137,6 +1129,131 @@ function toggleListadoGrupo(idx){
       }
     }
   }
+}
+function toggleHistorico(){
+  const wrap = document.getElementById('historico-wrap');
+  const btn = document.getElementById('btn-historico');
+  if(!wrap)return;
+  const isOpen = wrap.style.display !== 'none';
+  wrap.style.display = isOpen ? 'none' : 'block';
+  btn.textContent = isOpen ? '📦 Ver histórico' : '📦 Ocultar histórico';
+}
+function marcarVistaIndividual(id,idx){
+  const r=reservas.find(x=>x.id===id);
+  if(r){r.vista='si';apiCall({action:'marcarVista',id}).catch(()=>{});}
+  document.querySelectorAll(`[onclick*="marcarVistaIndividual('${id}"]`).forEach(b=>b.remove());
+}
+
+async function eliminarReservaLista(id,idx){
+  if(!confirm('¿Eliminar esta reserva?'))return;
+  showLoading();
+  try{
+    await apiCall({action:'deleteReserva',id});
+    reservas=reservas.filter(r=>r.id!==id);
+    _listadosGrupos.forEach(g=>{if(g)g.reservas=g.reservas.filter(r=>r.id!==id);});
+    showToast('Eliminada ✓');
+    // Re-renderizar desde datos locales sin re-fetch
+    const hoy2=new Date();hoy2.setHours(0,0,0,0);
+    const futuros=_listadosGrupos.filter(g=>g&&new Date(g.fecha+'T00:00:00')>=hoy2);
+    const pasados=_listadosGrupos.filter(g=>g&&new Date(g.fecha+'T00:00:00')<hoy2);
+    const container=document.getElementById('listadosContainer');
+    function renderGrupo(g,gi){
+      const confirmadas=g.reservas.filter(r=>r.estado!=='cancelada');
+      if(!confirmadas.length)return '';
+      const totalPax=confirmadas.reduce((s,r)=>(parseInt(r.adultos)||0)+(parseInt(r.menores)||0)+s,0);
+      const tieneNuevas=confirmadas.some(r=>String(r.vista)!=='si');
+      const paxRows=confirmadas.map(r=>{
+        const esNueva=String(r.vista)!=='si';
+        const esCancelada = r.estado === 'cancelada';
+        return `<div class="lr-pax-row${esNueva?' listado-pax-nueva':''}${esCancelada?' lr-cancelada':''}">
+          <div style="display:flex;align-items:center;gap:7px;min-width:0"><span class="lr-pax-name${esCancelada?' lr-pax-cancelada':''}">${escH(r.nombre||'—')}</span>${esNueva?'<span class="badge b-new" style="font-size:.6rem">NUEVA</span>':''}${esCancelada?'<span class="badge b-muted" style="font-size:.6rem">CANCELADA</span>':''}</div>
+          <div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div>
+          <a href="https://wa.me/${String(r.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="lr-wa">📱 ${escH(r.whatsapp||'')}</a>
+          <div class="lr-pax-actions">
+            ${esNueva && !esCancelada ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();marcarVistaIndividual('${r.id}',${gi})">👁</button>` : ''}
+            ${!esCancelada ? `<button class="btn btn-cancel-res btn-sm" onclick="event.stopPropagation();cancelarReserva('${r.id}','${escH(r.nombre||'')}','${escH(r.whatsapp||'')}','${r.fecha}','${escH(r.tourNombre||'')}')">✕</button>` : ''}
+            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();eliminarReservaLista('${r.id}',${gi})">🗑</button>
+          </div></div>`;
+      }).join('');
+      return `<div class="listado-grupo${tieneNuevas?' listado-grupo-nueva':''}" id="grupo-${gi}">
+        <div class="listado-acord-header" onclick="toggleListadoGrupo(${gi})">
+          <div class="listado-grupo-info">
+            <div class="listado-grupo-title">🎯 ${escH(g.tourNombre||'—')}</div>
+            <div class="listado-grupo-meta">📅 ${formatDate(g.fecha)} · 🕐 ${g.horario||'--'}</div>
+          </div>
+          <div class="listado-grupo-stats">
+            <span class="badge b-gold">${totalPax} PAX</span>
+            <span class="badge b-muted">${confirmadas.length} res.</span>
+            <span class="listado-acord-arrow">▼</span>
+            <button class="btn btn-terra btn-sm" onclick="event.stopPropagation();precargarJornada('${g.fecha}','${escH(g.tourId||'')}','${escH(g.tourNombre||'')}','${escH(g.horario||'')}')">→ Crear jornada</button>
+          </div>
+        </div>
+        <div class="listado-acord-body" id="acord-body-${gi}">
+          <div class="listado-grupo-body">${paxRows}</div>
+        </div>
+      </div>`;
+    }
+    let html=futuros.map((g,i)=>renderGrupo(g,_listadosGrupos.indexOf(g))).join('');
+    if(pasados.length){
+      html+=`<div style="margin-top:18px">
+        <button onclick="toggleHistorico()" id="btn-historico" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center">📦 Ver histórico (${pasados.length} grupos pasados)</button>
+        <div id="historico-wrap" style="display:none;margin-top:12px">
+          <div style="font-size:.72rem;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em">— Tours pasados —</div>
+          ${pasados.map((g,i)=>renderGrupo(g,_listadosGrupos.indexOf(g))).join('')}
+        </div>
+      </div>`;
+    }
+    container.innerHTML=html||'<div class="empty-state"><div class="ei">✅</div>No hay reservas activas.</div>';
+  }catch(e){showToast('Error','error');}
+  hideLoading();
+}
+
+async function cancelarReserva(id,nombre,wa,fecha,tourNombre){
+  if(!confirm('¿Cancelar reserva de '+nombre+'?'))return;
+  showLoading();
+  try{
+    await apiCall({action:'cancelReserva',id});
+    const rLocal=reservas.find(x=>x.id===id);
+    if(rLocal)rLocal.estado='cancelada';
+    showToast('Cancelada ✓');
+    setTimeout(()=>renderListareservas(),800);
+    const msg=encodeURIComponent(`Hola ${nombre} 👋\n\nTe escribimos desde *Gente de París* para informarte que tu reserva ha sido *cancelada*:\n\n📅 Fecha: ${formatDate(fecha)}\n🎯 Tour: ${tourNombre}\n\nLamentamos los inconvenientes. ¡Hasta pronto! 🗼`);
+    window.open('https://wa.me/'+wa.replace(/[^0-9]/g,'')+'?text='+msg,'_blank');
+  }catch(e){showToast('Error','error');}
+  hideLoading();
+}
+
+function precargarJornada(fecha,tourId,tourNombre,horario){
+  const filtradas=reservas.filter(r=>r.fecha===fecha&&r.estado!=='cancelada'&&(r.tourId===tourId||r.tourNombre===tourNombre)&&(r.horario||'')===(horario||''));
+  if(!filtradas.length){showToast('Recarga la lista antes de crear jornada','error');return;}
+  const g={fecha,tourId,tourNombre,horario,reservas:filtradas};
+  const clientes=g.reservas.filter(r=>r.estado!=='cancelada').map(r=>({name:r.nombre||'',adults:parseInt(r.adultos)||0,minors:parseInt(r.menores)||0,wa:r.whatsapp||''}));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sec-ops').classList.add('active');
+  document.querySelector('[data-sec="ops"]')?.classList.add('active');
+  initOpsCreate();renderOpsList();renderTourCatalogChecks();loadGuiasForDatalist();showOpsForm();
+  document.getElementById('ot-date').value=g.fecha;
+  document.getElementById('opsFormTitle').textContent='Nueva jornada — desde lista';
+  setTimeout(()=>{
+    let checkEl=null;
+    document.querySelectorAll('input[name="tourCheck"]').forEach(el=>{if(el.value===g.tourId)checkEl=el;});
+    if(checkEl){
+      checkEl.checked=true;onTourCheckChange();
+      setTimeout(()=>{
+        let wrap=null;
+        document.querySelectorAll('.acord-wrap').forEach(w=>{if(w.dataset.tourid===g.tourId)wrap=w;});
+        if(wrap){
+          wrap.querySelectorAll('.pax-card').forEach(p=>p.remove());
+          const pc=wrap.querySelector('.pax-inputs');
+          clientes.forEach(c=>opsAddRowInAcord(pc,c));
+          const hdr=wrap.querySelector('.acord-header');
+          if(hdr&&!hdr.classList.contains('open'))toggleAcord(hdr);
+          showToast('Jornada precargada ✓ — asigna el guía y guarda');
+        }
+      },100);
+    }else showToast('Tour no encontrado — selecciónalo manualmente','warning',5000);
+  },150);
 }
 
 async function loadCivitatis(){if(USE_MOCK_CIV){civData=CIV_MOCK;}}
@@ -1156,9 +1273,7 @@ function renderCivitatis(){
   document.getElementById('civTable').innerHTML='<table><thead><tr><th>ID</th><th>Fecha</th><th>Tour</th><th>Cliente</th><th>Teléfono</th><th>PAX</th><th>Importe</th><th>Estado</th></tr></thead><tbody>'
     +sorted.map(b=>`<tr class="${b.status==='cancelled'?'cancelled':''}">
       <td style="font-family:monospace;font-size:.72rem;color:var(--muted)">${b.id}</td>
-      <td>${formatDate(b.date)}</td>
-      <td>${escH(b.productName)}</td>
-      <td>${escH(b.clientName)}</td>
+      <td>${formatDate(b.date)}</td><td>${escH(b.productName)}</td><td>${escH(b.clientName)}</td>
       <td><a href="https://wa.me/${b.phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold);text-decoration:none">📱 ${escH(b.phone)}</a></td>
       <td>${b.adults}A${b.children?' '+b.children+'M':''}</td>
       <td>${b.status==='cancelled'?'—':'<span class="total-tag">'+b.amount+'€</span>'}</td>
@@ -1171,9 +1286,10 @@ function onMockToggle(){USE_MOCK_CIV=document.getElementById('civMockToggle').ch
 async function refreshFromAPI(){
   setSyncStatus('loading','Actualizando...');
   try{
-    const [rTours,rBloqueos]=await Promise.all([apiCall({action:'getTours'}),apiCall({action:'getBloqueos'})]);
+    const [rTours,rBloqueos,rReservas]=await Promise.all([apiCall({action:'getTours'}),apiCall({action:'getBloqueos'}),apiCall({action:'getReservas'})]);
     tours=(Array.isArray(rTours)?rTours.filter(t=>t&&t.id):[]).map(t=>({...t,horario:normalizarHorario(t.horario)}));
     bloqueos=(Array.isArray(rBloqueos)?rBloqueos:[]).map(b=>({...b,fecha:normalizarFecha(b.fecha)}));
+    reservas=(Array.isArray(rReservas)?rReservas:[]).map(r=>({...r,fecha:normalizarFecha(r.fecha),horario:normalizarHorario(r.horario)}));
     cacheSet('gdp_tours',tours);cacheSet('gdp_bloqueos',bloqueos);
     renderTours();populateTourSelect();renderTourCatalogChecks();renderBloqueos();
     setSyncStatus('ok','Sincronizado · '+new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}));
@@ -1259,10 +1375,11 @@ function opsLoad(){try{const d=localStorage.getItem('gdp_tours');if(d){opsTours=
 function opsSave(){try{localStorage.setItem('gdp_tours',JSON.stringify(opsTours));return true;}catch{return false;}}
 function showOpsList(){document.getElementById('ops-main').classList.add('active');document.getElementById('ops-form').classList.remove('active');renderOpsList();}
 function showOpsForm(){document.getElementById('ops-main').classList.remove('active');document.getElementById('ops-form').classList.add('active');}
+
 function renderOpsList(){
   const el=document.getElementById('opsList');
-  const keys=Object.keys(opsTours).filter(id=>opsTours[id].guide && opsTours[id].date);
-  if(!keys.length){el.innerHTML='<div class="empty-state"><div class="ei">🗂</div>Sin jornadas locales.</div>';return;}
+  const keys=Object.keys(opsTours);
+  if(!keys.length){el.innerHTML='<div class="empty-state"><div class="ei">🗂</div>Sin jornadas.</div>';return;}
   keys.sort((a,b)=>(opsTours[a].date||'')<(opsTours[b].date||'')?-1:1);
   const mn=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   el.innerHTML=keys.map(id=>{
@@ -1348,7 +1465,6 @@ async function saveOpsTour(){
     logEl.querySelector('.save-log').innerHTML=logHtml+sheetsLog;
     const allOk=!sheetsLog.includes('log-err');
     showToast(allOk?'Jornada guardada y sincronizada ✓':'Guardada local — revisa el log',allOk?'success':'warning');
-    renderOperaciones();
   }
   document.getElementById('opsExportSection').style.display='block';
   document.getElementById('opsDeleteBtn').style.display='block';
@@ -1383,7 +1499,7 @@ async function deleteOpsTour(){
     }
   }
   delete opsTours[editingOpsId];opsSave();editingOpsId=null;
-  showToast('Jornada eliminada');showOpsList();renderOperaciones();
+  showToast('Jornada eliminada');showOpsList();
 }
 
 function opsDownloadBackup(){
@@ -1419,6 +1535,9 @@ function opsDownloadGuideFile(){
   showToast('Archivo descargado ✓');
 }
 
+// ═══════════════════════════════════════════════════════════════
+//  INFORMES
+// ═══════════════════════════════════════════════════════════════
 async function initInformes() {
   const container = document.getElementById('informesContent');
   container.innerHTML = '<div class="empty-state"><div class="ei">⏳</div>Cargando informes...</div>';
@@ -1535,6 +1654,7 @@ function renderInformes() {
     entries.forEach(e => {
       const jornadaId = String(e.id).replace(/^dos_/, 'jor_');
       const paxNum = parseInt(e.paxTotal) || 0;
+      const asistNum = parseInt(e.asistentes) || 0;
       const totalAd = (e.clientes||[]).reduce((s,c) => s+(parseInt(c.adults)||0), 0);
       const totalMen = (e.clientes||[]).reduce((s,c) => s+(parseInt(c.minors)||0), 0);
       html += `
@@ -1609,23 +1729,23 @@ async function registrarInforme(guia, entryId, jornadaId) {
     return;
   }
   const iacBody = document.getElementById('iac-body-' + entryId);
-  let paxTotalActualizado = 0, asistentesActualizados = 0;
-  if (iacBody) {
-    iacBody.querySelectorAll('div[style*="grid-template-columns"]').forEach(function(row, ci) {
-      const adEl = document.getElementById('ic-ca-' + entryId + '-' + ci);
-      const menEl = document.getElementById('ic-cm-' + entryId + '-' + ci);
-      const ad = parseInt(adEl ? adEl.value : 0) || 0;
-      const men = parseInt(menEl ? menEl.value : 0) || 0;
-      paxTotalActualizado += ad + men;
-      const chk = row.querySelector('input[type="checkbox"]');
-      if (chk && chk.checked) asistentesActualizados += ad + men;
-    });
-  } else {
-    paxTotalActualizado = parseInt(entry.paxTotal) || 0;
-    asistentesActualizados = parseInt(entry.asistentes) || 0;
-  }
+let paxTotalActualizado = 0, asistentesActualizados = 0;
+if (iacBody) {
+  iacBody.querySelectorAll('div[style*="grid-template-columns"]').forEach(function(row, ci) {
+    const adEl = document.getElementById('ic-ca-' + entryId + '-' + ci);
+    const menEl = document.getElementById('ic-cm-' + entryId + '-' + ci);
+    const ad = parseInt(adEl ? adEl.value : 0) || 0;
+    const men = parseInt(menEl ? menEl.value : 0) || 0;
+    paxTotalActualizado += ad + men;
+    const chk = row.querySelector('input[type="checkbox"]');
+    if (chk && chk.checked) asistentesActualizados += ad + men;
+  });
+} else {
+  paxTotalActualizado = parseInt(entry.paxTotal) || 0;
+  asistentesActualizados = parseInt(entry.asistentes) || 0;
+}
   const semInfo = getSemanaKey(entry.fecha);
-  const updatedEntry = {...entry, creditos, paxTotal: paxTotalActualizado, asistentes: asistentesActualizados, estadoPago: 'pendiente', semana: semInfo.key, timestamp: new Date().toISOString()};
+const updatedEntry = {...entry, creditos, paxTotal: paxTotalActualizado, asistentes: asistentesActualizados, estadoPago: 'pendiente', semana: semInfo.key, timestamp: new Date().toISOString()};
   delete updatedEntry.guia;
   let errores = [];
   try { await apiCall({ action: 'saveDossierEntry', guia, data: { ...updatedEntry, guia } }); }
@@ -1666,6 +1786,9 @@ async function registrarInforme(guia, entryId, jornadaId) {
   if (dossierEntries[guia]) delete dossierEntries[guia];
 }
 
+// ═══════════════════════════════════════════════════════════════
+//  DOSSIER
+// ═══════════════════════════════════════════════════════════════
 async function initDossier(){
   await loadGuiasForDatalist();
   showLoading();
@@ -1776,24 +1899,24 @@ function renderDossierContent(guia){
   }
   h+='</div>';
   const totalGlobal = Object.values(mesMap).reduce((s,m)=>s+m.total,0);
-  const pagadoGlobal = Object.values(mesMap).reduce((s,m)=>s+m.pagado,0);
-  const pendienteGlobal = totalGlobal - pagadoGlobal;
-  h+=`<div style="margin-top:30px">
-    <div style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:12px">📅 Score mensual — ${escH(guia)}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px">
-      <div style="background:var(--graphite);border:1px solid var(--smoke);border-radius:8px;padding:14px;text-align:center">
-        <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--white)">${totalGlobal.toFixed(2).replace(/\.00$/,'')} cr.</div>
-        <div style="font-size:.68rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em">Total</div>
-      </div>
-      <div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:14px;text-align:center">
-        <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--gold)">${pendienteGlobal.toFixed(2).replace(/\.00$/,'')} cr.</div>
-        <div style="font-size:.68rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em">⏳ Pendiente</div>
-      </div>
-      <div style="background:rgba(39,174,96,.06);border:1px solid rgba(39,174,96,.3);border-radius:8px;padding:14px;text-align:center">
-        <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--green)">${pagadoGlobal.toFixed(2).replace(/\.00$/,'')} cr.</div>
-        <div style="font-size:.68rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em">✅ Cobrado</div>
-      </div>
-    </div>`;
+const pagadoGlobal = Object.values(mesMap).reduce((s,m)=>s+m.pagado,0);
+const pendienteGlobal = totalGlobal - pagadoGlobal;
+h+=`<div style="margin-top:30px">
+  <div style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:12px">📅 Score mensual — ${escH(guia)}</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px">
+    <div style="background:var(--graphite);border:1px solid var(--smoke);border-radius:8px;padding:14px;text-align:center">
+      <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--white)">${totalGlobal.toFixed(2).replace(/\.00$/,'')} cr.</div>
+      <div style="font-size:.68rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em">Total</div>
+    </div>
+    <div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:14px;text-align:center">
+      <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--gold)">${pendienteGlobal.toFixed(2).replace(/\.00$/,'')} cr.</div>
+      <div style="font-size:.68rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em">⏳ Pendiente</div>
+    </div>
+    <div style="background:rgba(39,174,96,.06);border:1px solid rgba(39,174,96,.3);border-radius:8px;padding:14px;text-align:center">
+      <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--green)">${pagadoGlobal.toFixed(2).replace(/\.00$/,'')} cr.</div>
+      <div style="font-size:.68rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em">✅ Cobrado</div>
+    </div>
+  </div>`;
   Object.keys(mesMap).sort().reverse().forEach(mk=>{
     const sm=mesMap[mk],pend=sm.total-sm.pagado,todo=pend===0&&sm.total>0;
     const p=mk.split('-'),nm=mnFull[parseInt(p[1])-1]+' '+p[0];
@@ -1926,6 +2049,9 @@ function downloadDossierPublic(guia){
   showToast('Vista pública de '+guia+' descargada ✓');
 }
 
+// ═══════════════════════════════════════════════════════════════
+//  GUÍAS
+// ═══════════════════════════════════════════════════════════════
 async function initGuias(){
   const grid=document.getElementById('guiasGrid');
   grid.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando guías...</div>';
@@ -2018,6 +2144,9 @@ document.addEventListener('click',e=>{
   else if(action==='eliminar')eliminarGuia(btn.getAttribute('data-nombre'));
 });
 
+// ═══════════════════════════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════════════════════════
 function updateDashboard(){
   document.getElementById('dash-total-res').textContent=reservas.filter(r=>r.estado!=='cancelada').length||'—';
   document.getElementById('dash-tours-activos').textContent=tours.filter(t=>t.activo==='true'||t.activo===true||t.activo==='TRUE').length||tours.length||'—';
@@ -2046,6 +2175,9 @@ function updateDashboard(){
     </div>`).join('');
 }
 
+// ═══════════════════════════════════════════════════════════════
+//  BUILD GUIDE HTML
+// ═══════════════════════════════════════════════════════════════
 function buildGuideHTML(jornada){
   const dataObj={
     name:jornada.tours.map(x=>x.tourNombre).join(' + '),
@@ -2137,89 +2269,10 @@ function tog(ti){var body=document.getElementById('ab'+ti),hdr=document.getEleme
 function mkAdj(ti,ci,f,lbl,val){var row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:4px';var lb=document.createElement('span');lb.className='albl';lb.textContent=lbl;var ctrl=document.createElement('div');ctrl.className='actrl';var bm=document.createElement('button');bm.textContent='-';bm.onclick=(function(a,b,c){return function(){ap(a,b,c,-1);};})(ti,ci,f);var vs=document.createElement('span');vs.className='aval';vs.id=(f==='a'?'ra':'rm')+ti+'_'+ci;vs.textContent=val!=null?val:0;var bp=document.createElement('button');bp.textContent='+';bp.onclick=(function(a,b,c){return function(){ap(a,b,c,1);};})(ti,ci,f);ctrl.appendChild(bm);ctrl.appendChild(vs);ctrl.appendChild(bp);row.appendChild(lb);row.appendChild(ctrl);return row;}
 function rc(){var el=document.getElementById('cl');el.innerHTML='';tours.forEach(function(tx,ti){var wrap=document.createElement('div');wrap.style.cssText='margin-bottom:12px';var hdr=document.createElement('div');hdr.id='ah'+ti;hdr.className='achdr'+(ti===0?' open':'');hdr.onclick=(function(i){return function(){tog(i);};})(ti);var hl=document.createElement('div');var ht=document.createElement('div');ht.style.cssText='font-weight:700;font-size:15px;color:#1B2B4B;margin-bottom:3px';ht.textContent=tx.tourNombre;var hm=document.createElement('div');hm.style.cssText='font-size:12px;color:#6B7280;display:flex;align-items:center;gap:10px';var htime=document.createElement('span');htime.textContent='🕐 '+(tx.horario||'--')+'h';var hstat=document.createElement('span');hstat.id='ts'+ti;hstat.style.cssText='background:#FFF0E8;color:#C4622D;padding:2px 8px;border-radius:10px;font-weight:700;font-size:11px';hm.appendChild(htime);hm.appendChild(hstat);hl.appendChild(ht);hl.appendChild(hm);var hr2=document.createElement('div');hr2.style.cssText='display:flex;align-items:center;gap:8px;flex-shrink:0';var arrow=document.createElement('span');arrow.id='aw'+ti;arrow.style.cssText='font-size:11px;color:#9CA3AF';arrow.textContent=ti===0?'▲':'▼';hr2.appendChild(arrow);hdr.appendChild(hl);hdr.appendChild(hr2);var body=document.createElement('div');body.id='ab'+ti;body.className='acbody'+(ti===0?' open':'');tx.clients.forEach(function(c,ci){var div=document.createElement('div');div.className='ci'+(c.present?' done':'');div.id='ci'+ti+'_'+ci;var chk=document.createElement('input');chk.type='checkbox';chk.checked=!!c.present;chk.onchange=(function(a,b){return function(){tp(a,b,this.checked);};})(ti,ci);var inf=document.createElement('div');inf.className='cinf';var nm=document.createElement('div');nm.className='cnm';nm.textContent=c.name;var px=document.createElement('div');px.className='cpx';px.id='px'+ti+'_'+ci;px.textContent=rl(c);var rs=document.createElement('div');rs.className='crs';rs.textContent='Reservado: '+pl(c);inf.appendChild(nm);inf.appendChild(px);inf.appendChild(rs);if(c.wa){var wa=document.createElement('a');wa.href='https://wa.me/'+c.wa.replace(/[^0-9]/g,'');wa.className='wl';wa.target='_blank';wa.textContent='📱 '+c.wa;inf.appendChild(wa);}var adj=document.createElement('div');adj.className='cadj';adj.appendChild(mkAdj(ti,ci,'a','Adultos',c.realAdults));adj.appendChild(mkAdj(ti,ci,'m','Menores',c.realMinors));inf.appendChild(adj);div.appendChild(chk);div.appendChild(inf);body.appendChild(div);});wrap.appendChild(hdr);wrap.appendChild(body);el.appendChild(wrap);uts(ti);});us();}
 function ae(){var idx=extras.length;extras.push({name:'',adults:1,minors:0,wa:'',present:false});var cont=document.getElementById('ei');var d=document.createElement('div');d.className='xcard';d.id='ex'+idx;var ni=document.createElement('input');ni.type='text';ni.placeholder='Nombre walk-in';ni.oninput=(function(i){return function(){extras[i].name=this.value;};})(idx);var xb=document.createElement('button');xb.textContent='×';xb.onclick=(function(i){return function(){extras[i]=null;var el=document.getElementById('ex'+i);if(el)el.remove();us();};})(idx);var top=document.createElement('div');top.className='xtop';top.appendChild(ni);top.appendChild(xb);var ai=document.createElement('input');ai.type='number';ai.min='0';ai.value='1';ai.onchange=(function(i){return function(){extras[i].adults=parseInt(this.value)||0;us();};})(idx);var mi=document.createElement('input');mi.type='number';mi.min='0';mi.value='0';mi.onchange=(function(i){return function(){extras[i].minors=parseInt(this.value)||0;us();};})(idx);var wi=document.createElement('input');wi.type='text';wi.placeholder='+34...';wi.oninput=(function(i){return function(){extras[i].wa=this.value;};})(idx);var pc=document.createElement('input');pc.type='checkbox';pc.style.cssText='width:18px;height:18px;accent-color:#C4622D;cursor:pointer;';pc.onchange=(function(i){return function(){extras[i].present=this.checked;us();};})(idx);var pl2=document.createElement('label');pl2.style.cssText='display:flex;align-items:center;gap:5px;font-size:12px;color:#6B7280;cursor:pointer;';pl2.appendChild(pc);pl2.appendChild(document.createTextNode(' Presente'));var ap2=document.createElement('div');ap2.className='pcnt';ap2.appendChild(document.createTextNode('Ad.'));ap2.appendChild(ai);var mp2=document.createElement('div');mp2.className='pcnt';mp2.appendChild(document.createTextNode('Men.'));mp2.appendChild(mi);var wp2=document.createElement('div');wp2.className='pwa';wp2.appendChild(document.createTextNode('📱'));wp2.appendChild(wi);var bot=document.createElement('div');bot.className='xbot';bot.appendChild(ap2);bot.appendChild(mp2);bot.appendChild(wp2);bot.appendChild(pl2);d.appendChild(top);d.appendChild(bot);cont.appendChild(d);us();}
-function dr(){var notes=document.getElementById('gn').value.trim();var gP=0,gT=0;tours.forEach(function(tx){tx.clients.forEach(function(c){var a=c.realAdults!=null?c.realAdults:c.adults,m=c.realMinors!=null?c.realMinors:c.minors;gT+=a+m;if(c.present)gP+=a+m;});});extras.filter(Boolean).forEach(function(e){if(e&&e.name){gT+=(e.adults||0)+(e.minors||0);if(e.present)gP+=(e.adults||0)+(e.minors||0);}});var hdr='<thead><tr style="background:#F3F4F6"><th style="padding:8px 10px;font-size:11px;color:#6B7280;text-transform:uppercase">#</th><th style="padding:8px 10px;font-size:11px;color:#6B7280;text-transform:uppercase">Pasajero</th><th style="padding:8px 10px;font-size:11px;color:#6B7280;text-transform:uppercase">Reserva</th><th style="padding:8px 10px;font-size:11px;color:#6B7280;text-transform:uppercase">Real</th><th style="padding:8px 10px;font-size:11px;color:#6B7280;text-transform:uppercase">WhatsApp</th><th style="padding:8px 10px;text-align:center;font-size:11px;color:#6B7280;text-transform:uppercase">Asist.</th></tr></thead>';var rows=[];tours.forEach(function(tx){tx.clients.forEach(function(c,ci){var a=c.realAdults!=null?c.realAdults:c.adults,m=c.realMinors!=null?c.realMinors:c.minors,rp=[];if(a)rp.push(a+' Pax');if(m)rp.push(m+'M');rows.push('<tr><td style="padding:8px 10px;border-bottom:1px solid #eee">'+(rows.length+1)+'</td><td style="padding:8px 10px;border-bottom:1px solid #eee;font-weight:600">'+eh(c.name)+'</td><td style="padding:8px 10px;border-bottom:1px solid #eee;color:#777;font-size:12px">'+pl(c)+'</td><td style="padding:8px 10px;border-bottom:1px solid #eee">'+(rp.join(' ')||'0')+' ('+(a+m)+' PAX)</td><td style="padding:8px 10px;border-bottom:1px solid #eee">'+eh(c.wa||'')+'</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:center">'+(c.present?'<span style="color:#1D9E75;font-weight:700">✓</span>':'<span style="color:#ccc">—</span>')+'</td></td>');});});var rhtml='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte</title><style>body{font-family:Segoe UI,Arial,sans-serif;background:#f4f4f4;padding:20px}.wrap{max-width:760px;margin:0 auto}.hdr{background:#1B2B4B;color:#fff;padding:18px 22px;border-radius:10px;margin-bottom:16px}</style></head><body><div class="wrap"><div class="hdr"><div style="font-size:20px;font-weight:700">'+eh(_D.name)+'</div><div style="font-size:13px;opacity:.8">'+fd(_D.date)+' · Guía: '+eh(_D.guide)+'</div><div style="font-size:13px;opacity:.7;margin-top:2px">✓ '+gP+'/'+gT+' presentes</div></div><table style="width:100%;border-collapse:collapse;font-size:13px;background:#fff;border-radius:8px;overflow:hidden">'+hdr+'<tbody>'+rows.join('')+'</tbody></table>'+(notes?'<div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;padding:14px;font-size:13px;margin-top:16px"><b>Notas</b><p style="margin-top:6px">'+eh(notes)+'</p></div>':'')+'</div></body></html>';var b=new Blob([rhtml],{type:'text/html;charset=utf-8'});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download='REPORTE-'+_D.date+'-'+_D.guide.replace(/\\s+/g,'-').toUpperCase()+'.html';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);toast('✓ Reporte descargado');}
+function dr(){var notes=document.getElementById('gn').value.trim();var gP=0,gT=0;tours.forEach(function(tx){tx.clients.forEach(function(c){var a=c.realAdults!=null?c.realAdults:c.adults,m=c.realMinors!=null?c.realMinors:c.minors;gT+=a+m;if(c.present)gP+=a+m;});});extras.filter(Boolean).forEach(function(e){if(e&&e.name){gT+=(e.adults||0)+(e.minors||0);if(e.present)gP+=(e.adults||0)+(e.minors||0);}});var hdr='<thead><tr style="background:#F3F4F6"><th style="padding:8px 10px;font-size:11px;color:#6B7280;text-transform:uppercase">#</th><th style="padding:8px 10px;font-size:11px;color:#6B7280;text-transform:uppercase">Pasajero</th><th style="padding:8px 10px;font-size:11px;color:#6B7280;text-transform:uppercase">Reserva</th><th style="padding:8px 10px;font-size:11px;color:#6B7280;text-transform:uppercase">Real</th><th style="padding:8px 10px;font-size:11px;color:#6B7280;text-transform:uppercase">WhatsApp</th><th style="padding:8px 10px;text-align:center;font-size:11px;color:#6B7280;text-transform:uppercase">Asist.</th></tr></thead>';var rows=[];tours.forEach(function(tx){tx.clients.forEach(function(c,ci){var a=c.realAdults!=null?c.realAdults:c.adults,m=c.realMinors!=null?c.realMinors:c.minors,rp=[];if(a)rp.push(a+' Pax');if(m)rp.push(m+'M');rows.push('<tr><td style="padding:8px 10px;border-bottom:1px solid #eee">'+(rows.length+1)+'</td><td style="padding:8px 10px;border-bottom:1px solid #eee;font-weight:600">'+eh(c.name)+'</td><td style="padding:8px 10px;border-bottom:1px solid #eee;color:#777;font-size:12px">'+pl(c)+'</td><td style="padding:8px 10px;border-bottom:1px solid #eee">'+(rp.join(' ')||'0')+' ('+(a+m)+' PAX)</td><td style="padding:8px 10px;border-bottom:1px solid #eee">'+eh(c.wa||'')+'</td><td style="padding:8px 10px;border-bottom:1px solid #eee;text-align:center">'+(c.present?'<span style="color:#1D9E75;font-weight:700">✓</span>':'<span style="color:#ccc">—</span>')+'</td></tr>');});});var rhtml='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte</title><style>body{font-family:Segoe UI,Arial,sans-serif;background:#f4f4f4;padding:20px}.wrap{max-width:760px;margin:0 auto}.hdr{background:#1B2B4B;color:#fff;padding:18px 22px;border-radius:10px;margin-bottom:16px}</style></head><body><div class="wrap"><div class="hdr"><div style="font-size:20px;font-weight:700">'+eh(_D.name)+'</div><div style="font-size:13px;opacity:.8">'+fd(_D.date)+' · Guía: '+eh(_D.guide)+'</div><div style="font-size:13px;opacity:.7;margin-top:2px">✓ '+gP+'/'+gT+' presentes</div></div><table style="width:100%;border-collapse:collapse;font-size:13px;background:#fff;border-radius:8px;overflow:hidden">'+hdr+'<tbody>'+rows.join('')+'</tbody></table>'+(notes?'<div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:8px;padding:14px;font-size:13px;margin-top:16px"><b>Notas</b><p style="margin-top:6px">'+eh(notes)+'</p></div>':'')+'</div></body></html>';var b=new Blob([rhtml],{type:'text/html;charset=utf-8'});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download='REPORTE-'+_D.date+'-'+_D.guide.replace(/\\s+/g,'-').toUpperCase()+'.html';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);toast('✓ Reporte descargado');}
 rc();
 <\/script>
 </body></html>`;
-}
-
-function evaluarLimpieza(){
-  const antiguas=getReservasAntiguas();if(!antiguas.length)return;
-  const state=getLimpiezaState();const hoy=new Date();
-  if(state.ultimaLimpieza&&Math.floor((hoy-new Date(state.ultimaLimpieza))/86400000)<DIAS_AVISO)return;
-  const sorted=[...antiguas].sort((a,b)=>String(a.fecha)>String(b.fecha)?1:-1);
-  const dias=Math.floor((hoy-new Date(sorted[0].fecha+'T00:00:00'))/86400000);
-  const banner=document.getElementById('bannerLimpieza');
-  if(dias>=DIAS_ULTIMATUM){
-    const rest=DIAS_BORRADO_AUTO-dias;
-    banner.innerHTML=`<div class="banner-lim ultimatum"><div class="banner-icon">🚨</div><div class="banner-body"><div class="banner-title" style="color:#e74c3c">Último aviso — borrado en ${rest} día${rest!==1?'s':''}</div><div class="banner-text">${antiguas.length} reservas sin archivar.</div><div class="banner-acts"><button class="btn btn-gold btn-sm" onclick="accionDescargarYLimpiar()">⬇ Descargar y limpiar</button></div></div></div>`;
-  }else{
-    banner.innerHTML=`<div class="banner-lim aviso"><div class="banner-icon">🗂</div><div class="banner-body"><div class="banner-title" style="color:var(--gold)">Hay reservas para archivar</div><div class="banner-text">${antiguas.length} reservas con más de ${DIAS_AVISO} días.</div><div class="banner-acts"><button class="btn btn-gold btn-sm" onclick="accionDescargarYLimpiar()">⬇ Descargar y limpiar</button><button class="btn btn-ghost btn-sm" onclick="document.getElementById('bannerLimpieza').innerHTML=''">Luego</button></div></div></div>`;
-  }
-}
-
-async function renderClientes(){
-  const container=document.getElementById('clientesContainer');
-  container.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando clientes...</div>';
-  try{
-    const raw=await apiCall({action:'getClientes'});
-    _clientes=(Array.isArray(raw)?raw:[]);
-    filtrarClientes();
-  }catch(e){container.innerHTML=`<div class="empty-state"><div class="ei">⚠️</div>Error: ${escH(e.message)}</div>`;}
-}
-
-function filtrarClientes(){
-  const q=(document.getElementById('filtroCliente')?.value||'').toLowerCase().trim();
-  const lista=q?_clientes.filter(c=>
-    (c.nombre||'').toLowerCase().includes(q)||
-    (c.whatsapp||'').replace(/\s/g,'').includes(q.replace(/\s/g,''))||
-    (c.email||'').toLowerCase().includes(q)
-  ):_clientes;
-  const count=document.getElementById('clientesCount');
-  if(count)count.textContent=lista.length+' cliente'+(lista.length!==1?'s':'');
-  const container=document.getElementById('clientesContainer');
-  if(!lista.length){container.innerHTML='<div class="empty-state"><div class="ei">📇</div>'+(q?'Sin resultados para "'+escH(q)+'"':'Aún no hay clientes archivados.')+'</div>';return;}
-  const sorted=[...lista].sort((a,b)=>(b.ultima_fecha||'')>(a.ultima_fecha||'')?1:-1);
-  let html=`<div class="clientes-grid"><div class="cliente-card cliente-card-header">
-    <span>Cliente</span><span>WhatsApp</span><span>Email</span><span>Primer tour</span><span>Último tour</span><span>Reservas</span><span>Acciones</span>
-  </div>`;
-  sorted.forEach(c=>{
-    html+=`<div class="cliente-card">
-      <span style="font-weight:500;color:var(--white)">${escH(c.nombre||'—')}</span>
-      <span><a href="https://wa.me/${(c.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="cliente-wa">${escH(c.whatsapp||'—')}</a></span>
-      <span style="color:var(--muted)">${escH(c.email||'—')}</span>
-      <span style="font-size:.78rem;color:var(--muted)">${escH(c.primer_tour||'—')}<br>${escH(c.primer_fecha||'')}</span>
-      <span style="font-size:.78rem">${escH(c.ultimo_tour||'—')}<br><span style="color:var(--muted)">${escH(c.ultima_fecha||'')}</span></span>
-      <span><span class="badge b-gold">${c.cant_reservas||1}</span> · ${c.total_pax||0} pax</span>
-      <span>
-        <button class="btn-cliente-eliminar" onclick="eliminarCliente('${escH(c.whatsapp)}')">🗑 Eliminar</button>
-      </span>
-    </div>`;
-  });
-  html+='</div>';
-  container.innerHTML=html;
-}
-
-async function eliminarCliente(whatsapp){
-  if(!confirm('¿Eliminar este cliente y todo su historial? Esta acción no se puede deshacer.'))return;
-  showLoading();
-  try{
-    await apiCall({action:'deleteCliente',whatsapp});
-    showToast('Cliente eliminado ✓');
-    renderClientes();
-  }catch(e){showToast('Error al eliminar: '+e.message,'error');}
-  hideLoading();
-}
-
-function exportarCSVClientes(){
-  if(!_clientes.length){showToast('No hay clientes','error');return;}
-  const sorted=[..._clientes].sort((a,b)=>(b.ultima_fecha||'')>(a.ultima_fecha||'')?1:-1);
-  const esc=v=>'\"'+String(v==null?'':v).replace(/"/g,'""')+'\"';
-  const h=['WhatsApp','Nombre','Email','Primer tour','Primera fecha','Último tour','Última fecha','Reservas','PAX total'];
-  const filas=sorted.map(c=>[c.whatsapp,c.nombre,c.email,c.primer_tour,c.primer_fecha,c.ultimo_tour,c.ultima_fecha,c.cant_reservas,c.total_pax].map(esc).join(','));
-  const blob=new Blob(['\uFEFF'+[h.join(','),...filas].join('\r\n')],{type:'text/csv;charset=utf-8;'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='clientes_gdp_'+new Date().toISOString().slice(0,10)+'.csv';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
 }
 
 async function init(){
