@@ -16,7 +16,6 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--noir);color:var(--white);font-family:'DM Sans',sans-serif;font-weight:300;min-height:100vh;}
-/* --- MODALES --- */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;align-items:center;justify-content:center;padding:20px;}
 .modal-overlay.open{display:flex;}
 .modal{background:var(--charcoal);border:1px solid var(--graphite);border-radius:16px;padding:24px;width:100%;max-width:480px;box-shadow:0 20px 40px rgba(0,0,0,0.5);}
@@ -32,9 +31,8 @@ body{background:var(--noir);color:var(--white);font-family:'DM Sans',sans-serif;
 .btn-modal:hover{opacity:.88;}
 .btn-modal-cancel{background:transparent;color:var(--muted);border:1px solid var(--graphite);}
 .btn-modal-cancel:hover{background:rgba(255,255,255,.05);}
-/* --- RESTO DE ESTILOS (igual que antes) --- */
 .topbar{background:var(--charcoal);border-bottom:1px solid var(--graphite);padding:0 28px;display:flex;align-items:center;flex-wrap:wrap;}
-.topbar-brand{font-family:'Playfair Display',serif;font-size:1rem;color:var(--gold);letter-spacing:.05em;padding:14px 20px 14px 0;border-right:1px solid var(--graphite);margin-right:8px;white-space:nowrap;}
+.topbar-brand{font-family:'Playfair Display',serif;font-size:1rem;color:var(--gold);letter-spacing:.05em;padding:14px 20px 14px 0;border-right:1px solid var(--graphite);margin-right:8px;white-space:nowrap;flex-shrink:0;}
 .topbar-brand span{color:var(--white);font-weight:400;}
 .topbar-nav{display:flex;align-items:center;flex:1;flex-wrap:wrap;}
 .nav-item{display:flex;align-items:center;gap:7px;padding:18px 14px;color:var(--muted);font-size:.8rem;cursor:pointer;border-bottom:2px solid transparent;transition:all .18s;user-select:none;white-space:nowrap;}
@@ -113,22 +111,14 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
 .bloqueos-grid{display:grid;gap:10px;}
 .bloqueo-card{background:var(--charcoal);border:1px solid var(--graphite);border-radius:8px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px;}
 .filter-bar{display:flex;gap:10px;margin-bottom:18px;align-items:center;flex-wrap:wrap;}
+.filter-bar input,.filter-bar select{background:var(--charcoal);border:1px solid var(--smoke);border-radius:6px;color:var(--white);padding:8px 12px;font-size:.84rem;}
 .empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
 .empty-state .ei{font-size:2.8rem;margin-bottom:12px;opacity:.7;}
-.modal{background:var(--charcoal);border:1px solid var(--graphite);border-radius:12px;padding:28px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;}
-.modal-title{font-family:'Playfair Display',serif;font-size:1.15rem;margin-bottom:20px;color:var(--gold);}
-.form-group{margin-bottom:15px;}
-label{display:block;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
-input,textarea,select{width:100%;background:var(--graphite);border:1px solid var(--smoke);border-radius:6px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:.88rem;padding:10px 13px;outline:none;transition:border-color .2s;}
-input:focus,textarea:focus,select:focus{border-color:var(--gold);}
-select option{background:var(--graphite);}
-textarea{resize:vertical;min-height:70px;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .dias-checks{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:4px;}
 .dia-check{display:flex;align-items:center;gap:5px;background:var(--graphite);border:1px solid var(--smoke);border-radius:6px;padding:8px 9px;cursor:pointer;font-size:.8rem;}
 .dia-check input{width:auto;margin:0;}
 .dia-check:has(input:checked){background:rgba(201,168,76,.14);border-color:var(--gold);color:var(--gold);}
-.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
 .civ-header{background:linear-gradient(135deg,rgba(196,98,45,.14),rgba(201,168,76,.06));border:1px solid rgba(196,98,45,.3);border-radius:12px;padding:20px 24px;margin-bottom:22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
 .civ-brand{font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--terra);font-style:italic;}
 .civ-info{flex:1;}
@@ -465,7 +455,7 @@ textarea{resize:vertical;min-height:70px;}
       </div>
     </div>
     <div class="filter-bar">
-      <input type="search" id="filtroCliente" placeholder="Buscar por nombre, WhatsApp o email…" oninput="filtrarClientes()" style="flex:1;max-width:380px;background:var(--charcoal);border:1px solid var(--graphite);border-radius:6px;color:var(--white);padding:8px 12px;font-size:.84rem;outline:none">
+      <input type="search" id="filtroCliente" placeholder="Buscar por nombre, WhatsApp o email…" oninput="filtrarClientes()" style="flex:1;max-width:380px">
       <span id="clientesCount" style="font-size:.76rem;color:var(--muted)"></span>
     </div>
     <div id="clientesContainer"><div class="empty-state"><div class="ei">📇</div>Cargando...</div></div>
@@ -503,7 +493,7 @@ textarea{resize:vertical;min-height:70px;}
 
 </div>
 
-<!-- MODALES MEJORADAS -->
+<!-- MODALES -->
 <div id="modalEditCliente" class="modal-overlay">
   <div class="modal">
     <div class="modal-title">✏️ Editar cliente <button class="modal-close" onclick="cerrarModal('modalEditCliente')">✕</button></div>
@@ -567,7 +557,7 @@ const CIV_MOCK = {
 };
 
 let tours=[], bloqueos=[], reservas=[], jornadasList=[], opsTours={};
-let editingTourId=null, editingOpsId=null, editingGuiaNombre=null;
+let editingTourId=null, editingOpsId=null, editingGuiaNombre=null, editingClienteJornadaId=null;
 let civData=null, USE_MOCK_CIV=true;
 let dossierGuias=[], dossierActivo=null, dossierEntries={}, pagosEntries={};
 let guiasData=[], informesPendientes=[], _clientes=[];
@@ -630,6 +620,15 @@ function nav(sec){
 }
 
 // =================== OPERACIONES UNIFICADAS ===================
+async function cargarGuiasParaModales() {
+  try {
+    const resp = await apiCall({ action: 'getGuiasData' });
+    guiasData = Array.isArray(resp) ? resp : [];
+  } catch(e) {
+    console.warn('Error cargando guías:', e);
+  }
+}
+
 async function cargarOperaciones() {
   const container = document.getElementById('operacionesContainer');
   if(!container) return;
@@ -667,8 +666,6 @@ function renderOperacionesUnificado() {
     else grupos.get(key).jornadas.push(op);
   });
   const gruposArray = Array.from(grupos.values()).sort((a,b)=> a.fecha > b.fecha ? -1 : 1);
-  const countSpan = document.getElementById('operacionesCount');
-  if(countSpan) countSpan.innerHTML = `${gruposArray.length} grupo(s)`;
   if(!gruposArray.length) { container.innerHTML = '<div class="empty-state"><div class="ei">✅</div>No hay operaciones.</div>'; return; }
   let html = '';
   gruposArray.forEach((g, idx) => {
@@ -689,7 +686,6 @@ function renderOperacionesUnificado() {
       </div>`;
     });
     g.jornadas.forEach(j => {
-      const paxTotalJ = (j.clientes||[]).reduce((s,c)=>s+(parseInt(c.adults)||0)+(parseInt(c.minors)||0),0);
       html += `<div class="acordeon-grupo" style="margin-top:8px; border:1px solid var(--informe);">
         <div class="acordeon-grupo-header" onclick="toggleClienteJornada('clientes-jornada-${j.id}')" style="background:rgba(139,92,246,0.2);">
           <span>📋 JORNADA · Guía: ${escH(j.guia)}</span>
@@ -761,8 +757,8 @@ async function eliminarJornadaCompleta(jornadaId){
   showToast('Jornada eliminada');
 }
 
-// =================== MEJORAS: CRUD JORNADAS ===================
-function editarCliente(jornadaId, idx, nombre, adultos, menores, wa){
+async function editarCliente(jornadaId, idx, nombre, adultos, menores, wa){
+  editingClienteJornadaId = jornadaId;
   document.getElementById('editClienteId').value = idx;
   document.getElementById('editClienteJornadaId').value = jornadaId;
   document.getElementById('editClienteNombre').value = nombre;
@@ -793,10 +789,17 @@ function abrirModalCambiarGuia(jornadaId, guiaActual){
   document.getElementById('cambiarGuiaJornadaId').value = jornadaId;
   const select = document.getElementById('cambiarGuiaSelect');
   select.innerHTML = '<option value="">— Selecciona un guía —</option>';
-  guiasData.filter(g=>g.activo==='true').forEach(g => {
-    select.innerHTML += `<option value="${escH(g.nombre)}" ${g.nombre===guiaActual?'selected':''}>${escH(g.nombre)}</option>`;
-  });
-  abrirModal('modalCambiarGuia');
+  const cargarYMostrar = () => {
+    guiasData.filter(g=>g.activo==='true' || g.activo===true).forEach(g => {
+      select.innerHTML += `<option value="${escH(g.nombre)}" ${g.nombre===guiaActual?'selected':''}>${escH(g.nombre)}</option>`;
+    });
+    abrirModal('modalCambiarGuia');
+  };
+  if(guiasData.length === 0){
+    cargarGuiasParaModales().then(cargarYMostrar);
+  } else {
+    cargarYMostrar();
+  }
 }
 async function guardarCambioGuia(){
   const jornadaId = document.getElementById('cambiarGuiaJornadaId').value;
@@ -844,10 +847,17 @@ function abrirModalDuplicarJornada(jornadaId, fechaOriginal, guiaOriginal){
   document.getElementById('duplicarJornadaFecha').value = fechaOriginal;
   const select = document.getElementById('duplicarJornadaGuia');
   select.innerHTML = '<option value="">— Selecciona un guía —</option>';
-  guiasData.filter(g=>g.activo==='true').forEach(g => {
-    select.innerHTML += `<option value="${escH(g.nombre)}" ${g.nombre===guiaOriginal?'selected':''}>${escH(g.nombre)}</option>`;
-  });
-  abrirModal('modalDuplicarJornada');
+  const cargarYMostrar = () => {
+    guiasData.filter(g=>g.activo==='true' || g.activo===true).forEach(g => {
+      select.innerHTML += `<option value="${escH(g.nombre)}" ${g.nombre===guiaOriginal?'selected':''}>${escH(g.nombre)}</option>`;
+    });
+    abrirModal('modalDuplicarJornada');
+  };
+  if(guiasData.length === 0){
+    cargarGuiasParaModales().then(cargarYMostrar);
+  } else {
+    cargarYMostrar();
+  }
 }
 async function guardarDuplicarJornada(){
   const jornadaOriginalId = document.getElementById('duplicarJornadaOriginalId').value;
@@ -980,7 +990,7 @@ async function registrarEnSheetsConLog(guide, date, toursData){
   }
 }
 
-// =================== FUNCIONES EXISTENTES (resumidas) ===================
+// =================== FUNCIONES EXISTENTES ===================
 async function loadTours(){
   setSyncStatus('loading','Cargando...');
   try{
@@ -1021,10 +1031,10 @@ function openBloqueoModal(){document.getElementById('bFecha').value='';document.
 function closeBloqueoModal(){document.getElementById('bloqueoModal').classList.remove('open');}
 function exportarCSV(){const lista=reservas;if(!lista.length){showToast('No hay reservas','error');return;}const sorted=[...lista].sort((a,b)=>String(a.fecha)>String(b.fecha)?1:-1);const esc=v=>'"'+String(v).replace(/"/g,'""')+'"';const headers=['ID','Fecha','Tour','Horario','Cliente','WhatsApp','Adultos','Menores','Total','Estado','Vista','Timestamp','CreadoPor'];const filas=sorted.map(r=>[r.id,r.fecha,r.tourNombre,r.horario,r.nombre,r.whatsapp,r.adultos,r.menores,r.total,r.estado||'confirmada',r.vista||'no',r.timestamp,r.creadoPor||''].map(esc).join(','));const blob=new Blob(['\uFEFF'+[headers.join(','),...filas].join('\r\n')],{type:'text/csv;charset=utf-8;'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='reservas_'+(sorted[0]?.fecha||'export')+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);}
 async function refreshFromAPI(){setSyncStatus('loading','Actualizando...');try{const[rTours,rBloqueos]=await Promise.all([apiCall({action:'getTours'}),apiCall({action:'getBloqueos'})]);tours=(Array.isArray(rTours)?rTours.filter(t=>t&&t.id):[]).map(t=>({...t,horario:normalizarHorario(t.horario)}));bloqueos=(Array.isArray(rBloqueos)?rBloqueos:[]).map(b=>({...b,fecha:normalizarFecha(b.fecha)}));cacheSet('gdp_tours',tours);cacheSet('gdp_bloqueos',bloqueos);renderTours();populateTourSelect();renderBloqueos();setSyncStatus('ok','Sincronizado · '+new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}));updateDashboard();}catch(e){setSyncStatus('error','Error');showToast('Error al actualizar: '+e.message,'error',6000);}}
-async function loadGuiasForDatalist(){try{const resp=await apiCall({action:'getGuiasData'});if(!Array.isArray(resp))return;const activos=resp.filter(g=>g.activo==='true'||g.activo===true);const opts='<option value="">— Selecciona un guía —</option>'+activos.map(g=>`<option value="${escH(g.nombre)}">${escH(g.nombre)}</option>`).join('');const selGuide=document.getElementById('ot-guide');if(selGuide)selGuide.innerHTML=opts;const selNew=document.getElementById('newGuiaName');if(selNew)selNew.innerHTML=opts;guiasData=activos;}catch(e){console.warn(e);}}
+async function loadGuiasForDatalist(){try{const resp=await apiCall({action:'getGuiasData'});if(!Array.isArray(resp))return;const activos=resp.filter(g=>g.activo==='true'||g.activo===true);const opts='<option value="">— Selecciona un guía —</option>'+activos.map(g=>`<option value="${escH(g.nombre)}">${escH(g.nombre)}</option>`).join('');const selGuide=document.getElementById('ot-guide');if(selGuide)selGuide.innerHTML=opts;const selNew=document.getElementById('newGuiaName');if(selNew)selNew.innerHTML=opts;}catch(e){console.warn(e);}}
 function updateDashboard(){document.getElementById('dash-total-res').textContent=reservas.filter(r=>r.estado!=='cancelada').length||'—';document.getElementById('dash-tours-activos').textContent=tours.filter(t=>t.activo==='true'||t.activo===true).length||tours.length||'—';const hoy=new Date(),d7=new Date(hoy.getTime()+7*86400000);const paxWeek=reservas.filter(r=>{if(!r.fecha||r.estado==='cancelada')return false;const d=new Date(r.fecha+'T00:00:00');return d>=hoy&&d<=d7;}).reduce((s,r)=>s+(parseInt(r.adultos)||0)+(parseInt(r.menores)||0),0);document.getElementById('dash-pax').textContent=paxWeek||0;const recentDirect=[...reservas].sort((a,b)=>b.timestamp>a.timestamp?1:-1).slice(0,5);const ddEl=document.getElementById('dash-recent-direct');ddEl.innerHTML=recentDirect.length?recentDirect.map(r=>{const esNueva=String(r.vista)!=='si'&&r.estado!=='cancelada';return `<div class="recent-item"><div class="recent-dot" style="background:${r.estado==='cancelada'?'var(--muted)':esNueva?'var(--gold)':'var(--green)'}"></div><div class="recent-info"><div class="recent-name">${escH(r.nombre||'—')}${esNueva?'<span class="badge b-new" style="font-size:.58rem;margin-left:5px">NUEVA</span>':''}</div><div class="recent-meta">${formatDate(r.fecha)} · ${escH(r.tourNombre||'')}</div></div><span class="recent-tag rt-direct">Directo</span></div>`;}).join(''):'<div style="text-align:center;padding:20px;color:var(--muted);font-size:.82rem">Sin reservas todavía</div>';if(!civData)loadCivitatis().then(()=>updateDashboard());}
 async function loadCivitatis(){if(USE_MOCK_CIV)civData=CIV_MOCK;}
-function renderCivitatis(){if(!civData){loadCivitatis().then(()=>renderCivitatis());return;}document.getElementById('civMockBanner').style.display=USE_MOCK_CIV?'flex':'none';document.getElementById('civModeLabel').textContent=USE_MOCK_CIV?'Activo':'Inactivo';document.getElementById('civProductCards').innerHTML=civData.products.map(p=>{const bk=civData.bookings.filter(b=>b.productId===p.id&&b.status==='confirmed');const pax=bk.reduce((s,b)=>s+b.adults+b.children,0);return `<div class="civ-product"><div class="civ-product-name">🎯 ${escH(p.name)}</div><div class="civ-stats"><div class="civ-stat"><div class="civ-stat-n" style="color:var(--terra)">${bk.length}</div><div class="civ-stat-l">Reservas</div></div><div class="civ-stat"><div class="civ-stat-n" style="color:var(--gold)">${pax}</div><div class="civ-stat-l">PAX</div></div></div></div>`;}).join('');const filtro=document.getElementById('civFiltroEstado').value;const sorted=[...civData.bookings].filter(b=>filtro?b.status===filtro:true).sort((a,b)=>a.date<b.date?1:-1);if(!sorted.length){document.getElementById('civTable').innerHTML='<div class="empty-state"><div class="ei">📭</div>No hay reservas.</div>';return;}document.getElementById('civTable').innerHTML=`<table><thead><tr><th>ID</th><th>Fecha</th><th>Tour</th><th>Cliente</th><th>Teléfono</th><th>PAX</th><th>Importe</th><th>Estado</th></tr></thead><tbody>${sorted.map(b=>`<tr class="${b.status==='cancelled'?'cancelled':''}"><td style="font-family:monospace;font-size:.72rem;color:var(--muted)">${b.id}</td><td>${formatDate(b.date)}</td><td>${escH(b.productName)}</td><td>${escH(b.clientName)}</td><td><a href="https://wa.me/${b.phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold);text-decoration:none">📱 ${escH(b.phone)}</a></td><td>${b.adults}A${b.children?' '+b.children+'M':''}</td><td>${b.status==='cancelled'?'—':'<span class="total-tag">'+b.amount+'€</span>'}</td><td>${b.status==='cancelled'?'<span class="badge b-muted">Cancelada</span>':'<span class="badge b-terra">Confirmada</span>'}</td></tr>`).join('')}</tbody></table>`;}
+function renderCivitatis(){if(!civData){loadCivitatis().then(()=>renderCivitatis());return;}document.getElementById('civMockBanner').style.display=USE_MOCK_CIV?'flex':'none';document.getElementById('civModeLabel').textContent=USE_MOCK_CIV?'Activo':'Inactivo';document.getElementById('civProductCards').innerHTML=civData.products.map(p=>{const bk=civData.bookings.filter(b=>b.productId===p.id&&b.status==='confirmed');const pax=bk.reduce((s,b)=>s+b.adults+b.children,0);return `<div class="civ-product"><div class="civ-product-name">🎯 ${escH(p.name)}</div><div class="civ-stats"><div class="civ-stat"><div class="civ-stat-n" style="color:var(--terra)">${bk.length}</div><div class="civ-stat-l">Reservas</div></div><div class="civ-stat"><div class="civ-stat-n" style="color:var(--gold)">${pax}</div><div class="civ-stat-l">PAX</div></div></div></div>`;}).join('');const filtro=document.getElementById('civFiltroEstado').value;const sorted=[...civData.bookings].filter(b=>filtro?b.status===filtro:true).sort((a,b)=>a.date<b.date?1:-1);if(!sorted.length){document.getElementById('civTable').innerHTML='<div class="empty-state"><div class="ei">📭</div>No hay reservas.</div>';return;}document.getElementById('civTable').innerHTML=`<td><thead><tr><th>ID</th><th>Fecha</th><th>Tour</th><th>Cliente</th><th>Teléfono</th><th>PAX</th><th>Importe</th><th>Estado</th></tr></thead><tbody>${sorted.map(b=>`<tr class="${b.status==='cancelled'?'cancelled':''}"><td style="font-family:monospace;font-size:.72rem;color:var(--muted)">${b.id}</td><td>${formatDate(b.date)}</td><td>${escH(b.productName)}</td><td>${escH(b.clientName)}</td><td><a href="https://wa.me/${b.phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold);text-decoration:none">📱 ${escH(b.phone)}</a></td><td>${b.adults}A${b.children?' '+b.children+'M':''}</td><td>${b.status==='cancelled'?'—':'<span class="total-tag">'+b.amount+'€</span>'}</td><td>${b.status==='cancelled'?'<span class="badge b-muted">Cancelada</span>':'<span class="badge b-terra">Confirmada</span>'}</td></tr>`).join('')}</tbody></table>`;}
 function onMockToggle(){USE_MOCK_CIV=document.getElementById('civMockToggle').checked;civData=null;renderCivitatis();}
 async function renderClientes(){const container=document.getElementById('clientesContainer');container.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando clientes...</div>';try{const raw=await apiCall({action:'getClientes'});_clientes=Array.isArray(raw)?raw:[];filtrarClientes();}catch(e){container.innerHTML=`<div class="empty-state"><div class="ei">⚠️</div>Error: ${escH(e.message)}</div>`;}}
 function filtrarClientes(){const q=(document.getElementById('filtroCliente')?.value||'').toLowerCase().trim();const lista=q?_clientes.filter(c=>(c.nombre||'').toLowerCase().includes(q)||(c.whatsapp||'').replace(/\s/g,'').includes(q.replace(/\s/g,''))||(c.email||'').toLowerCase().includes(q)):_clientes;const count=document.getElementById('clientesCount');if(count)count.textContent=lista.length+' cliente'+(lista.length!==1?'s':'');const container=document.getElementById('clientesContainer');if(!lista.length){container.innerHTML='<div class="empty-state"><div class="ei">📇</div>'+(q?'Sin resultados para "'+escH(q)+'"':'Aún no hay clientes archivados.')+'</div>';return;}const sorted=[...lista].sort((a,b)=>(b.ultima_fecha||'')>(a.ultima_fecha||'')?1:-1);let html=`<div class="clientes-grid"><div class="cliente-card cliente-card-header"><span>Cliente</span><span>WhatsApp</span><span>Email</span><span>Primer tour</span><span>Último tour</span><span>Reservas</span><span>Acciones</span></div>`;sorted.forEach(c=>{html+=`<div class="cliente-card"><span style="font-weight:500;color:var(--white)">${escH(c.nombre||'—')}</span><span><a href="https://wa.me/${(c.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="cliente-wa">${escH(c.whatsapp||'—')}</a></span><span style="color:var(--muted)">${escH(c.email||'—')}</span><span style="font-size:.78rem;color:var(--muted)">${escH(c.primer_tour||'—')}<br>${escH(c.primer_fecha||'')}</span><span style="font-size:.78rem">${escH(c.ultimo_tour||'—')}<br><span style="color:var(--muted)">${escH(c.ultima_fecha||'')}</span></span><span><span class="badge b-gold">${c.cant_reservas||1}</span> · ${c.total_pax||0} pax</span><span><button class="btn-cliente-eliminar" onclick="eliminarCliente('${escH(c.whatsapp)}')">🗑 Eliminar</button></span></div>`;});html+='</div>';container.innerHTML=html;}
