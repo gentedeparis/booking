@@ -1763,18 +1763,28 @@ async function guardarDuplicarJornada(){
     return;
   }
   const clientesCopy = jornadaOriginal.clientes.map(c => ({ ...c, present: false }));
+  let errores = [];
   try {
     await apiCall({ action: 'saveJornada', data: { id: nuevaId, guia: nuevoGuia || jornadaOriginal.guia, fecha: nuevaFecha, tourId: jornadaOriginal.tourId, tourNombre: jornadaOriginal.tourNombre, horario: jornadaOriginal.horario, clientesJSON: JSON.stringify(clientesCopy), timestamp: new Date().toISOString() } });
+  } catch(e) { errores.push('Jornada: ' + e.message); }
+  try {
     const semInfo = getSemanaKey(nuevaFecha);
     const paxTotal = clientesCopy.reduce((s,c)=>s+(c.adults||0)+(c.minors||0),0);
     await apiCall({ action: 'saveDossierEntry', guia: nuevoGuia || jornadaOriginal.guia, data: { id: 'dos_' + nuevaId.replace('jor_',''), guia: nuevoGuia || jornadaOriginal.guia, fecha: nuevaFecha, tourNombre: jornadaOriginal.tourNombre, horario: jornadaOriginal.horario, paxTotal, asistentes: 0, creditos: 0, semana: semInfo.key, timestamp: new Date().toISOString() } });
-    jornadasList.push({ ...jornadaOriginal, id: nuevaId, guia: nuevoGuia || jornadaOriginal.guia, fecha: nuevaFecha, clientes: clientesCopy });
-    cerrarModal('modalDuplicarJornada');
-    await cargarOperaciones();
-    showToast('Jornada duplicada ✓');
-  } catch(e) {
-    showToast('Error al duplicar: ' + e.message, 'error');
+  } catch(e) { errores.push('Dossier: ' + e.message); }
+  
+  if(errores.length > 0){
+    showToast('⚠️ Duplicado con errores parciales: ' + errores.join(' | '), 'warning', 6000);
+  } else {
+    showToast('✅ Jornada duplicada correctamente', 'success');
   }
+  // Actualizar lista local y recargar
+  const nuevaJornada = { ...jornadaOriginal, id: nuevaId, guia: nuevoGuia || jornadaOriginal.guia, fecha: nuevaFecha, clientes: clientesCopy };
+  jornadasList.push(nuevaJornada);
+  _todasOperaciones = [...reservas, ...jornadasList];
+  _todasOperaciones.sort((a,b) => (a.fecha > b.fecha ? -1 : 1));
+  cerrarModal('modalDuplicarJornada');
+  renderOperacionesUnificado();
   if(btn){ btn.disabled = false; btn.textContent = '📋 Duplicar'; }
 }
 
