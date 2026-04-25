@@ -639,7 +639,7 @@ async function cargarOperaciones() {
       apiCall({ action: 'getAllJornadas' })
     ]);
     const reservasList = (Array.isArray(reservasRaw) ? reservasRaw : []).map(r => ({ ...r, fecha: normalizarFecha(r.fecha), horario: normalizarHorario(r.horario), tipo: 'reserva' }));
-    const jornadasList = (Array.isArray(jornadasRaw) ? jornadasRaw : []).map(j => {
+    jornadasList = (Array.isArray(jornadasRaw) ? jornadasRaw : []).map(j => {
       let clientes = [];
       try { clientes = JSON.parse(j.clientesJSON || '[]'); } catch(e) { clientes = []; }
       return { ...j, fecha: normalizarFecha(j.fecha), horario: normalizarHorario(j.horario), clientes, tipo: 'jornada' };
@@ -757,6 +757,7 @@ async function eliminarJornadaCompleta(jornadaId){
   showToast('Jornada eliminada');
 }
 
+// =================== EDICIÓN DE CLIENTES ===================
 async function editarCliente(jornadaId, idx, nombre, adultos, menores, wa){
   editingClienteJornadaId = jornadaId;
   document.getElementById('editClienteId').value = idx;
@@ -785,37 +786,79 @@ async function guardarEdicionCliente(){
   cargarOperaciones();
   showToast('Cliente editado ✓');
 }
+
+// =================== CAMBIAR GUÍA (CORREGIDO) ===================
 function abrirModalCambiarGuia(jornadaId, guiaActual){
   document.getElementById('cambiarGuiaJornadaId').value = jornadaId;
   const select = document.getElementById('cambiarGuiaSelect');
   select.innerHTML = '<option value="">— Selecciona un guía —</option>';
+  
   const cargarYMostrar = () => {
-    guiasData.filter(g=>g.activo==='true' || g.activo===true).forEach(g => {
-      select.innerHTML += `<option value="${escH(g.nombre)}" ${g.nombre===guiaActual?'selected':''}>${escH(g.nombre)}</option>`;
-    });
+    const guiasActivos = guiasData.filter(g => g.activo === 'true' || g.activo === true);
+    if(guiasActivos.length === 0) {
+      select.innerHTML = '<option value="">— No hay guías activos —</option>';
+    } else {
+      guiasActivos.forEach(g => {
+        select.innerHTML += `<option value="${escH(g.nombre)}" ${g.nombre === guiaActual ? 'selected' : ''}>${escH(g.nombre)}</option>`;
+      });
+    }
     abrirModal('modalCambiarGuia');
   };
-  if(guiasData.length === 0){
+  
+  if(!guiasData || guiasData.length === 0){
     cargarGuiasParaModales().then(cargarYMostrar);
   } else {
     cargarYMostrar();
   }
 }
+
 async function guardarCambioGuia(){
   const jornadaId = document.getElementById('cambiarGuiaJornadaId').value;
   const nuevoGuia = document.getElementById('cambiarGuiaSelect').value;
   if(!nuevoGuia){ showToast('Selecciona un guía','error'); return; }
-  const jornada = jornadasList.find(j => j.id === jornadaId);
-  if(!jornada){ showToast('Jornada no encontrada','error'); return; }
-  jornada.guia = nuevoGuia;
-  const clientesJSON = JSON.stringify(jornada.clientes);
-  await apiCall({ action: 'saveJornada', data: { id: jornadaId, guia: nuevoGuia, fecha: jornada.fecha, tourId: jornada.tourId, tourNombre: jornada.tourNombre, horario: jornada.horario, clientesJSON: clientesJSON, timestamp: new Date().toISOString() } });
-  if(opsTours[jornadaId]) opsTours[jornadaId].guide = nuevoGuia;
-  opsSaveLocal();
-  cerrarModal('modalCambiarGuia');
-  cargarOperaciones();
-  showToast(`Guía cambiado a ${nuevoGuia} ✓`);
+  showLoading();
+  try {
+    let jornada = jornadasList.find(j => j.id === jornadaId);
+    if(!jornada) {
+      const jornadasRaw = await apiCall({ action: 'getAllJornadas' });
+      jornadasList = (Array.isArray(jornadasRaw) ? jornadasRaw : []).map(j => {
+        let clientes = [];
+        try { clientes = JSON.parse(j.clientesJSON || '[]'); } catch(e) { clientes = []; }
+        return { ...j, fecha: normalizarFecha(j.fecha), horario: normalizarHorario(j.horario), clientes, tipo: 'jornada' };
+      });
+      jornada = jornadasList.find(j => j.id === jornadaId);
+    }
+    if(!jornada){ showToast('Jornada no encontrada','error'); hideLoading(); return; }
+    
+    jornada.guia = nuevoGuia;
+    const clientesJSON = JSON.stringify(jornada.clientes);
+    await apiCall({ action: 'saveJornada', data: { 
+      id: jornadaId, 
+      guia: nuevoGuia, 
+      fecha: jornada.fecha, 
+      tourId: jornada.tourId, 
+      tourNombre: jornada.tourNombre, 
+      horario: jornada.horario, 
+      clientesJSON: clientesJSON, 
+      timestamp: new Date().toISOString() 
+    } });
+    
+    if(opsTours[jornadaId]) opsTours[jornadaId].guide = nuevoGuia;
+    opsSaveLocal();
+    
+    const idx = jornadasList.findIndex(j => j.id === jornadaId);
+    if(idx !== -1) jornadasList[idx].guia = nuevoGuia;
+    
+    cerrarModal('modalCambiarGuia');
+    await cargarOperaciones();
+    showToast(`Guía cambiado a ${nuevoGuia} ✓`);
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+  hideLoading();
 }
+
+// =================== AGREGAR CLIENTE ===================
 function abrirModalAgregarCliente(jornadaId){
   document.getElementById('agregarClienteJornadaId').value = jornadaId;
   document.getElementById('agregarClienteNombre').value = '';
@@ -842,18 +885,25 @@ async function guardarAgregarCliente(){
   cargarOperaciones();
   showToast('Cliente agregado ✓');
 }
+
+// =================== DUPLICAR JORNADA ===================
 function abrirModalDuplicarJornada(jornadaId, fechaOriginal, guiaOriginal){
   document.getElementById('duplicarJornadaOriginalId').value = jornadaId;
   document.getElementById('duplicarJornadaFecha').value = fechaOriginal;
   const select = document.getElementById('duplicarJornadaGuia');
   select.innerHTML = '<option value="">— Selecciona un guía —</option>';
   const cargarYMostrar = () => {
-    guiasData.filter(g=>g.activo==='true' || g.activo===true).forEach(g => {
-      select.innerHTML += `<option value="${escH(g.nombre)}" ${g.nombre===guiaOriginal?'selected':''}>${escH(g.nombre)}</option>`;
-    });
+    const guiasActivos = guiasData.filter(g => g.activo === 'true' || g.activo === true);
+    if(guiasActivos.length === 0) {
+      select.innerHTML = '<option value="">— No hay guías activos —</option>';
+    } else {
+      guiasActivos.forEach(g => {
+        select.innerHTML += `<option value="${escH(g.nombre)}" ${g.nombre === guiaOriginal ? 'selected' : ''}>${escH(g.nombre)}</option>`;
+      });
+    }
     abrirModal('modalDuplicarJornada');
   };
-  if(guiasData.length === 0){
+  if(!guiasData || guiasData.length === 0){
     cargarGuiasParaModales().then(cargarYMostrar);
   } else {
     cargarYMostrar();
@@ -990,7 +1040,7 @@ async function registrarEnSheetsConLog(guide, date, toursData){
   }
 }
 
-// =================== FUNCIONES EXISTENTES ===================
+// =================== FUNCIONES EXISTENTES (resumidas pero completas) ===================
 async function loadTours(){
   setSyncStatus('loading','Cargando...');
   try{
@@ -1034,7 +1084,7 @@ async function refreshFromAPI(){setSyncStatus('loading','Actualizando...');try{c
 async function loadGuiasForDatalist(){try{const resp=await apiCall({action:'getGuiasData'});if(!Array.isArray(resp))return;const activos=resp.filter(g=>g.activo==='true'||g.activo===true);const opts='<option value="">— Selecciona un guía —</option>'+activos.map(g=>`<option value="${escH(g.nombre)}">${escH(g.nombre)}</option>`).join('');const selGuide=document.getElementById('ot-guide');if(selGuide)selGuide.innerHTML=opts;const selNew=document.getElementById('newGuiaName');if(selNew)selNew.innerHTML=opts;}catch(e){console.warn(e);}}
 function updateDashboard(){document.getElementById('dash-total-res').textContent=reservas.filter(r=>r.estado!=='cancelada').length||'—';document.getElementById('dash-tours-activos').textContent=tours.filter(t=>t.activo==='true'||t.activo===true).length||tours.length||'—';const hoy=new Date(),d7=new Date(hoy.getTime()+7*86400000);const paxWeek=reservas.filter(r=>{if(!r.fecha||r.estado==='cancelada')return false;const d=new Date(r.fecha+'T00:00:00');return d>=hoy&&d<=d7;}).reduce((s,r)=>s+(parseInt(r.adultos)||0)+(parseInt(r.menores)||0),0);document.getElementById('dash-pax').textContent=paxWeek||0;const recentDirect=[...reservas].sort((a,b)=>b.timestamp>a.timestamp?1:-1).slice(0,5);const ddEl=document.getElementById('dash-recent-direct');ddEl.innerHTML=recentDirect.length?recentDirect.map(r=>{const esNueva=String(r.vista)!=='si'&&r.estado!=='cancelada';return `<div class="recent-item"><div class="recent-dot" style="background:${r.estado==='cancelada'?'var(--muted)':esNueva?'var(--gold)':'var(--green)'}"></div><div class="recent-info"><div class="recent-name">${escH(r.nombre||'—')}${esNueva?'<span class="badge b-new" style="font-size:.58rem;margin-left:5px">NUEVA</span>':''}</div><div class="recent-meta">${formatDate(r.fecha)} · ${escH(r.tourNombre||'')}</div></div><span class="recent-tag rt-direct">Directo</span></div>`;}).join(''):'<div style="text-align:center;padding:20px;color:var(--muted);font-size:.82rem">Sin reservas todavía</div>';if(!civData)loadCivitatis().then(()=>updateDashboard());}
 async function loadCivitatis(){if(USE_MOCK_CIV)civData=CIV_MOCK;}
-function renderCivitatis(){if(!civData){loadCivitatis().then(()=>renderCivitatis());return;}document.getElementById('civMockBanner').style.display=USE_MOCK_CIV?'flex':'none';document.getElementById('civModeLabel').textContent=USE_MOCK_CIV?'Activo':'Inactivo';document.getElementById('civProductCards').innerHTML=civData.products.map(p=>{const bk=civData.bookings.filter(b=>b.productId===p.id&&b.status==='confirmed');const pax=bk.reduce((s,b)=>s+b.adults+b.children,0);return `<div class="civ-product"><div class="civ-product-name">🎯 ${escH(p.name)}</div><div class="civ-stats"><div class="civ-stat"><div class="civ-stat-n" style="color:var(--terra)">${bk.length}</div><div class="civ-stat-l">Reservas</div></div><div class="civ-stat"><div class="civ-stat-n" style="color:var(--gold)">${pax}</div><div class="civ-stat-l">PAX</div></div></div></div>`;}).join('');const filtro=document.getElementById('civFiltroEstado').value;const sorted=[...civData.bookings].filter(b=>filtro?b.status===filtro:true).sort((a,b)=>a.date<b.date?1:-1);if(!sorted.length){document.getElementById('civTable').innerHTML='<div class="empty-state"><div class="ei">📭</div>No hay reservas.</div>';return;}document.getElementById('civTable').innerHTML=`<td><thead><tr><th>ID</th><th>Fecha</th><th>Tour</th><th>Cliente</th><th>Teléfono</th><th>PAX</th><th>Importe</th><th>Estado</th></tr></thead><tbody>${sorted.map(b=>`<tr class="${b.status==='cancelled'?'cancelled':''}"><td style="font-family:monospace;font-size:.72rem;color:var(--muted)">${b.id}</td><td>${formatDate(b.date)}</td><td>${escH(b.productName)}</td><td>${escH(b.clientName)}</td><td><a href="https://wa.me/${b.phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold);text-decoration:none">📱 ${escH(b.phone)}</a></td><td>${b.adults}A${b.children?' '+b.children+'M':''}</td><td>${b.status==='cancelled'?'—':'<span class="total-tag">'+b.amount+'€</span>'}</td><td>${b.status==='cancelled'?'<span class="badge b-muted">Cancelada</span>':'<span class="badge b-terra">Confirmada</span>'}</td></tr>`).join('')}</tbody></table>`;}
+function renderCivitatis(){if(!civData){loadCivitatis().then(()=>renderCivitatis());return;}document.getElementById('civMockBanner').style.display=USE_MOCK_CIV?'flex':'none';document.getElementById('civModeLabel').textContent=USE_MOCK_CIV?'Activo':'Inactivo';document.getElementById('civProductCards').innerHTML=civData.products.map(p=>{const bk=civData.bookings.filter(b=>b.productId===p.id&&b.status==='confirmed');const pax=bk.reduce((s,b)=>s+b.adults+b.children,0);return `<div class="civ-product"><div class="civ-product-name">🎯 ${escH(p.name)}</div><div class="civ-stats"><div class="civ-stat"><div class="civ-stat-n" style="color:var(--terra)">${bk.length}</div><div class="civ-stat-l">Reservas</div></div><div class="civ-stat"><div class="civ-stat-n" style="color:var(--gold)">${pax}</div><div class="civ-stat-l">PAX</div></div></div></div>`;}).join('');const filtro=document.getElementById('civFiltroEstado').value;const sorted=[...civData.bookings].filter(b=>filtro?b.status===filtro:true).sort((a,b)=>a.date<b.date?1:-1);if(!sorted.length){document.getElementById('civTable').innerHTML='<div class="empty-state"><div class="ei">📭</div>No hay reservas.</div>';return;}document.getElementById('civTable').innerHTML=`<tr><thead><tr><th>ID</th><th>Fecha</th><th>Tour</th><th>Cliente</th><th>Teléfono</th><th>PAX</th><th>Importe</th><th>Estado</th></tr></thead><tbody>${sorted.map(b=>`<tr class="${b.status==='cancelled'?'cancelled':''}"><td style="font-family:monospace;font-size:.72rem;color:var(--muted)">${b.id}</td><td>${formatDate(b.date)}</td><td>${escH(b.productName)}</td><td>${escH(b.clientName)}</td><td><a href="https://wa.me/${b.phone.replace(/[^0-9]/g,'')}" target="_blank" style="color:var(--gold);text-decoration:none">📱 ${escH(b.phone)}</a></td><td>${b.adults}A${b.children?' '+b.children+'M':''}</td><td>${b.status==='cancelled'?'—':'<span class="total-tag">'+b.amount+'€</span>'}</td><td>${b.status==='cancelled'?'<span class="badge b-muted">Cancelada</span>':'<span class="badge b-terra">Confirmada</span>'}</td></tr>`).join('')}</tbody></table>`;}
 function onMockToggle(){USE_MOCK_CIV=document.getElementById('civMockToggle').checked;civData=null;renderCivitatis();}
 async function renderClientes(){const container=document.getElementById('clientesContainer');container.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando clientes...</div>';try{const raw=await apiCall({action:'getClientes'});_clientes=Array.isArray(raw)?raw:[];filtrarClientes();}catch(e){container.innerHTML=`<div class="empty-state"><div class="ei">⚠️</div>Error: ${escH(e.message)}</div>`;}}
 function filtrarClientes(){const q=(document.getElementById('filtroCliente')?.value||'').toLowerCase().trim();const lista=q?_clientes.filter(c=>(c.nombre||'').toLowerCase().includes(q)||(c.whatsapp||'').replace(/\s/g,'').includes(q.replace(/\s/g,''))||(c.email||'').toLowerCase().includes(q)):_clientes;const count=document.getElementById('clientesCount');if(count)count.textContent=lista.length+' cliente'+(lista.length!==1?'s':'');const container=document.getElementById('clientesContainer');if(!lista.length){container.innerHTML='<div class="empty-state"><div class="ei">📇</div>'+(q?'Sin resultados para "'+escH(q)+'"':'Aún no hay clientes archivados.')+'</div>';return;}const sorted=[...lista].sort((a,b)=>(b.ultima_fecha||'')>(a.ultima_fecha||'')?1:-1);let html=`<div class="clientes-grid"><div class="cliente-card cliente-card-header"><span>Cliente</span><span>WhatsApp</span><span>Email</span><span>Primer tour</span><span>Último tour</span><span>Reservas</span><span>Acciones</span></div>`;sorted.forEach(c=>{html+=`<div class="cliente-card"><span style="font-weight:500;color:var(--white)">${escH(c.nombre||'—')}</span><span><a href="https://wa.me/${(c.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="cliente-wa">${escH(c.whatsapp||'—')}</a></span><span style="color:var(--muted)">${escH(c.email||'—')}</span><span style="font-size:.78rem;color:var(--muted)">${escH(c.primer_tour||'—')}<br>${escH(c.primer_fecha||'')}</span><span style="font-size:.78rem">${escH(c.ultimo_tour||'—')}<br><span style="color:var(--muted)">${escH(c.ultima_fecha||'')}</span></span><span><span class="badge b-gold">${c.cant_reservas||1}</span> · ${c.total_pax||0} pax</span><span><button class="btn-cliente-eliminar" onclick="eliminarCliente('${escH(c.whatsapp)}')">🗑 Eliminar</button></span></div>`;});html+='</div>';container.innerHTML=html;}
