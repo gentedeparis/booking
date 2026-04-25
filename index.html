@@ -776,7 +776,7 @@ function renderOperacionesUnificado() {
     g.jornadas.forEach(j => {
       html += `<div class="acordeon-grupo" style="margin-top:8px; border:1px solid var(--informe);">
         <div class="acordeon-grupo-header" onclick="toggleClienteJornada('clientes-jornada-${j.id}')" style="background:rgba(139,92,246,0.2);">
-          <span>📋 JORNADA · Guía: ${escH(j.guia)}</span>
+          <span>📋 JORNADA · Guía: ${escH(j.guia)} &nbsp;·&nbsp; 👥 ${(j.clientes||[]).reduce((s,c)=>s+(c.adults||0)+(c.minors||0),0)} PAX &nbsp;·&nbsp; 🧑 ${(j.clientes||[]).reduce((s,c)=>s+(c.adults||0),0)} ad. &nbsp;·&nbsp; 🧒 ${(j.clientes||[]).reduce((s,c)=>s+(c.minors||0),0)} men.</span>
           <span class="acordeon-grupo-arrow">▼</span>
         </div>
         <div id="clientes-jornada-${j.id}" class="acordeon-grupo-body" style="display:none; padding:8px;">
