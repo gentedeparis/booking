@@ -761,7 +761,8 @@ function renderJornadas() {
       html += '<div class="cliente-edit">';
       html += '<input type="number" class="cliente-edit-input narrow" id="ca-' + escH(j.id) + '-' + ci + '" value="' + (parseInt(c.adults)||0) + '" min="0" placeholder="Ad." data-autosave data-jid="' + escH(j.id) + '" data-gi="' + gi + '">';
       html += '<input type="number" class="cliente-edit-input narrow" id="cm-' + escH(j.id) + '-' + ci + '" value="' + (parseInt(c.minors)||0) + '" min="0" placeholder="Men." data-autosave data-jid="' + escH(j.id) + '" data-gi="' + gi + '">';
-      html += '<input type="text" class="cliente-edit-input wide" id="cw-' + escH(j.id) + '-' + ci + '" value="' + escH(c.wa || '') + '" placeholder="WhatsApp" data-autosave data-jid="' + escH(j.id) + '" data-gi="' + gi + '">';
+      html += '<input type="text" class="cliente-edit-input wide" id="cw-' + escH(j.id) + '-' + ci + '" value="' + escH(c.wa || '') + '" placeholder="WhatsApp" data-autosave data-jid="' + escH(j.id) + '" data-gi="' + gi + '" oninput="var n=this.value.replace(/[^0-9]/g,\'\');var lnk=document.getElementById(\'walnk-' + escH(j.id) + '-' + ci + '\');if(lnk){lnk.href=\'https://wa.me/\'+n;lnk.style.opacity=n?\'1\':\'0.3\'}">';
+      html += '<a id="walnk-' + escH(j.id) + '-' + ci + '" href="https://wa.me/' + (c.wa||'').replace(/[^0-9]/g,'') + '" target="_blank" style="font-size:1.3rem;text-decoration:none;flex-shrink:0;line-height:1;opacity:' + ((c.wa||'').replace(/[^0-9]/g,'') ? '1' : '0.3') + '" title="Abrir WhatsApp">💬</a>';
       html += '</div></div>';
       html += '<button class="cliente-del" data-action="deletecliente" data-jid="' + escH(j.id) + '" data-ci="' + ci + '" data-gi="' + gi + '">✕</button>';
       html += '</div>';
