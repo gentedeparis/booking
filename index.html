@@ -345,7 +345,7 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
     <div class="nav-item disabled"><span>🟣</span><span class="nav-text"> Guruwalk</span><span class="nav-badge nb-soon">Próx.</span></div>
     <div class="nav-group-sep"></div>
     <div class="nav-item" onclick="nav('clientes')" data-sec="clientes"><span>📇</span><span class="nav-text"> Clientes</span></div>
-    <div class="nav-item" onclick="nav('informes')" data-sec="informes" id="nav-informes"><span>📥</span><span class="nav-text"> Informes</span></div>
+    <div class="nav-item" onclick="nav('informes')" data-sec="informes" id="nav-informes"><span>📥</span><span class="nav-text"> Informes</span><span class="nav-badge nb-informe" id="informesNavBadge" style="display:none">0</span></div>
     <div class="nav-item" onclick="nav('dossier')" data-sec="dossier"><span>📁</span><span class="nav-text"> Dossier</span></div>
     <div class="nav-item" onclick="nav('guias')" data-sec="guias"><span>👤</span><span class="nav-text"> Guías</span></div>
   </nav>
@@ -687,6 +687,14 @@ function nav(sec){
   if(sec==='bloqueos') loadBloqueos();
 }
 
+function updateInformesNavBadge() {
+  const badge = document.getElementById('informesNavBadge');
+  if(!badge) return;
+  const count = informesPendientes.length;
+  badge.textContent = count;
+  badge.style.display = count > 0 ? 'inline-flex' : 'none';
+}
+
 function populateTourSelect(){
   const sel = document.getElementById('bTourId');
   if(!sel) return;
@@ -706,7 +714,7 @@ async function cargarGuiasParaModales() {
   } catch(e) { console.warn('Error cargando guías:', e); }
 }
 
-// =================== CARGAR OPERACIONES (CORREGIDO - actualiza reservas global) ===================
+// =================== CARGAR OPERACIONES ===================
 async function cargarOperaciones() {
   const container = document.getElementById('operacionesContainer');
   if(!container) return;
@@ -777,10 +785,10 @@ function renderOperacionesUnificado() {
             <div class="cliente-actions"><button class="btn-cliente-edit" onclick="editarCliente('${j.id}',${ci},'${escH(c.name)}',${c.adults||0},${c.minors||0},'${escH(c.wa||'')}')" title="Editar cliente">✏️</button></div>
           </div>`).join('')}
           <div class="jornada-buttons">
-            <button class="btn-jornada" onclick="abrirModalAgregarCliente('${j.id}')">➕ Añadir cliente</button>
-            <button class="btn-jornada" onclick="abrirModalCambiarGuia('${j.id}','${escH(j.guia)}')">🔄 Cambiar guía</button>
-            <button class="btn-jornada" onclick="abrirModalDuplicarJornada('${j.id}','${j.fecha}','${escH(j.guia)}')">📋 Duplicar</button>
-            <button class="btn-jornada btn-jornada-danger" onclick="eliminarJornadaCompleta('${j.id}')">🗑 Eliminar jornada completa</button>
+            <button class="btn-jornada" onclick="abrirModalAgregarCliente('${j.id}')">➕ Añadiendo cliente</button>
+            <button class="btn-jornada" onclick="abrirModalCambiarGuia('${j.id}','${escH(j.guia)}')">🔄 Cambiando guía</button>
+            <button class="btn-jornada" onclick="abrirModalDuplicarJornada('${j.id}','${j.fecha}','${escH(j.guia)}')">📋 Duplicando</button>
+            <button class="btn-jornada btn-jornada-danger" onclick="eliminarJornadaCompleta('${j.id}')">🗑 Eliminando jornada completa</button>
           </div>
         </div>
       </div>`;
@@ -1057,7 +1065,7 @@ function renderCivitatis(){
   const filtro = document.getElementById('civFiltroEstado').value;
   const sorted = [...civData.bookings].filter(b=>filtro?b.status===filtro:true).sort((a,b)=>a.date<b.date?1:-1);
   if(!sorted.length){ document.getElementById('civTable').innerHTML = '<div class="empty-state"><div class="ei">📭</div>No hay reservas.</div>'; return; }
-  document.getElementById('civTable').innerHTML = `<table><thead><tr><th>ID</th><th>Fecha</th><th>Tour</th><th>Cliente</th><th>Teléfono</th><th>PAX</th><th>Importe</th><th>Estado</th></tr></thead><tbody>${sorted.map(b=>`<tr class="${b.status==='cancelled'?'cancelled':''}"><td style="font-family:monospace;font-size:.72rem;color:var(--muted)">${b.id}</td><td>${formatDate(b.date)}</td><td>${escH(b.productName)}</td><td>${escH(b.clientName)}</td><td><a href="https://wa.me/${b.phone.replace(/[^0-9]/g,'')}" target="_blank" class="cliente-wa">📱 ${escH(b.phone)}</a></td><td>${b.adults}A${b.children?' '+b.children+'M':''}</td><td>${b.status==='cancelled'?'—':'<span class="total-tag">'+b.amount+'€</span>'}</td><td>${b.status==='cancelled'?'<span class="badge b-muted">Cancelada</span>':'<span class="badge b-terra">Confirmada</span>'}</td></tr>`).join('')}</tbody></table>`;
+  document.getElementById('civTable').innerHTML = `</td><thead><tr><th>ID</th><th>Fecha</th><th>Tour</th><th>Cliente</th><th>Teléfono</th><th>PAX</th><th>Importe</th><th>Estado</th></tr></thead><tbody>${sorted.map(b=>`<tr class="${b.status==='cancelled'?'cancelled':''}"><td style="font-family:monospace;font-size:.72rem;color:var(--muted)">${b.id}</td><td>${formatDate(b.date)}</td><td>${escH(b.productName)}</td><td>${escH(b.clientName)}</td><td><a href="https://wa.me/${b.phone.replace(/[^0-9]/g,'')}" target="_blank" class="cliente-wa">📱 ${escH(b.phone)}</a></td><td>${b.adults}A${b.children?' '+b.children+'M':''}</td><td>${b.status==='cancelled'?'—':'<span class="total-tag">'+b.amount+'€</span>'}</td><td>${b.status==='cancelled'?'<span class="badge b-muted">Cancelada</span>':'<span class="badge b-terra">Confirmada</span>'}</td></tr>`).join('')}</tbody></table>`;
 }
 function onMockToggle(){ USE_MOCK_CIV = document.getElementById('civMockToggle').checked; civData = null; renderCivitatis(); }
 
@@ -1275,11 +1283,13 @@ async function initInformes(){
   }catch(e){
     container.innerHTML = '<div class="empty-state"><div class="ei">⚠️</div>Error cargando guías: '+escH(e.message)+'</div>';
     document.getElementById('informes-total-count').textContent = '0';
+    updateInformesNavBadge();
     return;
   }
   if(!dossierGuias.length){
     container.innerHTML = '<div class="informes-empty"><div class="ei">👤</div><p>No hay guías registrados.</p></div>';
     document.getElementById('informes-total-count').textContent = '0';
+    updateInformesNavBadge();
     return;
   }
   const results = await Promise.allSettled(dossierGuias.map(g => apiCall({action:'getDossier',guia:g}).then(entries=>({guia:g,entries:Array.isArray(entries)?entries:[]}))));
@@ -1300,6 +1310,7 @@ async function initInformes(){
   }).catch(()=>{})));
   informesPendientes.sort((a,b)=>a.fecha>b.fecha?-1:1);
   document.getElementById('informes-total-count').textContent = informesPendientes.length;
+  updateInformesNavBadge();
   renderInformes();
 }
 function renderInformes(){
@@ -1386,6 +1397,7 @@ async function registrarInforme(guia, entryId, jornadaId){
   }
   informesPendientes = informesPendientes.filter(e=>e.id!==entryId);
   document.getElementById('informes-total-count').textContent = informesPendientes.length;
+  updateInformesNavBadge();
   if(!informesPendientes.length){
     setTimeout(()=>{ document.getElementById('informesContent').innerHTML = '<div class="informes-empty"><div class="ei">✅</div><div style="font-family:\'Playfair Display\',serif;font-size:1rem;color:var(--white)">¡Todo procesado!</div><p>Todos los informes han sido registrados en los dossiers.</p></div>'; },450);
   }
@@ -1623,7 +1635,7 @@ async function guardarAgregarCliente(){
   if(btn){ btn.disabled = false; btn.textContent = '➕ Agregar'; }
 }
 
-// =================== DUPLICAR JORNADA ===================
+// =================== DUPLICAR JORNADA (CORREGIDO) ===================
 function abrirModalDuplicarJornada(jornadaId, fechaOriginal, guiaOriginal){
   document.getElementById('duplicarJornadaOriginalId').value = jornadaId;
   document.getElementById('duplicarJornadaFecha').value = fechaOriginal;
@@ -1655,15 +1667,26 @@ async function guardarDuplicarJornada(){
   if(!nuevaFecha){ showToast('Selecciona una fecha','error'); if(btn){ btn.disabled=false; btn.textContent='📋 Duplicar'; } return; }
   const jornadaOriginal = jornadasList.find(j => j.id === jornadaOriginalId);
   if(!jornadaOriginal){ showToast('Jornada original no encontrada','error'); if(btn){ btn.disabled=false; btn.textContent='📋 Duplicar'; } return; }
-  const nuevaId = 'jor_' + normalizeId(nuevoGuia || jornadaOriginal.guia) + '_' + nuevaFecha + '_' + (jornadaOriginal.tourId || 'manual');
+  let nuevaId = 'jor_' + normalizeId(nuevoGuia || jornadaOriginal.guia) + '_' + nuevaFecha + '_' + (jornadaOriginal.tourId || 'manual');
+  const existingJornada = jornadasList.find(j => j.id === nuevaId);
+  if(existingJornada){
+    showToast('⚠️ Ya existe una jornada con esta fecha, guía y tour. Usa otro guía o fecha.','warning',5000);
+    if(btn){ btn.disabled=false; btn.textContent='📋 Duplicar'; }
+    return;
+  }
   const clientesCopy = jornadaOriginal.clientes.map(c => ({ ...c, present: false }));
-  await apiCall({ action: 'saveJornada', data: { id: nuevaId, guia: nuevoGuia || jornadaOriginal.guia, fecha: nuevaFecha, tourId: jornadaOriginal.tourId, tourNombre: jornadaOriginal.tourNombre, horario: jornadaOriginal.horario, clientesJSON: JSON.stringify(clientesCopy), timestamp: new Date().toISOString() } });
-  const semInfo = getSemanaKey(nuevaFecha);
-  const paxTotal = clientesCopy.reduce((s,c)=>s+(c.adults||0)+(c.minors||0),0);
-  await apiCall({ action: 'saveDossierEntry', guia: nuevoGuia || jornadaOriginal.guia, data: { id: 'dos_' + nuevaId.replace('jor_',''), guia: nuevoGuia || jornadaOriginal.guia, fecha: nuevaFecha, tourNombre: jornadaOriginal.tourNombre, horario: jornadaOriginal.horario, paxTotal, asistentes: 0, creditos: 0, semana: semInfo.key, timestamp: new Date().toISOString() } });
-  cerrarModal('modalDuplicarJornada');
-  cargarOperaciones();
-  showToast('Jornada duplicada ✓');
+  try {
+    await apiCall({ action: 'saveJornada', data: { id: nuevaId, guia: nuevoGuia || jornadaOriginal.guia, fecha: nuevaFecha, tourId: jornadaOriginal.tourId, tourNombre: jornadaOriginal.tourNombre, horario: jornadaOriginal.horario, clientesJSON: JSON.stringify(clientesCopy), timestamp: new Date().toISOString() } });
+    const semInfo = getSemanaKey(nuevaFecha);
+    const paxTotal = clientesCopy.reduce((s,c)=>s+(c.adults||0)+(c.minors||0),0);
+    await apiCall({ action: 'saveDossierEntry', guia: nuevoGuia || jornadaOriginal.guia, data: { id: 'dos_' + nuevaId.replace('jor_',''), guia: nuevoGuia || jornadaOriginal.guia, fecha: nuevaFecha, tourNombre: jornadaOriginal.tourNombre, horario: jornadaOriginal.horario, paxTotal, asistentes: 0, creditos: 0, semana: semInfo.key, timestamp: new Date().toISOString() } });
+    jornadasList.push({ ...jornadaOriginal, id: nuevaId, guia: nuevoGuia || jornadaOriginal.guia, fecha: nuevaFecha, clientes: clientesCopy });
+    cerrarModal('modalDuplicarJornada');
+    await cargarOperaciones();
+    showToast('Jornada duplicada ✓');
+  } catch(e) {
+    showToast('Error al duplicar: ' + e.message, 'error');
+  }
   if(btn){ btn.disabled = false; btn.textContent = '📋 Duplicar'; }
 }
 
