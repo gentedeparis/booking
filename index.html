@@ -1098,8 +1098,66 @@ async function loadDossierGuia(guia){
 function renderDossierContent(guia){
   const entries = dossierEntries[guia] || [];
   const el = document.getElementById('dossierContent');
+  
+  // Calcular totales
+  let totalCreditos = 0;
+  let pendienteCreditos = 0;
+  let cobradoCreditos = 0;
+  entries.forEach(e => {
+    const cred = parseFloat(e.creditos) || 0;
+    totalCreditos += cred;
+    if(e.estadoPago === 'pagado') {
+      cobradoCreditos += cred;
+    } else {
+      pendienteCreditos += cred;
+    }
+  });
+  
+  // Generar HTML del score mensual
+  let scoreHtml = `
+  <div style="background:linear-gradient(135deg, var(--charcoal), var(--graphite)); border:1px solid var(--gold); border-radius:16px; padding:20px; margin-bottom:24px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:20px;">
+      <div>
+        <div style="font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);">Score mensual</div>
+        <div style="font-family:'Playfair Display',serif; font-size:2.2rem; font-weight:700; color:var(--gold);">${totalCreditos} cr.</div>
+      </div>
+      <div style="display:flex; gap:24px;">
+        <div><div style="font-size:.68rem; color:var(--muted);">TOTAL</div><div style="font-size:1.3rem; font-weight:600; color:var(--white);">${totalCreditos}</div></div>
+        <div><div style="font-size:.68rem; color:var(--muted);">PENDIENTE</div><div style="font-size:1.3rem; font-weight:600; color:var(--gold);">${pendienteCreditos}</div></div>
+        <div><div style="font-size:.68rem; color:var(--muted);">COBRADO</div><div style="font-size:1.3rem; font-weight:600; color:var(--green);">${cobradoCreditos}</div></div>
+      </div>
+    </div>
+  </div>`;
+  
   const byMonth = {}, mesMap = {};
   entries.filter(e=>e.fecha).forEach(e=>{
+    e.fecha = normalizarFecha(e.fecha);
+    const p = e.fecha.split('-'), mk = p[0]+'-'+p[1];
+    if(!byMonth[mk]) byMonth[mk] = [];
+    byMonth[mk].push(e);
+    if(!mesMap[mk]){ const last = new Date(parseInt(p[0]),parseInt(p[1]),0).getDate(); mesMap[mk] = { inicio: p[0]+'-'+p[1]+'-01', fin: p[0]+'-'+p[1]+'-'+String(last).padStart(2,'0'), total:0, pagado:0 }; }
+    mesMap[mk].total += parseFloat(e.creditos)||0;
+    if(e.estadoPago === 'pagado') mesMap[mk].pagado += parseFloat(e.creditos)||0;
+  });
+  const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  let html = `<div style="margin-bottom:24px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;"><div style="font-family:'Playfair Display',serif;font-size:1.1rem">📋 Planing & Créditos — ${escH(guia)}</div><div><button class="btn btn-ghost btn-sm" onclick="downloadDossierPublic('${escH(guia)}')">📨 Vista pública</button><button class="btn btn-gold btn-sm" onclick="openManualDossierEntry('${escH(guia)}')">+ Agregar registro</button></div></div></div>`;
+  html += scoreHtml;
+  html += `<div class="dossier-row dossier-row-header"><span>Tour</span><span>Fecha/Hora</span><span>Idioma</span><span>PAX/Asist.</span><span>Créd.</span><span>Estado</span><span></span></div>`;
+  Object.keys(byMonth).sort().reverse().forEach(mk=>{
+    const isAct = mk === new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0');
+    const acId = 'da-'+mk.replace('-','_');
+    const mesTotal = mesMap[mk]?.total || 0;
+    const mesPagado = mesMap[mk]?.pagado || 0;
+    const mesPendiente = mesTotal - mesPagado;
+    html += `<div class="dossier-mes-block" onclick="toggleDossierMes('${acId}')" style="cursor:pointer;margin:8px 0"><div style="display:flex;justify-content:space-between;padding:10px 14px;background:rgba(27,43,75,.5);border-radius:8px;"><div><span style="font-weight:700">${monthNames[parseInt(mk.split('-')[1])-1]} ${mk.split('-')[0]}</span><div style="font-size:.66rem;color:var(--muted);margin-top:2px">${mesPendiente} pend. · ${mesPagado} cob.</div></div><div><span>${mesTotal} cr.</span><span id="arr-${acId}">${isAct?'▲':'▼'}</span></div></div></div><div id="${acId}" style="display:${isAct?'block':'none'}">`;
+    byMonth[mk].sort((a,b)=>a.fecha>b.fecha?-1:1).forEach(e=>{
+      const ep = e.estadoPago||'pendiente', ip = ep==='pagado', esInforme = ep==='informe_pendiente';
+      html += `<div class="dossier-row"><div><div class="dr-tour">${escH(e.tourNombre||'')}${esInforme?'<span class="badge b-informe">📥</span>':''}</div><div class="dr-date">${formatDDMMYYYY(e.fecha)}${e.horario?' '+e.horario:''}</div></div><div>${e.horario||'--'}</div><div><input type="text" value="${escH(e.idioma||'')}" onchange="updateDossierField('${escH(guia)}','${escH(e.id)}','idioma',this.value)" style="width:100%;background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);padding:6px;"></div><div style="display:flex;gap:6px;"><input type="number" value="${e.paxTotal||0}" onchange="updateDossierField('${escH(guia)}','${escH(e.id)}','paxTotal',this.value)" style="width:100%;background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);padding:6px;"><input type="number" value="${e.asistentes||0}" onchange="updateDossierField('${escH(guia)}','${escH(e.id)}','asistentes',this.value)" style="width:100%;background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);padding:6px;"></div><div><input type="number" value="${e.creditos||0}" onchange="updateDossierField('${escH(guia)}','${escH(e.id)}','creditos',this.value)" style="width:100%;background:var(--graphite);border:1px solid rgba(201,168,76,.4);border-radius:5px;color:${ip?'var(--green)':esInforme?'#a78bfa':'var(--gold)'};padding:6px;text-align:center;font-weight:700;"></div><div><select onchange="updateDossierField('${escH(guia)}','${escH(e.id)}','estadoPago',this.value)" style="width:100%;background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);padding:6px;"><option value="pendiente" ${ep==='pendiente'?'selected':''}>⏳ Pendiente</option><option value="pagado" ${ep==='pagado'?'selected':''}>✅ Pagado</option><option value="informe_pendiente" ${ep==='informe_pendiente'?'selected':''}>📥 Informe</option></select></div><div><button class="btn btn-danger btn-sm" onclick="deleteDossierEntry('${escH(guia)}','${escH(e.id)}')">🗑</button></div></div>`;
+    });
+    html += '</div>';
+  });
+  el.innerHTML = html;
+}
     e.fecha = normalizarFecha(e.fecha);
     const p = e.fecha.split('-'), mk = p[0]+'-'+p[1];
     if(!byMonth[mk]) byMonth[mk] = [];
