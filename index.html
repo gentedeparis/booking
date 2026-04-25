@@ -39,8 +39,6 @@ body{background:var(--noir);color:var(--white);font-family:'DM Sans',sans-serif;
 .nav-item:hover{color:var(--light);background:rgba(255,255,255,.02);}
 .nav-item.active{color:var(--gold);border-bottom-color:var(--gold);}
 .nav-badge{font-size:.58rem;padding:1px 5px;border-radius:8px;font-weight:600;}
-.nb-mock{background:rgba(201,168,76,.2);color:var(--gold);}
-.nb-soon{background:rgba(136,136,136,.12);color:var(--muted);}
 .nb-informe{background:rgba(139,92,246,.25);color:#a78bfa;animation:pulse-badge 2s ease-in-out infinite;}
 @keyframes pulse-badge{0%,100%{opacity:1}50%{opacity:.5}}
 .nav-item.disabled{opacity:.4;cursor:default;pointer-events:none;}
@@ -50,15 +48,14 @@ body{background:var(--noir);color:var(--white);font-family:'DM Sans',sans-serif;
 .section{display:none;animation:secIn .2s ease;}
 .section.active{display:block;}
 @keyframes secIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px;}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:26px;}
 .stat-card{background:var(--charcoal);border:1px solid var(--graphite);border-radius:10px;padding:18px 20px;}
 .stat-value{font-family:'Playfair Display',serif;font-size:2rem;font-weight:600;}
 .stat-label{font-size:.72rem;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.08em;}
 .stat-card.gold{border-color:rgba(201,168,76,.25)}.stat-card.gold .stat-value{color:var(--gold);}
-.stat-card.terra{border-color:rgba(196,98,45,.25)}.stat-card.terra .stat-value{color:var(--terra);}
 .stat-card.green{border-color:rgba(39,174,96,.25)}.stat-card.green .stat-value{color:var(--green);}
 .stat-card.blue{border-color:rgba(41,128,185,.25)}.stat-card.blue .stat-value{color:var(--blue);}
-.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.dash-grid{display:grid;grid-template-columns:1fr;gap:20px;}
 .dash-box{background:var(--charcoal);border:1px solid var(--graphite);border-radius:10px;padding:20px;}
 .dash-box-title{font-family:'Playfair Display',serif;font-size:.95rem;color:var(--white);margin-bottom:14px;}
 .recent-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);}
@@ -69,7 +66,6 @@ body{background:var(--noir);color:var(--white);font-family:'DM Sans',sans-serif;
 .recent-meta{font-size:.72rem;color:var(--muted);margin-top:1px;}
 .recent-tag{font-size:.68rem;padding:2px 7px;border-radius:4px;font-weight:500;flex-shrink:0;}
 .rt-direct{background:rgba(41,128,185,.15);color:#5dade2;}
-.rt-civitatis{background:rgba(196,98,45,.15);color:var(--terra);}
 .sec-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;}
 .sec-title{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:600;}
 .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:6px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:500;transition:all .18s;}
@@ -119,34 +115,6 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
 .dia-check{display:flex;align-items:center;gap:5px;background:var(--graphite);border:1px solid var(--smoke);border-radius:6px;padding:8px 9px;cursor:pointer;font-size:.8rem;}
 .dia-check input{width:auto;margin:0;}
 .dia-check:has(input:checked){background:rgba(201,168,76,.14);border-color:var(--gold);color:var(--gold);}
-.civ-header{background:linear-gradient(135deg,rgba(196,98,45,.14),rgba(201,168,76,.06));border:1px solid rgba(196,98,45,.3);border-radius:12px;padding:20px 24px;margin-bottom:22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
-.civ-brand{font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--terra);font-style:italic;}
-.civ-info{flex:1;}
-.civ-info h3{font-family:'Playfair Display',serif;font-size:1rem;color:var(--white);margin-bottom:2px;}
-.civ-info p{font-size:.78rem;color:var(--muted);line-height:1.5;}
-.mock-toggle-wrap{display:flex;align-items:center;gap:10px;}
-.toggle-lbl{font-size:.75rem;color:var(--muted);}
-.toggle{position:relative;width:44px;height:24px;flex-shrink:0;}
-.toggle input{opacity:0;width:0;height:0;}
-.toggle-track{position:absolute;inset:0;background:var(--smoke);border-radius:12px;cursor:pointer;transition:background .3s;}
-.toggle-track:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:var(--white);border-radius:50%;transition:transform .3s;}
-.toggle input:checked+.toggle-track{background:var(--gold);}
-.toggle input:checked+.toggle-track:before{transform:translateX(20px);}
-.mock-banner{display:flex;align-items:center;gap:10px;background:rgba(201,168,76,.09);border:1px solid rgba(201,168,76,.28);border-radius:8px;padding:11px 16px;margin-bottom:18px;font-size:.8rem;color:var(--gold);}
-.civ-products{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px;}
-.civ-product{background:var(--charcoal);border:1px solid rgba(196,98,45,.22);border-radius:10px;padding:16px 18px;}
-.civ-product-name{font-family:'Playfair Display',serif;font-size:.95rem;color:var(--white);margin-bottom:10px;}
-.civ-stats{display:flex;gap:10px;}
-.civ-stat{flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:7px;padding:9px;}
-.civ-stat-n{font-size:1.3rem;font-weight:600;font-family:'Playfair Display',serif;}
-.civ-stat-l{font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:2px;}
-.civ-config{background:var(--graphite);border:1px dashed var(--smoke);border-radius:10px;padding:18px 20px;margin-top:22px;}
-.civ-config-title{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);margin-bottom:12px;}
-.config-steps{display:grid;gap:10px;}
-.config-step{display:flex;gap:12px;align-items:flex-start;}
-.step-n{width:22px;height:22px;border-radius:50%;background:rgba(201,168,76,.2);color:var(--gold);font-size:.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
-.step-text{font-size:.82rem;color:var(--muted);line-height:1.5;}
-.step-text code{background:var(--smoke);padding:1px 6px;border-radius:4px;font-size:.78rem;color:var(--gold-l);font-family:monospace;}
 .ops-subscreen{display:none;}.ops-subscreen.active{display:block;}
 .back-btn{display:inline-flex;align-items:center;gap:7px;background:none;border:1px solid var(--graphite);border-radius:6px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.8rem;cursor:pointer;padding:7px 13px;margin-bottom:18px;}
 .ops-card{background:var(--charcoal);border:1px solid var(--graphite);border-radius:10px;padding:16px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
@@ -315,7 +283,6 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
   .content{padding:16px;}
   .stats-row{grid-template-columns:1fr 1fr;gap:10px;}
   .dash-grid{grid-template-columns:1fr;}
-  .civ-products{grid-template-columns:1fr;}
   .form-row{grid-template-columns:1fr;}
   .dossier-row{grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;}
   .informe-card{grid-template-columns:1fr;gap:12px;}
@@ -341,8 +308,6 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
     <div class="nav-item" onclick="nav('tours')" data-sec="tours"><span>🗺</span><span class="nav-text"> Tours</span></div>
     <div class="nav-item" onclick="nav('bloqueos')" data-sec="bloqueos"><span>🚫</span><span class="nav-text"> Bloqueos</span></div>
     <div class="nav-item" onclick="nav('operaciones')" data-sec="operaciones"><span>📋</span><span class="nav-text"> Operaciones</span></div>
-    <div class="nav-item" onclick="nav('civitatis')" data-sec="civitatis"><span>🟡</span><span class="nav-text"> Civitatis</span><span class="nav-badge nb-mock">MOCK</span></div>
-    <div class="nav-item disabled"><span>🟣</span><span class="nav-text"> Guruwalk</span><span class="nav-badge nb-soon">Próx.</span></div>
     <div class="nav-group-sep"></div>
     <div class="nav-item" onclick="nav('clientes')" data-sec="clientes"><span>📇</span><span class="nav-text"> Clientes</span></div>
     <div class="nav-item" onclick="nav('informes')" data-sec="informes" id="nav-informes"><span>📥</span><span class="nav-text"> Informes</span><span class="nav-badge nb-informe" id="informesNavBadge" style="display:none">0</span></div>
@@ -360,13 +325,11 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
   <div class="section active" id="sec-dash">
     <div class="stats-row">
       <div class="stat-card gold"><div class="stat-value" id="dash-total-res">—</div><div class="stat-label">Reservas directas</div></div>
-      <div class="stat-card terra"><div class="stat-value" id="dash-civ-res">6</div><div class="stat-label">Reservas Civitatis</div></div>
       <div class="stat-card green"><div class="stat-value" id="dash-pax">—</div><div class="stat-label">PAX esta semana</div></div>
       <div class="stat-card blue"><div class="stat-value" id="dash-tours-activos">—</div><div class="stat-label">Tours activos</div></div>
     </div>
     <div class="dash-grid">
       <div class="dash-box"><div class="dash-box-title">📋 Últimas reservas directas</div><div id="dash-recent-direct"><div class="empty-state" style="padding:20px"><div class="ei" style="font-size:1.5rem">⏳</div>Cargando...</div></div></div>
-      <div class="dash-box"><div class="dash-box-title">🟡 Últimas reservas Civitatis</div><div id="dash-recent-civ"></div></div>
     </div>
   </div>
 
@@ -414,35 +377,6 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
       <div class="btn-row"><button class="btn btn-terra" style="flex:1" id="opsSaveBtn" onclick="guardarJornadaDesdeFormulario()">💾 Guardar jornada</button></div>
       <div id="opsDeleteBtn" style="display:none; margin-top:10px;"><button class="btn btn-danger btn-sm" onclick="eliminarJornadaActual()">🗑 Eliminar esta jornada</button></div>
       <div id="opsJornadaLog" class="save-log" style="display:none; margin-top:12px;"></div>
-    </div>
-  </div>
-
-  <div class="section" id="sec-civitatis">
-    <div class="civ-header">
-      <div class="civ-brand">civitatis</div>
-      <div class="civ-info"><h3>Integración Civitatis</h3><p>Reservas de tus tours en Civitatis. Actualmente en modo Mock.</p></div>
-      <div class="mock-toggle-wrap">
-        <span class="toggle-lbl">Modo Mock</span>
-        <label class="toggle"><input type="checkbox" id="civMockToggle" checked onchange="onMockToggle()"><span class="toggle-track"></span></label>
-        <span class="toggle-lbl" id="civModeLabel" style="color:var(--gold)">Activo</span>
-      </div>
-    </div>
-    <div class="mock-banner" id="civMockBanner">⚠️ Estás viendo datos simulados.</div>
-    <div class="civ-products" id="civProductCards"></div>
-    <div class="sec-header" style="margin-bottom:14px">
-      <h2 style="font-family:'Playfair Display',serif;font-size:1.1rem">Reservas recientes</h2>
-      <select id="civFiltroEstado" onchange="renderCivitatis()" style="width:auto;padding:7px 12px;font-size:.8rem">
-        <option value="">Todas</option><option value="confirmed">Confirmadas</option><option value="cancelled">Canceladas</option>
-      </select>
-    </div>
-    <div class="table-wrap" id="civTable"></div>
-    <div class="civ-config">
-      <div class="civ-config-title">🔌 Conectar API real — 3 pasos</div>
-      <div class="config-steps">
-        <div class="config-step"><div class="step-n">1</div><div class="step-text">Cambia <code>USE_MOCK: true</code> a <code>false</code>.</div></div>
-        <div class="config-step"><div class="step-n">2</div><div class="step-text">Pega tu API Key en <code>API_KEY: ''</code>.</div></div>
-        <div class="config-step"><div class="step-n">3</div><div class="step-text">Rellena los IDs en <code>PRODUCT_IDS</code>.</div></div>
-      </div>
     </div>
   </div>
 
@@ -612,21 +546,9 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbzublsoEo4DlJ0QIEbuH86iC-Ztjzxuj6UO4Z1YMmHBqDcAaQsVdOr1a5pE2rS_06gk/exec';
 const DIAS_MAP = {lun:'Lun',mar:'Mar',mie:'Mié',jue:'Jue',vie:'Vie',sab:'Sáb',dom:'Dom'};
-const CIV_MOCK = {
-  products:[{id:'m1',name:'Tour Montmartre Esencial',totalBookings:4,totalPax:11},{id:'m2',name:'Le Marais Secreto',totalBookings:2,totalPax:5}],
-  bookings:[
-    {id:'CIV-001',productId:'m1',productName:'Tour Montmartre Esencial',date:'2026-04-05',adults:2,children:1,clientName:'Carlos Mendoza',phone:'+34612345678',status:'confirmed',amount:45},
-    {id:'CIV-002',productId:'m1',productName:'Tour Montmartre Esencial',date:'2026-04-05',adults:3,children:0,clientName:'Ana Rodríguez',phone:'+34698765432',status:'confirmed',amount:60},
-    {id:'CIV-003',productId:'m2',productName:'Le Marais Secreto',date:'2026-04-06',adults:2,children:2,clientName:'José García',phone:'+34655443322',status:'confirmed',amount:80},
-    {id:'CIV-004',productId:'m1',productName:'Tour Montmartre Esencial',date:'2026-04-08',adults:4,children:0,clientName:'Laura Sánchez',phone:'+34677889900',status:'confirmed',amount:80},
-    {id:'CIV-005',productId:'m2',productName:'Le Marais Secreto',date:'2026-04-10',adults:1,children:0,clientName:'Miguel Torres',phone:'+34611223344',status:'cancelled',amount:0},
-    {id:'CIV-006',productId:'m1',productName:'Tour Montmartre Esencial',date:'2026-04-12',adults:2,children:1,clientName:'Isabel Martínez',phone:'+34699001122',status:'confirmed',amount:45}
-  ]
-};
 
 let tours=[], bloqueos=[], reservas=[], jornadasList=[], opsTours={};
 let editingTourId=null, editingOpsId=null, editingGuiaNombre=null, editingClienteJornadaId=null;
-let civData=null, USE_MOCK_CIV=true;
 let dossierGuias=[], dossierActivo=null, dossierEntries={}, pagosEntries={};
 let guiasData=[], informesPendientes=[], _clientes=[];
 let _mostrarHistorico = false, _todasOperaciones = [];
@@ -677,7 +599,6 @@ function nav(sec){
   document.getElementById('sec-'+sec).classList.add('active');
   document.querySelector('[data-sec="'+sec+'"]')?.classList.add('active');
   if(sec==='operaciones') cargarOperaciones();
-  if(sec==='civitatis') renderCivitatis();
   if(sec==='clientes') renderClientes();
   if(sec==='dash') updateDashboard();
   if(sec==='dossier') initDossier();
@@ -1050,24 +971,7 @@ function updateDashboard(){
     const esNueva = String(r.vista)!=='si' && r.estado!=='cancelada';
     return `<div class="recent-item"><div class="recent-dot" style="background:${r.estado==='cancelada'?'var(--muted)':esNueva?'var(--gold)':'var(--green)'}"></div><div class="recent-info"><div class="recent-name">${escH(r.nombre||'—')}${esNueva?'<span class="badge b-new" style="font-size:.58rem;margin-left:5px">NUEVA</span>':''}</div><div class="recent-meta">${formatDate(r.fecha)} · ${escH(r.tourNombre||'')}</div></div><span class="recent-tag rt-direct">Directo</span></div>`;
   }).join('') : '<div style="text-align:center;padding:20px;color:var(--muted);font-size:.82rem">Sin reservas todavía</div>';
-  if(!civData) loadCivitatis().then(()=>updateDashboard());
 }
-async function loadCivitatis(){ if(USE_MOCK_CIV) civData = CIV_MOCK; }
-function renderCivitatis(){
-  if(!civData){ loadCivitatis().then(()=>renderCivitatis()); return; }
-  document.getElementById('civMockBanner').style.display = USE_MOCK_CIV ? 'flex' : 'none';
-  document.getElementById('civModeLabel').textContent = USE_MOCK_CIV ? 'Activo' : 'Inactivo';
-  document.getElementById('civProductCards').innerHTML = civData.products.map(p=>{
-    const bk = civData.bookings.filter(b=>b.productId===p.id && b.status==='confirmed');
-    const pax = bk.reduce((s,b)=>s+b.adults+b.children,0);
-    return `<div class="civ-product"><div class="civ-product-name">🎯 ${escH(p.name)}</div><div class="civ-stats"><div class="civ-stat"><div class="civ-stat-n" style="color:var(--terra)">${bk.length}</div><div class="civ-stat-l">Reservas</div></div><div class="civ-stat"><div class="civ-stat-n" style="color:var(--gold)">${pax}</div><div class="civ-stat-l">PAX</div></div></div></div>`;
-  }).join('');
-  const filtro = document.getElementById('civFiltroEstado').value;
-  const sorted = [...civData.bookings].filter(b=>filtro?b.status===filtro:true).sort((a,b)=>a.date<b.date?1:-1);
-  if(!sorted.length){ document.getElementById('civTable').innerHTML = '<div class="empty-state"><div class="ei">📭</div>No hay reservas.</div>'; return; }
-  document.getElementById('civTable').innerHTML = `<table><thead><tr><th>ID</th><th>Fecha</th><th>Tour</th><th>Cliente</th><th>Teléfono</th><th>PAX</th><th>Importe</th><th>Estado</th></tr></thead><tbody>${sorted.map(b=>`<tr class="${b.status==='cancelled'?'cancelled':''}"><td style="font-family:monospace;font-size:.72rem;color:var(--muted)">${b.id}</td><td>${formatDate(b.date)}</td><td>${escH(b.productName)}</td><td>${escH(b.clientName)}</td><td><a href="https://wa.me/${b.phone.replace(/[^0-9]/g,'')}" target="_blank" class="cliente-wa">📱 ${escH(b.phone)}</a></td><td>${b.adults}A${b.children?' '+b.children+'M':''}</td><td>${b.status==='cancelled'?'—':'<span class="total-tag">'+b.amount+'€</span>'}</td><td>${b.status==='cancelled'?'<span class="badge b-muted">Cancelada</span>':'<span class="badge b-terra">Confirmada</span>'}</td></tr>`).join('')}</tbody></table>`;
-}
-function onMockToggle(){ USE_MOCK_CIV = document.getElementById('civMockToggle').checked; civData = null; renderCivitatis(); }
 
 // =================== DOSSIER Y GUIAS ===================
 async function initDossier(){
@@ -1096,12 +1000,11 @@ async function loadDossierGuia(guia){
   renderDossierContent(guia);
 }
 
-// =================== RENDER DOSSIER CONTENT CON SCORE (VERSIÓN CORREGIDA) ===================
+// =================== RENDER DOSSIER CONTENT CON SCORE ===================
 function renderDossierContent(guia){
   const entries = dossierEntries[guia] || [];
   const el = document.getElementById('dossierContent');
   
-  // Calcular totales
   let totalCreditos = 0;
   let pendienteCreditos = 0;
   let cobradoCreditos = 0;
@@ -1115,7 +1018,6 @@ function renderDossierContent(guia){
     }
   });
   
-  // Generar HTML del score mensual
   let scoreHtml = `
   <div style="background:linear-gradient(135deg, var(--charcoal), var(--graphite)); border:1px solid var(--gold); border-radius:16px; padding:20px; margin-bottom:24px;">
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin-bottom:20px;">
@@ -1736,7 +1638,7 @@ async function guardarAgregarCliente(){
   if(btn){ btn.disabled = false; btn.textContent = '➕ Agregar'; }
 }
 
-// =================== DUPLICAR JORNADA (CORREGIDO) ===================
+// =================== DUPLICAR JORNADA ===================
 function abrirModalDuplicarJornada(jornadaId, fechaOriginal, guiaOriginal){
   document.getElementById('duplicarJornadaOriginalId').value = jornadaId;
   document.getElementById('duplicarJornadaFecha').value = fechaOriginal;
@@ -1791,7 +1693,6 @@ async function guardarDuplicarJornada(){
   } else {
     showToast('✅ Jornada duplicada correctamente', 'success');
   }
-  // Actualizar lista local y recargar
   const nuevaJornada = { ...jornadaOriginal, id: nuevaId, guia: nuevoGuia || jornadaOriginal.guia, fecha: nuevaFecha, clientes: clientesCopy };
   jornadasList.push(nuevaJornada);
   _todasOperaciones = [...reservas, ...jornadasList];
@@ -1804,7 +1705,6 @@ async function guardarDuplicarJornada(){
 async function init(){
   opsTours = {};
   try{ const d = localStorage.getItem('gdp_tours'); if(d) opsTours = JSON.parse(d); } catch(e){}
-  loadCivitatis();
   const cachedTours = cacheGet('gdp_tours');
   if(cachedTours){ tours = cachedTours; renderTours(); populateTourSelect(); setSyncStatus('ok','Desde caché'); updateDashboard(); }
   const cachedBloqueos = cacheGet('gdp_bloqueos');
