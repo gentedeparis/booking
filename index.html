@@ -1480,11 +1480,20 @@ function guardarJornadaDesdeFormulario(){
   const id = editingOpsId || ('jor_' + Date.now());
   opsTours[id] = { guide, date, tours: toursData, createdAt: Date.now() };
   if(!opsSaveLocal()){ showToast('Error al guardar local','error'); return; }
-  registrarEnSheetsConLog(guide, date, toursData).then(() => {
+  const btn = document.getElementById('opsSaveBtn');
+  const logEl = document.getElementById('opsJornadaLog');
+  if(btn){ btn.disabled = true; btn.textContent = '⏳ Guardando...'; }
+  if(logEl){ logEl.style.display = 'block'; logEl.innerHTML = '<div class="log-info">🔄 Iniciando guardado...</div>'; }
+  registrarEnSheetsConLog(guide, date, toursData, logEl).then(() => {
+    if(logEl) logEl.innerHTML += '<div class="log-ok">✅ ¡Todo guardado correctamente!</div>';
+    if(btn){ btn.disabled = false; btn.textContent = '💾 Guardar jornada'; }
     showToast('Jornada guardada y sincronizada ✓');
-    cancelarFormularioJornada();
-    cargarOperaciones();
-  }).catch(e => showToast('Error en sincronización','warning'));
+    setTimeout(() => { cancelarFormularioJornada(); cargarOperaciones(); }, 1200);
+  }).catch(e => {
+    if(logEl) logEl.innerHTML += `<div class="log-err">❌ Error: ${escH(e.message)}</div>`;
+    if(btn){ btn.disabled = false; btn.textContent = '💾 Guardar jornada'; }
+    showToast('Error en sincronización','warning');
+  });
 }
 async function eliminarJornadaActual(){
   if(!editingOpsId) return;
@@ -1571,14 +1580,29 @@ function opsAddRowInAcord(container, c){
   d.innerHTML = `<div class="pax-top"><input type="text" placeholder="Nombre del pasajero" class="rn" value="${escH(c?.name||'')}"><button onclick="this.closest('.pax-card').remove()">×</button></div><div class="pax-bot"><div class="pcnt"><span>Ad.</span><input type="number" min="0" value="${c?.adults??1}" class="ra"></div><div class="pcnt"><span>Men.</span><input type="number" min="0" value="${c?.minors??0}" class="rm"></div><div class="pwa"><span>📱</span><input type="text" class="rw" value="${escH(c?.wa||'')}" placeholder="+34..."></div></div>`;
   container.appendChild(d);
 }
-async function registrarEnSheetsConLog(guide, date, toursData){
+async function registrarEnSheetsConLog(guide, date, toursData, logEl){
+  const log = (msg, tipo='info') => {
+    if(logEl) logEl.innerHTML += `<div class="log-${tipo}">${msg}</div>`;
+  };
   for(const tx of toursData){
     const baseId = normalizeId(guide)+'_'+date+'_'+(tx.tourId||'manual');
     const paxTotal = tx.clients.reduce((s,c)=>s+(c.adults||0)+(c.minors||0),0);
     const entry = { id:'dos_'+baseId, guia:guide, fecha:date, tourNombre:tx.tourNombre, horario:tx.horario, paxTotal, asistentes:0, creditos:0, semana:getSemanaKey(date).key, timestamp:new Date().toISOString() };
     const jornada = { id:'jor_'+baseId, guia:guide, fecha:date, tourId:tx.tourId, tourNombre:tx.tourNombre, horario:tx.horario, clientesJSON:JSON.stringify(tx.clients), timestamp:new Date().toISOString() };
-    await apiCall({ action:'saveDossierEntry', guia:guide, data:entry });
-    await apiCall({ action:'saveJornada', data:jornada });
+    log(`🔄 Guardando dossier: ${escH(tx.tourNombre)} (${paxTotal} PAX)...`);
+    try{
+      await apiCall({ action:'saveDossierEntry', guia:guide, data:entry });
+      log(`✅ Dossier guardado: ${escH(tx.tourNombre)}`, 'ok');
+    } catch(e){
+      log(`❌ Error dossier: ${escH(e.message)}`, 'err');
+    }
+    log(`🔄 Guardando jornada para ${escH(guide)}...`);
+    try{
+      await apiCall({ action:'saveJornada', data:jornada });
+      log(`✅ Jornada guardada para ${escH(guide)}`, 'ok');
+    } catch(e){
+      log(`❌ Error jornada: ${escH(e.message)}`, 'err');
+    }
   }
 }
 
