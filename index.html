@@ -1450,7 +1450,11 @@ function mostrarFormularioJornada(){
   initOpsCreate();
   renderTourCatalogChecks();
   loadGuiasForDatalist();
-  document.getElementById('ot-date').addEventListener('change', renderTourCatalogChecks);
+  const dateEl = document.getElementById('ot-date');
+dateEl.removeEventListener('change', renderTourCatalogChecks);
+dateEl.removeEventListener('input', renderTourCatalogChecks);
+dateEl.addEventListener('change', renderTourCatalogChecks);
+dateEl.addEventListener('input', renderTourCatalogChecks);
 }
 function cancelarFormularioJornada(){
   document.getElementById('formJornadaPanel').style.display = 'none';
