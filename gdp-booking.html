@@ -197,16 +197,31 @@
     color: var(--noir);
     margin-bottom: 4px;
   }
-  .tour-card-desc { font-size: 0.83rem; color: var(--smoke); line-height: 1.5; }
+  .tour-card-desc { font-size: 0.83rem; color: var(--smoke); line-height: 1.5; margin-bottom: 8px; }
   .tour-card-meta {
     display: flex;
     gap: 16px;
-    margin-top: 14px;
+    margin-top: 8px;
     font-size: 0.82rem;
     color: var(--smoke);
     flex-wrap: wrap;
   }
   .tour-card-meta span { display: flex; align-items: center; gap: 4px; }
+  .btn-ver-mas {
+    background: none;
+    border: none;
+    color: var(--gold);
+    font-size: 0.75rem;
+    cursor: pointer;
+    margin-top: 8px;
+    padding: 0;
+    font-family: 'DM Sans', sans-serif;
+    text-decoration: underline;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .btn-ver-mas:hover { color: var(--noir); }
   .cupo-bar {
     margin-top: 12px;
     height: 4px;
@@ -220,6 +235,121 @@
     transition: width 0.4s ease;
   }
   .cupo-text { font-size: 0.75rem; color: var(--muted); margin-top: 5px; }
+
+  /* ── MODAL PARA DETALLES DEL TOUR ── */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+  }
+  .modal.active {
+    display: flex;
+  }
+  .modal-content {
+    background: var(--white);
+    border-radius: 20px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 24px;
+    position: relative;
+    animation: modalFadeIn 0.3s ease;
+  }
+  @keyframes modalFadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .modal-close {
+    position: absolute;
+    right: 20px;
+    top: 16px;
+    font-size: 28px;
+    font-weight: bold;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.2s;
+    line-height: 1;
+  }
+  .modal-close:hover { color: var(--noir); }
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--noir);
+    margin-bottom: 16px;
+    padding-right: 30px;
+  }
+  .modal-desc-larga {
+    color: var(--charcoal);
+    line-height: 1.6;
+    margin-bottom: 24px;
+    font-size: 0.92rem;
+  }
+  .modal-section {
+    margin-bottom: 20px;
+  }
+  .modal-section h4 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+  .modal-links {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .modal-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--gold-bg);
+    padding: 10px 16px;
+    border-radius: 40px;
+    text-decoration: none;
+    color: var(--gold);
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .modal-link:hover {
+    background: var(--gold);
+    color: white;
+  }
+  .modal-gallery {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  .modal-gallery img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    border: 2px solid var(--border);
+  }
+  .modal-gallery img:hover {
+    transform: scale(1.05);
+    border-color: var(--gold);
+  }
+  .no-data {
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-style: italic;
+  }
 
   /* ── FORMULARIO ── */
   .form-group { margin-bottom: 20px; }
@@ -413,6 +543,8 @@
     .screen-title { font-size: 1.4rem; }
     .pax-group { grid-template-columns: 1fr; }
     .step-sep { width: 20px; }
+    .modal-content { padding: 20px; }
+    .modal-gallery img { width: 70px; height: 70px; }
   }
 </style>
 </head>
@@ -560,6 +692,25 @@
 
 </main>
 
+<!-- MODAL PARA DETALLES DEL TOUR -->
+<div id="tourModal" class="modal">
+  <div class="modal-content">
+    <span class="modal-close" onclick="cerrarModal()">&times;</span>
+    <div class="modal-title" id="modalTourNombre"></div>
+    <div class="modal-desc-larga" id="modalDescripcionLarga"></div>
+    
+    <div class="modal-section" id="modalLinksSection" style="display:none;">
+      <h4>🎬 Contenido multimedia</h4>
+      <div class="modal-links" id="modalLinks"></div>
+    </div>
+    
+    <div class="modal-section" id="modalImagenesSection" style="display:none;">
+      <h4>📸 Galería del tour</h4>
+      <div class="modal-gallery" id="modalGalería"></div>
+    </div>
+  </div>
+</div>
+
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbzublsoEo4DlJ0QIEbuH86iC-Ztjzxuj6UO4Z1YMmHBqDcAaQsVdOr1a5pE2rS_06gk/exec';
 const ADMIN_WA = '33760940851';
@@ -572,6 +723,112 @@ let selectedDate = null;
 let selectedTour = null;
 let adultos = 1, menores = 0;
 let currentReserva = null;
+
+// ── MODAL FUNCTIONS ──
+function abrirModalTour(tour) {
+  if (!tour) return;
+  
+  // Título
+  document.getElementById('modalTourNombre').textContent = tour.nombre || 'Tour';
+  
+  // Descripción larga
+  const descLarga = tour.descripcionLarga || tour.descripcion || 'Sin descripción adicional.';
+  document.getElementById('modalDescripcionLarga').innerHTML = descLarga.replace(/\n/g, '<br>');
+  
+  // Links (YouTube/TikTok)
+  const linksSection = document.getElementById('modalLinksSection');
+  const linksContainer = document.getElementById('modalLinks');
+  let hasLinks = false;
+  
+  // Verificar videoUrl (puede contener YouTube o TikTok)
+  const videoUrl = tour.videoUrl || '';
+  if (videoUrl && videoUrl.trim() !== '') {
+    hasLinks = true;
+    let embedHtml = '';
+    let platform = '';
+    let watchUrl = videoUrl;
+    
+    // Detectar si es YouTube
+    if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+      platform = '🎬 YouTube';
+      // Extraer ID para embed (opcional)
+      let videoId = '';
+      if (videoUrl.includes('youtu.be/')) {
+        videoId = videoUrl.split('youtu.be/')[1]?.split(/[?#]/)[0];
+      } else if (videoUrl.includes('watch?v=')) {
+        videoId = videoUrl.split('watch?v=')[1]?.split(/[?#&]/)[0];
+      }
+      if (videoId) {
+        embedHtml = `<iframe width="100%" height="200" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="border-radius:12px;margin-top:10px"></iframe>`;
+      }
+    } else if (videoUrl.includes('tiktok.com')) {
+      platform = '🎵 TikTok';
+    } else {
+      platform = '🎥 Ver video';
+    }
+    
+    linksContainer.innerHTML = `
+      <a href="${watchUrl}" target="_blank" class="modal-link">
+        ${platform} ▶
+      </a>
+      ${embedHtml ? `<div style="width:100%">${embedHtml}</div>` : ''}
+    `;
+  }
+  
+  // También permitir link manual de TikTok si existe campo aparte
+  const tiktokUrl = tour.tiktokUrl || '';
+  if (tiktokUrl && tiktokUrl.trim() !== '' && tiktokUrl !== videoUrl) {
+    hasLinks = true;
+    const existing = linksContainer.innerHTML;
+    linksContainer.innerHTML = existing + `
+      <a href="${tiktokUrl}" target="_blank" class="modal-link">
+        🎵 TikTok ▶
+      </a>
+    `;
+  }
+  
+  linksSection.style.display = hasLinks ? 'block' : 'none';
+  
+  // Galería de imágenes
+  const imagenesSection = document.getElementById('modalImagenesSection');
+  const galeriaContainer = document.getElementById('modalGalería');
+  let imagenes = [];
+  
+  // Si tour.imagenes es string (separado por comas) o array
+  if (tour.imagenes) {
+    if (typeof tour.imagenes === 'string') {
+      imagenes = tour.imagenes.split(',').map(url => url.trim()).filter(url => url);
+    } else if (Array.isArray(tour.imagenes)) {
+      imagenes = tour.imagenes;
+    }
+  }
+  
+  if (imagenes.length > 0) {
+    galeriaContainer.innerHTML = imagenes.map(url => `
+      <img src="${url}" alt="Imagen del tour" onclick="window.open('${url}', '_blank')">
+    `).join('');
+    imagenesSection.style.display = 'block';
+  } else {
+    imagenesSection.style.display = 'none';
+  }
+  
+  // Mostrar modal
+  document.getElementById('tourModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function cerrarModal() {
+  document.getElementById('tourModal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// Cerrar modal al hacer clic fuera
+document.addEventListener('click', function(e) {
+  const modal = document.getElementById('tourModal');
+  if (modal.classList.contains('active') && e.target === modal) {
+    cerrarModal();
+  }
+});
 
 // ── API ──
 async function apiCall(params, { retries=3, timeoutMs=15000 } = {}) {
@@ -605,15 +862,10 @@ async function apiCall(params, { retries=3, timeoutMs=15000 } = {}) {
 
 
 // ── NORMALIZAR DATOS DE GOOGLE SHEETS ──
-// Sheets devuelve fechas como objetos Date serializados (ej: "1899-12-30T10:50:00.000Z")
-// Esta función convierte todo a strings legibles
-
 function normalizarFecha(val) {
   if (!val) return '';
   const s = String(val);
-  // Si ya es formato YYYY-MM-DD, perfecto
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  // Si viene como Date serializada de Sheets
   try {
     const d = new Date(s);
     if (!isNaN(d.getTime())) {
@@ -629,9 +881,7 @@ function normalizarFecha(val) {
 function normalizarHorario(val) {
   if (!val) return '';
   const s = String(val);
-  // Si ya es HH:MM, perfecto
   if (/^\d{1,2}:\d{2}$/.test(s)) return s;
-  // Si viene como Date serializada de Sheets (tiempo como fracción del día)
   try {
     const d = new Date(s);
     if (!isNaN(d.getTime())) {
@@ -649,7 +899,11 @@ function normalizarTours(arr) {
     .map(t => ({
       ...t,
       horario: normalizarHorario(t.horario),
-      activo: String(t.activo).toLowerCase()
+      activo: String(t.activo).toLowerCase(),
+      descripcionLarga: t.descripcionLarga || t.descripcion || '',
+      videoUrl: t.videoUrl || '',
+      tiktokUrl: t.tiktokUrl || '',
+      imagenes: t.imagenes || ''
     }));
 }
 
@@ -785,7 +1039,6 @@ async function init() {
   calYear = now.getFullYear();
   calMonth = now.getMonth();
 
-  // 1. Mostrar caché al instante si existe (sin spinner)
   const cachedTours = cacheGet(CACHE_KEYS.tours);
   const cachedBloqueos = cacheGet(CACHE_KEYS.bloqueos);
   const cachedCupos = cacheGet(CACHE_KEYS.cupos);
@@ -795,15 +1048,12 @@ async function init() {
     bloqueos = cachedBloqueos;
     cupos = cachedCupos;
     renderCalendar();
-    // Refrescar en segundo plano sin bloquear
     refreshInBackground();
     return;
   }
 
-  // 2. Sin caché: mostrar spinner animado y cargar
   startLoadingAnimation();
   try {
-    // Tours y bloqueos son críticos — si fallan mostramos error
     const [rawTours, rawBloqueos] = await Promise.all([
       apiCall({ action: 'getTours' }),
       apiCall({ action: 'getBloqueos' })
@@ -831,7 +1081,6 @@ async function init() {
       </div>`;
     return;
   }
-  // Cupos es opcional — si falla seguimos sin problema (cupo = 0 para todos)
   try {
     const rawCupos = await apiCall({ action: 'getCupos' });
     cupos = (rawCupos && typeof rawCupos === 'object' && !rawCupos.error) ? rawCupos : {};
@@ -861,12 +1110,11 @@ async function refreshInBackground() {
     if (document.getElementById('screen1').classList.contains('active')) {
       renderCalendar();
     }
-  } catch(e) { /* silencioso — ya hay datos de caché */ }
+  } catch(e) { /* silencioso */ }
 }
 
 // ── STEPS ──
 function goTo(step) {
-  // validaciones
   if (step === 3) {
     if (!selectedTour) return;
   }
@@ -875,13 +1123,11 @@ function goTo(step) {
     const waRaw = document.getElementById('fWhatsapp').value.trim();
     if (!nombre) { alert('Por favor escribe tu nombre completo.'); return; }
     if (!waRaw) { alert('Por favor escribe tu número de WhatsApp.'); return; }
-    // Validación básica: solo dígitos y símbolos de teléfono, mínimo 7 dígitos
     const waClean = waRaw.replace(/[\s\-().+]/g, '');
     if (!/^\d{7,15}$/.test(waClean)) {
       alert('El número de teléfono no parece válido. Usa formato internacional, ej: +33760940851');
       return;
     }
-    const wa = waRaw;
     if (adultos + menores < 1) { alert('Debe haber al menos 1 participante.'); return; }
     buildSummary();
   }
@@ -889,7 +1135,6 @@ function goTo(step) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen' + step).classList.add('active');
 
-  // steps bar
   for (let i = 1; i <= 4; i++) {
     const s = document.getElementById('step' + i);
     s.classList.remove('active','done');
@@ -917,7 +1162,6 @@ function renderCalendar() {
     <div class="cal-dow">Jue</div><div class="cal-dow">Vie</div><div class="cal-dow">Sáb</div>
     <div class="cal-dow">Dom</div>`;
 
-  // offset (Monday-based)
   const offset = (firstDay === 0 ? 6 : firstDay - 1);
   for (let i = 0; i < offset; i++) html += '<div class="cal-day empty"></div>';
 
@@ -962,11 +1206,9 @@ function getDateStatus(date) {
   const dateStr = toDateStr(date);
   const dayKey = DIAS_NUM[date.getDay()];
 
-  // check if ALL tours are blocked for this date
   const allBlocked = bloqueos.some(b => b.fecha === dateStr && b.tourId === 'all');
   if (allBlocked) return { available: false, blocked: true };
 
-  // check if there's at least one active tour available this day
   const activeTours = tours.filter(t => {
     const activo = t.activo === true || t.activo === 'true' || t.activo === 'TRUE';
     if (!activo) return false;
@@ -1020,6 +1262,10 @@ function showTours(dateStr) {
     const pct = (cupoUsado / parseInt(t.cupo)) * 100;
     const cupoColor = pct < 50 ? '#2d7a4f' : pct < 80 ? '#e07b00' : '#c0392b';
     const isFull = cupoRestante <= 0;
+    
+    // Determinar si tiene contenido extra para mostrar
+    const tieneExtra = (t.descripcionLarga && t.descripcionLarga !== t.descripcion) || t.videoUrl || t.tiktokUrl || t.imagenes;
+    const verMasBtn = tieneExtra ? `<button class="btn-ver-mas" onclick="event.stopPropagation(); abrirModalTour(${JSON.stringify(t).replace(/"/g, '&quot;')})">📖 Ver más del tour</button>` : '';
 
     return `
     <div class="tour-card ${isFull?'full':''}" id="tcard_${t.id}" onclick="selectTour('${t.id}')">
@@ -1028,6 +1274,7 @@ function showTours(dateStr) {
         <div class="tour-card-info">
           <div class="tour-card-name">${t.nombre}</div>
           <div class="tour-card-desc">${t.descripcion||''}</div>
+          ${verMasBtn}
           <div class="tour-card-meta">
             <span>🕐 ${t.horario||'--'}</span>
             <span>💶 Desde 15€/persona</span>
@@ -1058,7 +1305,6 @@ function changeCount(type, delta) {
     menores = Math.max(0, menores + delta);
     document.getElementById('countMenores').textContent = menores;
   }
-  // recap en screen3
   updateScreen3Recap();
 }
 
@@ -1210,7 +1456,6 @@ function showSuccess(r) {
     <div class="summary-row"><span class="summary-key">Participantes</span><span class="summary-val">${r.adultos} adultos, ${r.menores} menores</span></div>
     <div class="summary-row"><span class="summary-key">Total</span><span class="summary-val summary-total">${total}€</span></div>`;
 
-  // WhatsApp link
   const msg = encodeURIComponent(
     `🗼 *Nueva reserva - Gente de París*\n\n` +
     `📅 Fecha: ${formatDateNice(r.fecha)}\n` +
@@ -1222,11 +1467,10 @@ function showSuccess(r) {
     `💶 Total: ${total}€\n` +
     `🔖 Ref: ${r.id}`
   );
-  // Cambiar pantalla primero para que el DOM esté disponible
+  
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen5').classList.add('active');
 
-  // Asignar href del botón de contacto (ahora el DOM está activo)
   const msgContacto = encodeURIComponent(
     `Hola, tengo una reserva:\n` +
     `Nombre: ${r.nombre}\n` +
@@ -1239,7 +1483,6 @@ function showSuccess(r) {
   const btnContacto = document.getElementById('btnWAContacto');
   if (btnContacto) btnContacto.href = waContactoURL;
 
-  // Botón compartir voucher usa el mismo msg que ya está construido
   const btnShare = document.getElementById('btnShareWA');
   if (btnShare) btnShare.onclick = () => window.open(`https://wa.me/${ADMIN_WA}?text=${msg}`, '_blank');
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1300,7 +1543,6 @@ async function compartirVoucher() {
   const blob = new Blob([htmlContent], { type: 'text/html' });
   const file = new File([blob], `voucher-GDP-${r.id}.html`, { type: 'text/html' });
 
-  // Web Share API (funciona en móvil)
   if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({
@@ -1310,11 +1552,10 @@ async function compartirVoucher() {
       });
       return;
     } catch(e) {
-      if (e.name === 'AbortError') return; // usuario canceló
+      if (e.name === 'AbortError') return;
     }
   }
 
-  // Fallback desktop: descargar + abrir WhatsApp Web
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `voucher-GDP-${r.id}.html`;
@@ -1363,7 +1604,6 @@ function formatDateNice(str) {
   return `${parseInt(d)} de ${months[parseInt(m)-1]} de ${y}`;
 }
 
-// Update recap when going to screen3
 const origGoTo = goTo;
 window.goTo = function(step) {
   origGoTo(step);
@@ -1372,7 +1612,6 @@ window.goTo = function(step) {
 
 init();
 
-// Auto-refresh cada 5 minutos para ver bloqueos y cupos actualizados
 setInterval(async () => {
   try {
     const [rawTours, rawBloqueos] = await Promise.all([
