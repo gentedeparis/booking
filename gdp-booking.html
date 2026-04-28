@@ -699,12 +699,12 @@
     <div class="modal-title" id="modalTourNombre"></div>
     <div class="modal-desc-larga" id="modalDescripcionLarga"></div>
     
-    <div class="modal-section" id="modalLinksSection" style="display:none;">
+    <div class="modal-section" id="modalLinksSection">
       <h4>🎬 Contenido multimedia</h4>
       <div class="modal-links" id="modalLinks"></div>
     </div>
     
-    <div class="modal-section" id="modalImagenesSection" style="display:none;">
+    <div class="modal-section" id="modalImagenesSection">
       <h4>📸 Galería del tour</h4>
       <div class="modal-gallery" id="modalGalería"></div>
     </div>
@@ -717,7 +717,7 @@ const ADMIN_WA = '33760940851';
 const DIAS_NUM = { 0:'dom', 1:'lun', 2:'mar', 3:'mie', 4:'jue', 5:'vie', 6:'sab' };
 const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
-let tours = [], bloqueos = [], cupos = {}; // cupos: {fecha_tourId: paxUsado}
+let tours = [], bloqueos = [], cupos = {};
 let calYear, calMonth;
 let selectedDate = null;
 let selectedTour = null;
@@ -728,73 +728,42 @@ let currentReserva = null;
 function abrirModalTour(tour) {
   if (!tour) return;
   
-  // Título
   document.getElementById('modalTourNombre').textContent = tour.nombre || 'Tour';
   
-  // Descripción larga
-  const descLarga = tour.descripcionLarga || tour.descripcion || 'Sin descripción adicional.';
+  let descLarga = tour.descripcionLarga || tour.descripcion || '📖 Sin descripción ampliada disponible. Próximamente más detalles de este tour.';
   document.getElementById('modalDescripcionLarga').innerHTML = descLarga.replace(/\n/g, '<br>');
   
-  // Links (YouTube/TikTok)
-  const linksSection = document.getElementById('modalLinksSection');
   const linksContainer = document.getElementById('modalLinks');
-  let hasLinks = false;
-  
-  // Verificar videoUrl (puede contener YouTube o TikTok)
   const videoUrl = tour.videoUrl || '';
+  const tiktokUrl = tour.tiktokUrl || '';
+  
+  let linksHtml = '';
+  
   if (videoUrl && videoUrl.trim() !== '') {
-    hasLinks = true;
-    let embedHtml = '';
     let platform = '';
-    let watchUrl = videoUrl;
-    
-    // Detectar si es YouTube
     if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
-      platform = '🎬 YouTube';
-      // Extraer ID para embed (opcional)
-      let videoId = '';
-      if (videoUrl.includes('youtu.be/')) {
-        videoId = videoUrl.split('youtu.be/')[1]?.split(/[?#]/)[0];
-      } else if (videoUrl.includes('watch?v=')) {
-        videoId = videoUrl.split('watch?v=')[1]?.split(/[?#&]/)[0];
-      }
-      if (videoId) {
-        embedHtml = `<iframe width="100%" height="200" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="border-radius:12px;margin-top:10px"></iframe>`;
-      }
+      platform = '🎬 Ver en YouTube';
     } else if (videoUrl.includes('tiktok.com')) {
-      platform = '🎵 TikTok';
+      platform = '🎵 Ver en TikTok';
     } else {
       platform = '🎥 Ver video';
     }
-    
-    linksContainer.innerHTML = `
-      <a href="${watchUrl}" target="_blank" class="modal-link">
-        ${platform} ▶
-      </a>
-      ${embedHtml ? `<div style="width:100%">${embedHtml}</div>` : ''}
-    `;
+    linksHtml += `<a href="${videoUrl}" target="_blank" class="modal-link">${platform} ▶</a>`;
   }
   
-  // También permitir link manual de TikTok si existe campo aparte
-  const tiktokUrl = tour.tiktokUrl || '';
   if (tiktokUrl && tiktokUrl.trim() !== '' && tiktokUrl !== videoUrl) {
-    hasLinks = true;
-    const existing = linksContainer.innerHTML;
-    linksContainer.innerHTML = existing + `
-      <a href="${tiktokUrl}" target="_blank" class="modal-link">
-        🎵 TikTok ▶
-      </a>
-    `;
+    linksHtml += `<a href="${tiktokUrl}" target="_blank" class="modal-link">🎵 Ver en TikTok ▶</a>`;
   }
   
-  linksSection.style.display = hasLinks ? 'block' : 'none';
+  if (!linksHtml) {
+    linksHtml = `<span class="no-data">🎬 Próximamente contenido multimedia</span>`;
+  }
   
-  // Galería de imágenes
-  const imagenesSection = document.getElementById('modalImagenesSection');
+  linksContainer.innerHTML = linksHtml;
+  
   const galeriaContainer = document.getElementById('modalGalería');
   let imagenes = [];
   
-  // Si tour.imagenes es string (separado por comas) o array
   if (tour.imagenes) {
     if (typeof tour.imagenes === 'string') {
       imagenes = tour.imagenes.split(',').map(url => url.trim()).filter(url => url);
@@ -805,14 +774,12 @@ function abrirModalTour(tour) {
   
   if (imagenes.length > 0) {
     galeriaContainer.innerHTML = imagenes.map(url => `
-      <img src="${url}" alt="Imagen del tour" onclick="window.open('${url}', '_blank')">
+      <img src="${url}" alt="Imagen del tour" onclick="window.open('${url}', '_blank')" onerror="this.style.display='none'">
     `).join('');
-    imagenesSection.style.display = 'block';
   } else {
-    imagenesSection.style.display = 'none';
+    galeriaContainer.innerHTML = `<span class="no-data">📸 Próximamente imágenes del tour</span>`;
   }
   
-  // Mostrar modal
   document.getElementById('tourModal').classList.add('active');
   document.body.style.overflow = 'hidden';
 }
@@ -822,7 +789,6 @@ function cerrarModal() {
   document.body.style.overflow = '';
 }
 
-// Cerrar modal al hacer clic fuera
 document.addEventListener('click', function(e) {
   const modal = document.getElementById('tourModal');
   if (modal.classList.contains('active') && e.target === modal) {
@@ -860,8 +826,6 @@ async function apiCall(params, { retries=3, timeoutMs=15000 } = {}) {
   throw lastErr;
 }
 
-
-// ── NORMALIZAR DATOS DE GOOGLE SHEETS ──
 function normalizarFecha(val) {
   if (!val) return '';
   const s = String(val);
@@ -915,11 +879,8 @@ function normalizarBloqueos(arr) {
   }));
 }
 
-
-
-// ── CACHE ──
 const CACHE_KEYS = { tours:'gdp_bk_tours', bloqueos:'gdp_bk_bloqueos', cupos:'gdp_bk_cupos' };
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+const CACHE_TTL = 5 * 60 * 1000;
 
 function cacheGet(key) {
   try {
@@ -934,19 +895,18 @@ function cacheSet(key, data) {
   try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data })); } catch(e) {}
 }
 
-// ── LOADING MESSAGES ──
 const loadingMessages = [
-  { text: 'Buscando tours disponibles…',                      pct: 20 },
-  { text: 'Consultando el calendario de nuestros guías…',     pct: 45 },
-  { text: 'Casi listo…',                                      pct: 72 },
-  { text: 'Un momento más, París te espera 🗼',               pct: 92 },
+  { text: 'Buscando tours disponibles…', pct: 20 },
+  { text: 'Consultando el calendario de nuestros guías…', pct: 45 },
+  { text: 'Casi listo…', pct: 72 },
+  { text: 'Un momento más, París te espera 🗼', pct: 92 },
 ];
 let msgIndex = 0;
 let msgInterval = null;
 
 const confirmMessages = [
-  { text: 'Registrando tu reserva…',               pct: 25 },
-  { text: 'Asegurando tu plaza en el tour…',        pct: 60 },
+  { text: 'Registrando tu reserva…', pct: 25 },
+  { text: 'Asegurando tu plaza en el tour…', pct: 60 },
   { text: '¡Casi listo! Preparando tu confirmación…', pct: 90 },
 ];
 let confirmMsgIndex = 0;
@@ -1033,7 +993,6 @@ function updateLoadingMsg(msg) {
   }
 }
 
-// ── INIT ──
 async function init() {
   const now = new Date();
   calYear = now.getFullYear();
@@ -1110,10 +1069,9 @@ async function refreshInBackground() {
     if (document.getElementById('screen1').classList.contains('active')) {
       renderCalendar();
     }
-  } catch(e) { /* silencioso */ }
+  } catch(e) {}
 }
 
-// ── STEPS ──
 function goTo(step) {
   if (step === 3) {
     if (!selectedTour) return;
@@ -1144,7 +1102,6 @@ function goTo(step) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ── CALENDARIO ──
 function renderCalendar() {
   const container = document.getElementById('calContainer');
   const firstDay = new Date(calYear, calMonth, 1).getDay();
@@ -1231,7 +1188,6 @@ function selectDate(dateStr) {
   goTo(2);
 }
 
-// ── TOURS ──
 function showTours(dateStr) {
   const date = new Date(dateStr + 'T12:00:00');
   const dayKey = DIAS_NUM[date.getDay()];
@@ -1263,9 +1219,8 @@ function showTours(dateStr) {
     const cupoColor = pct < 50 ? '#2d7a4f' : pct < 80 ? '#e07b00' : '#c0392b';
     const isFull = cupoRestante <= 0;
     
-    // Determinar si tiene contenido extra para mostrar
-    const tieneExtra = (t.descripcionLarga && t.descripcionLarga !== t.descripcion) || t.videoUrl || t.tiktokUrl || t.imagenes;
-    const verMasBtn = tieneExtra ? `<button class="btn-ver-mas" onclick="event.stopPropagation(); abrirModalTour(${JSON.stringify(t).replace(/"/g, '&quot;')})">📖 Ver más del tour</button>` : '';
+    const tourJson = JSON.stringify(t).replace(/"/g, '&quot;');
+    const verMasBtn = `<button class="btn-ver-mas" onclick="event.stopPropagation(); abrirModalTour(${tourJson})">📖 Ver más del tour</button>`;
 
     return `
     <div class="tour-card ${isFull?'full':''}" id="tcard_${t.id}" onclick="selectTour('${t.id}')">
@@ -1273,7 +1228,7 @@ function showTours(dateStr) {
         <div class="tour-card-emoji">${t.emoji||'🗼'}</div>
         <div class="tour-card-info">
           <div class="tour-card-name">${t.nombre}</div>
-          <div class="tour-card-desc">${t.descripcion||''}</div>
+          <div class="tour-card-desc">${t.descripcion ? t.descripcion.substring(0, 120) + (t.descripcion.length > 120 ? '...' : '') : ''}</div>
           ${verMasBtn}
           <div class="tour-card-meta">
             <span>🕐 ${t.horario||'--'}</span>
@@ -1296,7 +1251,6 @@ function selectTour(id) {
   document.getElementById('btnSelectTour').textContent = 'Continuar → ' + selectedTour.nombre;
 }
 
-// ── PAX ──
 function changeCount(type, delta) {
   if (type === 'adultos') {
     adultos = Math.max(0, adultos + delta);
@@ -1312,11 +1266,6 @@ function getPrecioTramo(pax) {
   if (pax >= 6) return 15;
   if (pax >= 3) return 17;
   return 20;
-}
-function getLabelTramo(pax) {
-  if (pax >= 6) return 'grupo de 6+';
-  if (pax >= 3) return 'grupo de 3–5';
-  return '1–2 personas';
 }
 
 function updateScreen3Recap() {
@@ -1344,7 +1293,6 @@ function updateScreen3Recap() {
     <span style="font-size:0.8rem;color:var(--smoke)">${formatDateNice(selectedDate)} · ${adultos} adultos, ${menores} menores · <strong>${precio}€/persona</strong>${ahorroHTML} · <strong>${total}€</strong></span></div>`;
 }
 
-// ── RESUMEN ──
 function buildSummary() {
   const nombre = document.getElementById('fNombre').value.trim();
   const wa = document.getElementById('fWhatsapp').value.trim();
@@ -1369,7 +1317,6 @@ function buildSummary() {
     <div class="summary-row"><span class="summary-key">Total estimado</span><span class="summary-val summary-total">${total}€</span></div>`;
 }
 
-// ── CONFIRMAR ──
 async function confirmarReserva() {
   const btn = document.getElementById('btnConfirmar');
   btn.disabled = true;
@@ -1596,19 +1543,12 @@ function resetApp() {
   renderCalendar();
 }
 
-// ── UTILS ──
 function formatDateNice(str) {
   if (!str) return '';
   const [y,m,d] = str.split('-');
   const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   return `${parseInt(d)} de ${months[parseInt(m)-1]} de ${y}`;
 }
-
-const origGoTo = goTo;
-window.goTo = function(step) {
-  origGoTo(step);
-  if (step === 3) setTimeout(updateScreen3Recap, 50);
-};
 
 init();
 
