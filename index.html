@@ -40,6 +40,7 @@ body{background:var(--noir);color:var(--white);font-family:'DM Sans',sans-serif;
 .nav-item.active{color:var(--gold);border-bottom-color:var(--gold);}
 .nav-badge{font-size:.58rem;padding:1px 5px;border-radius:8px;font-weight:600;}
 .nb-informe{background:rgba(139,92,246,.25);color:#a78bfa;animation:pulse-badge 2s ease-in-out infinite;}
+.nb-resenas{background:rgba(201,168,76,.25);color:var(--gold);animation:pulse-badge 2s ease-in-out infinite;}
 @keyframes pulse-badge{0%,100%{opacity:1}50%{opacity:.5}}
 .nav-item.disabled{opacity:.4;cursor:default;pointer-events:none;}
 .nav-group-sep{width:1px;height:20px;background:var(--graphite);margin:0 6px;flex-shrink:0;}
@@ -227,6 +228,30 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
 .cliente-actions{display:flex;gap:4px;align-items:center;}
 .btn-cliente-edit{background:transparent;border:none;color:var(--gold);font-size:.9rem;cursor:pointer;padding:2px 5px;}
 
+/* ===== RESEÑAS SECTION ===== */
+.resenas-tabs{display:flex;gap:8px;margin-bottom:22px;border-bottom:1px solid var(--graphite);padding-bottom:8px;}
+.resenas-tab{font-size:.82rem;color:var(--muted);cursor:pointer;padding:6px 16px;border-radius:20px;transition:all 0.2s;}
+.resenas-tab.active{background:rgba(201,168,76,0.15);color:var(--gold);}
+.resenas-panel{display:none;}
+.resenas-panel.active{display:block;}
+.resena-card{background:var(--charcoal);border:1px solid var(--graphite);border-radius:12px;margin-bottom:16px;overflow:hidden;}
+.resena-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:rgba(27,43,75,0.4);border-bottom:1px solid var(--graphite);}
+.resena-tour{font-weight:600;color:var(--gold);font-size:.9rem;}
+.resena-fecha{font-size:.7rem;color:var(--muted);}
+.resena-body{padding:16px 18px;}
+.resena-autor{font-weight:600;color:var(--white);margin-bottom:4px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.resena-estrellas{color:var(--gold);font-size:.85rem;letter-spacing:2px;}
+.resena-texto{font-size:.85rem;color:var(--light);line-height:1.6;margin:12px 0 8px;padding:10px 0;border-top:1px dashed rgba(255,255,255,0.08);}
+.resena-actions{display:flex;gap:10px;margin-top:12px;}
+.btn-resena{background:transparent;border:1px solid var(--smoke);border-radius:6px;padding:6px 14px;font-size:.72rem;cursor:pointer;transition:all 0.2s;color:var(--light);}
+.btn-resena.aprobar:hover{background:rgba(39,174,96,0.2);border-color:var(--green);color:var(--green);}
+.btn-resena.rechazar:hover{background:rgba(192,57,43,0.2);border-color:var(--red);color:var(--red);}
+.btn-resena.retirar:hover{background:rgba(192,57,43,0.2);border-color:var(--red);color:var(--red);}
+.resenas-empty{text-align:center;padding:60px 20px;color:var(--muted);}
+.resenas-empty .ei{font-size:2.8rem;margin-bottom:12px;opacity:.6;}
+.resenas-tour-group{margin-bottom:24px;}
+.resenas-tour-group-title{font-family:'Playfair Display',serif;font-size:1rem;color:var(--gold);margin-bottom:12px;padding-bottom:4px;border-bottom:1px solid rgba(201,168,76,0.3);}
+
 /* ===== MENÚ HAMBURGUESA ===== */
 .menu-toggle{display:none;background:transparent;border:1px solid var(--graphite);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:1.4rem;color:var(--gold);margin-right:10px;}
 .nav-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:900;}
@@ -251,6 +276,8 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
   .listado-acord-header{flex-direction:column;align-items:flex-start;}
   .lr-pax-row{grid-template-columns:1fr auto;}
   .lr-pax-meta{display:none;}
+  .resena-header{flex-direction:column;align-items:flex-start;gap:6px;}
+  .resena-actions{flex-wrap:wrap;}
 }
 </style>
 </head>
@@ -272,6 +299,7 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
     <div class="nav-item" onclick="nav('dossier')" data-sec="dossier"><span>📁</span><span> Dossier</span></div>
     <div class="nav-item" onclick="nav('guias')" data-sec="guias"><span>👤</span><span> Guías</span></div>
     <div class="nav-group-sep"></div>
+    <div class="nav-item" onclick="nav('resenas')" data-sec="resenas"><span>⭐</span><span> Reseñas</span><span class="nav-badge nb-resenas" id="resenasNavBadge" style="display:none">0</span></div>
     <div class="nav-item" onclick="nav('codigos')" data-sec="codigos"><span>🏷</span><span> Códigos</span></div>
   </nav>
   <div class="topbar-right">
@@ -289,6 +317,7 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
   <div class="nav-item" onclick="navMobile('informes')" data-sec="informes"><span>📥</span><span> Informes</span><span class="nav-badge nb-informe" id="informesNavBadgeMobile" style="display:none">0</span></div>
   <div class="nav-item" onclick="navMobile('dossier')" data-sec="dossier"><span>📁</span><span> Dossier</span></div>
   <div class="nav-item" onclick="navMobile('guias')" data-sec="guias"><span>👤</span><span> Guías</span></div>
+  <div class="nav-item" onclick="navMobile('resenas')" data-sec="resenas"><span>⭐</span><span> Reseñas</span></div>
   <div class="nav-item" onclick="navMobile('codigos')" data-sec="codigos"><span>🏷</span><span> Códigos</span></div>
 </div>
 <div class="content">
@@ -307,6 +336,19 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
   <div class="section" id="sec-informes"><div class="sec-header"><h1 class="sec-title">Informes</h1><button class="btn btn-ghost btn-sm" onclick="initInformes()">↻</button></div><div class="informes-header-banner"><div class="informes-header-icon">📥</div><div class="informes-header-body"><div class="informes-header-title">Informes pendientes</div><div class="informes-header-sub">Asigna créditos y pulsa Registrar</div></div><div><div class="informes-count" id="informes-total-count">—</div><div class="informes-count-label">pendientes</div></div></div><div id="informesContent"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div></div>
   <div class="section" id="sec-dossier"><div class="sec-header"><h1 class="sec-title">Dossier</h1><button class="btn btn-gold" onclick="openNewGuiaPrompt()">+ Nuevo guía</button></div><div class="dossier-tabs" id="dossierTabs"></div><div id="dossierContent"><div class="empty-state"><div class="ei">📁</div>Selecciona un guía</div></div></div>
   <div class="section" id="sec-guias"><div class="sec-header"><h1 class="sec-title">Guías</h1><button class="btn btn-gold" onclick="openGuiaModal()">+ Nuevo guía</button></div><div class="guias-grid" id="guiasGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div></div>
+
+  <div class="section" id="sec-resenas">
+    <div class="sec-header">
+      <h1 class="sec-title">⭐ Reseñas de clientes</h1>
+      <div><button class="btn btn-ghost btn-sm" onclick="cargarResenas()">↻ Actualizar</button></div>
+    </div>
+    <div class="resenas-tabs">
+      <div class="resenas-tab active" data-resenas-tab="pendientes">⏳ Pendientes <span id="resenasPendientesCount" style="background:rgba(201,168,76,0.2);padding:2px 8px;border-radius:20px;margin-left:6px;">0</span></div>
+      <div class="resenas-tab" data-resenas-tab="aprobadas">✅ Aprobadas</div>
+    </div>
+    <div id="resenasPendientesPanel" class="resenas-panel active"><div class="empty-state"><div class="ei">⭐</div>Cargando reseñas pendientes...</div></div>
+    <div id="resenasAprobadasPanel" class="resenas-panel"><div class="empty-state"><div class="ei">⭐</div>Cargando reseñas aprobadas...</div></div>
+  </div>
 
   <div class="section" id="sec-codigos">
     <div class="sec-header">
@@ -331,23 +373,149 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
 <div class="toast" id="toast"></div>
 
 <script>
-const API = (() => {
-  const scriptUrl = document.currentScript?.src || '';
-  const match = scriptUrl.match(/(https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec)/);
-  if (match) return match[1];
-  // Fallback: la URL que Google nos da correcta
-  return 'https://script.google.com/macros/s/AKfycbxclPkEfE7mTvy-MyEJMBYoCyZWkCdgDeYWawcSgYHMJzez9l1fibOxydDuMM0Goixl/exec';
-})();
+const API = 'https://script.google.com/macros/s/AKfycbxclPkEfE7mTvy-MyEJMBYoCyZWkCdgDeYWawcSgYHMJzez9l1fibOxydDuMM0Goixl/exec';
 const DIAS_MAP={lun:'Lun',mar:'Mar',mie:'Mié',jue:'Jue',vie:'Vie',sab:'Sáb',dom:'Dom'};
 let tours=[],bloqueos=[],reservas=[],jornadasList=[],opsTours={};
 let editingTourId=null,editingOpsId=null,editingGuiaNombre=null,editingClienteJornadaId=null;
 let dossierGuias=[],dossierActivo=null,dossierEntries={},pagosEntries={};
 let guiasData=[],informesPendientes=[],_clientes=[];
 let _mostrarHistorico=false,_todasOperaciones=[];
+let todasResenas=[],resenasPendientes=[],resenasAprobadas=[];
+
+// ============================================
+// FUNCIONES RESEÑAS
+// ============================================
+async function cargarResenas(){
+  try{
+    const resp=await apiCall({action:'getResenas'});
+    todasResenas=Array.isArray(resp)?resp:[];
+    resenasPendientes=todasResenas.filter(r=>r.estado==='pendiente');
+    resenasAprobadas=todasResenas.filter(r=>r.estado==='aprobada');
+    document.getElementById('resenasPendientesCount')&&(document.getElementById('resenasPendientesCount').textContent=resenasPendientes.length);
+    document.getElementById('resenasNavBadge')&&(document.getElementById('resenasNavBadge').style.display=resenasPendientes.length>0?'inline-flex':'none');
+    renderResenasPendientes();
+    renderResenasAprobadas();
+  }catch(e){console.warn('Error cargando reseñas:',e);}
+}
+
+function renderResenasPendientes(){
+  const panel=document.getElementById('resenasPendientesPanel');
+  if(!resenasPendientes.length){
+    panel.innerHTML='<div class="resenas-empty"><div class="ei">⭐</div><div>No hay reseñas pendientes de revisión</div></div>';
+    return;
+  }
+  let html='';
+  resenasPendientes.forEach(r=>{
+    const fechaFormateada=r.fecha?formatDate(r.fecha):'—';
+    html+=`<div class="resena-card" data-id="${r.id}">
+      <div class="resena-header">
+        <div class="resena-tour">🎯 ${escH(r.tourNombre||'—')}</div>
+        <div class="resena-fecha">📅 ${fechaFormateada}</div>
+      </div>
+      <div class="resena-body">
+        <div class="resena-autor">
+          <span>👤 ${escH(r.autor||'Anónimo')}</span>
+          <div class="resena-estrellas">${'★'.repeat(parseInt(r.estrellas)||5)}</div>
+        </div>
+        <div class="resena-texto">"${escH(r.texto||'')}"</div>
+        <div class="resena-actions">
+          <button class="btn-resena aprobar" onclick="aprobarResena('${r.id}')">✅ Aprobar</button>
+          <button class="btn-resena rechazar" onclick="rechazarResena('${r.id}')">❌ Rechazar</button>
+        </div>
+      </div>
+    </div>`;
+  });
+  panel.innerHTML=html;
+}
+
+function renderResenasAprobadas(){
+  const panel=document.getElementById('resenasAprobadasPanel');
+  if(!resenasAprobadas.length){
+    panel.innerHTML='<div class="resenas-empty"><div class="ei">⭐</div><div>No hay reseñas aprobadas aún</div></div>';
+    return;
+  }
+  const byTour={};
+  resenasAprobadas.forEach(r=>{
+    const key=r.tourId||r.tourNombre||'general';
+    if(!byTour[key])byTour[key]=[];
+    byTour[key].push(r);
+  });
+  let html='';
+  Object.keys(byTour).forEach(tourKey=>{
+    const tour=tours.find(t=>t.id===tourKey||t.nombre===tourKey);
+    const tourNombre=tour?tour.nombre:tourKey;
+    html+=`<div class="resenas-tour-group">
+      <div class="resenas-tour-group-title">🎯 ${escH(tourNombre)} (${byTour[tourKey].length})</div>`;
+    byTour[tourKey].forEach(r=>{
+      const fechaFormateada=r.fecha?formatDate(r.fecha):'—';
+      html+=`<div class="resena-card" data-id="${r.id}">
+        <div class="resena-header">
+          <div class="resena-tour">⭐ ${r.estrellas}/5</div>
+          <div class="resena-fecha">📅 ${fechaFormateada}</div>
+        </div>
+        <div class="resena-body">
+          <div class="resena-autor">
+            <span>👤 ${escH(r.autor||'Anónimo')}</span>
+          </div>
+          <div class="resena-texto">"${escH(r.texto||'')}"</div>
+          <div class="resena-actions">
+            <button class="btn-resena retirar" onclick="retirarResena('${r.id}')">🗑 Retirar</button>
+          </div>
+        </div>
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  panel.innerHTML=html;
+}
+
+async function aprobarResena(id){
+  showLoading();
+  try{
+    await apiCall({action:'aprobarResena',id});
+    showToast('Reseña aprobada ✓');
+    await cargarResenas();
+  }catch(e){showToast('Error: '+e.message,'error');}
+  hideLoading();
+}
+
+async function rechazarResena(id){
+  showLoading();
+  try{
+    await apiCall({action:'rechazarResena',id});
+    showToast('Reseña rechazada');
+    await cargarResenas();
+  }catch(e){showToast('Error: '+e.message,'error');}
+  hideLoading();
+}
+
+async function retirarResena(id){
+  if(!confirm('¿Retirar esta reseña? Se eliminará permanentemente.'))return;
+  showLoading();
+  try{
+    await apiCall({action:'rechazarResena',id});
+    showToast('Reseña retirada');
+    await cargarResenas();
+  }catch(e){showToast('Error: '+e.message,'error');}
+  hideLoading();
+}
+
+function copiarLinkResena(tour){
+  const url=`https://gentedeparis.com/resena?tour=${encodeURIComponent(tour.id)}&tourNombre=${encodeURIComponent(tour.nombre)}`;
+  navigator.clipboard.writeText(url).then(()=>{
+    showToast('🔗 Link de reseña copiado al portapapeles');
+  }).catch(()=>{
+    prompt('Copia manualmente este enlace:',url);
+  });
+}
+
+// ============================================
+// FUNCIONES BASE
+// ============================================
 function cerrarModal(id){document.getElementById(id).classList.remove('open');}
 function abrirModal(id){document.getElementById(id).classList.add('open');}
 function apiCall(params,timeout=30000){const c=new AbortController();const t=setTimeout(()=>c.abort(),timeout);return fetch(API,{method:'POST',body:JSON.stringify(params),signal:c.signal}).then(r=>r.text()).then(txt=>{clearTimeout(t);if(!txt.trim().startsWith('{')&&!txt.trim().startsWith('['))throw new Error('Respuesta inesperada');let r=JSON.parse(txt);if(r&&r.error)throw new Error(r.error);return r;}).catch(e=>{clearTimeout(t);if(e.name==='AbortError')throw new Error('Tiempo agotado');throw e;});}
-function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function escH(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function setSyncStatus(s,t){document.getElementById('syncDot').className='sync-dot '+s;document.getElementById('syncText').textContent=t;}
 function showLoading(){document.getElementById('loadingOverlay').classList.add('open');}
 function hideLoading(){document.getElementById('loadingOverlay').classList.remove('open');}
@@ -361,7 +529,7 @@ function hoy(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1
 function getSemanaKey(fechaStr){var d=new Date(fechaStr+'T00:00:00'),dow=d.getDay(),diff=dow===0?-6:1-dow;var lun=new Date(d);lun.setDate(d.getDate()+diff);var dom=new Date(lun);dom.setDate(lun.getDate()+6);var fmt=function(x){return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');};return{key:fmt(lun)+'_'+fmt(dom),inicio:fmt(lun),fin:fmt(dom)};}
 function cacheGet(k){try{const o=JSON.parse(localStorage.getItem(k)||'null');return o&&(Date.now()-o.ts<300000)?o.data:null;}catch{return null;}}
 function cacheSet(k,d){try{localStorage.setItem(k,JSON.stringify({ts:Date.now(),data:d}));}catch{}}
-function nav(sec){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));document.getElementById('sec-'+sec).classList.add('active');document.querySelector('[data-sec="'+sec+'"]')?.classList.add('active');if(sec==='operaciones')cargarOperaciones();if(sec==='clientes')renderClientes();if(sec==='dash')updateDashboard();if(sec==='dossier')initDossier();if(sec==='guias')initGuias();if(sec==='informes')initInformes();if(sec==='tours')loadTours();if(sec==='bloqueos')loadBloqueos();if(sec==='codigos')loadCodigos();}
+function nav(sec){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));document.getElementById('sec-'+sec).classList.add('active');document.querySelector('[data-sec="'+sec+'"]')?.classList.add('active');if(sec==='operaciones')cargarOperaciones();if(sec==='clientes')renderClientes();if(sec==='dash')updateDashboard();if(sec==='dossier')initDossier();if(sec==='guias')initGuias();if(sec==='informes')initInformes();if(sec==='tours')loadTours();if(sec==='bloqueos')loadBloqueos();if(sec==='resenas')cargarResenas();if(sec==='codigos')loadCodigos();}
 function updateInformesNavBadge(){const b=document.getElementById('informesNavBadge'),bm=document.getElementById('informesNavBadgeMobile');const c=informesPendientes.length;if(b){b.textContent=c;b.style.display=c>0?'inline-flex':'none';}if(bm){bm.textContent=c;bm.style.display=c>0?'inline-flex':'none';}}
 function populateTourSelect(){const sel=document.getElementById('bTourId');if(!sel)return;sel.innerHTML='<option value="all">🚫 Todos los tours</option>';tours.filter(t=>t.activo==='true'||t.activo===true).forEach(t=>sel.innerHTML+=`<option value="${t.id}">${escH(t.nombre)}</option>`);}
 async function cargarGuiasParaModales(){try{const r=await apiCall({action:'getGuiasData'});guiasData=Array.isArray(r)?r:[];const sc=document.getElementById('cambiarGuiaSelect'),sd=document.getElementById('duplicarJornadaGuia');const opts='<option value="">— Selecciona —</option>'+guiasData.filter(g=>g.activo==='true'||g.activo===true).map(g=>`<option value="${escH(g.nombre)}">${escH(g.nombre)}</option>`).join('');if(sc)sc.innerHTML=opts;if(sd)sd.innerHTML=opts;}catch(e){console.warn(e);}}
@@ -371,50 +539,21 @@ function toggleGrupoOperaciones(idx){const b=document.getElementById(`acord-body
 function toggleClienteJornada(id){const el=document.getElementById(id);if(!el)return;const isOpen=el.style.display==='block';el.style.display=isOpen?'none':'block';const arr=el.previousElementSibling.querySelector('.acordeon-grupo-arrow');if(arr)arr.innerHTML=isOpen?'▼':'▲';}
 function toggleHistoricoOperaciones(){_mostrarHistorico=!_mostrarHistorico;document.getElementById('btnToggleHistorico').textContent=_mostrarHistorico?'📦 Ocultar histórico':'📦 Ver histórico';renderOperacionesUnificado();}
 async function marcarVistaIndividual(id){await apiCall({action:'marcarVista',id});cargarOperaciones();}
-async function cancelarReserva(id) {
-  if (!confirm('¿Cancelar esta reserva?')) return;
-  showLoading();
-  try {
-    await apiCall({ action: 'cancelReserva', id });
-    const reserva = reservas.find(r => r.id === id);
-    if (reserva) reserva.estado = 'cancelada';
-    _todasOperaciones = [...reservas, ...jornadasList];
-    _todasOperaciones.sort((a, b) => a.fecha > b.fecha ? -1 : 1);
-    renderOperacionesUnificado();
-    showToast('✅ Reserva cancelada');
-  } catch (e) {
-    showToast('Error: ' + e.message, 'error');
-  }
-  hideLoading();
-}
-async function eliminarReserva(id) {
-  if (!confirm('¿Eliminar DEFINITIVAMENTE esta reserva?')) return;
-  showLoading();
-  try {
-    await apiCall({ action: 'deleteReserva', id });
-    reservas = reservas.filter(r => r.id !== id);
-    _todasOperaciones = [...reservas, ...jornadasList];
-    _todasOperaciones.sort((a, b) => a.fecha > b.fecha ? -1 : 1);
-    renderOperacionesUnificado();
-    showToast('🗑️ Reserva eliminada');
-  } catch (e) {
-    showToast('Error: ' + e.message, 'error');
-  }
-  hideLoading();
-}
+async function cancelarReserva(id){if(!confirm('¿Cancelar?'))return;await apiCall({action:'cancelReserva',id});cargarOperaciones();}
+async function eliminarReserva(id){if(!confirm('¿Eliminar?'))return;await apiCall({action:'deleteReserva',id});cargarOperaciones();}
 async function eliminarJornadaCompleta(id){if(!confirm('¿Eliminar jornada?'))return;showLoading();await apiCall({action:'deleteJornada',id});if(opsTours[id])delete opsTours[id];opsSaveLocal();cargarOperaciones();hideLoading();showToast('Jornada eliminada');}
 async function loadTours(){setSyncStatus('loading','Cargando...');try{const r=await apiCall({action:'getTours'});tours=(Array.isArray(r)?r.filter(t=>t&&t.id):[]).map(t=>({...t,horario:normalizarHorario(t.horario)}));cacheSet('gdp_tours',tours);renderTours();populateTourSelect();setSyncStatus('ok','Sincronizado');updateDashboard();}catch(e){setSyncStatus('error','Error');showToast('Error cargando tours: '+e.message,'error',6000);}}
-function renderTours(){const gr=document.getElementById('toursGrid');if(!tours.length){gr.innerHTML='<div class="empty-state"><div class="ei">🗺</div>No hay tours.</div>';return;}gr.innerHTML=tours.map(t=>{const activo=t.activo===true||t.activo==='true';const esInt=t.interno===true||t.interno==='true';const dias=t.dias?t.dias.split(',').map(d=>`<span class="dia-chip">${DIAS_MAP[d.trim()]||d}</span>`).join(''):'';return`<div class="tour-card ${activo?'':'inactive'}"><div><div class="tour-name">${escH(t.nombre)}${t.videoUrl?'<span style="background:rgba(192,57,43,.15);color:#e74c3c;padding:1px 6px;margin-left:6px">▶</span>':''}</div><div class="tour-desc">${escH(t.descripcion||'')}</div><div class="tour-meta"><span>🕐 ${t.horario||'--'}</span><span>👥 ${t.cupo}</span><span>💶 ${t.precio}€/p</span><span class="badge ${activo?(esInt?'b-navy':'b-green'):'b-red'}">${activo?(esInt?'🔒 Interno':'Activo'):'Pausado'}</span></div><div class="dias-list">${dias}</div></div><div class="tour-actions"><button class="btn btn-ghost btn-sm" onclick="openTourModal('${t.id}')">✏️ Editar</button><button class="btn btn-ghost btn-sm" onclick="toggleTour('${t.id}')">${activo?'⏸ Pausar':'▶ Activar'}</button></div></div>`;}).join('');}
-function openTourModal(id){editingTourId=id||null;document.getElementById('tourModalTitle').textContent=id?'Editar':'Nuevo';document.querySelectorAll('input[name="dia"]').forEach(c=>c.checked=false);if(id){const t=tours.find(x=>String(x.id)==String(id));if(t){document.getElementById('tNombre').value=t.nombre||'';document.getElementById('tDesc').value=t.descripcion||'';document.getElementById('tHorario').value=t.horario||'';document.getElementById('tPrecio').value=t.precio||'';document.getElementById('tCupo').value=t.cupo||'15';document.getElementById('tDireccion').value=t.direccion||'';document.getElementById('tInterno').checked=t.interno==='true';if(t.dias)t.dias.split(',').forEach(d=>{const cb=document.querySelector(`input[name="dia"][value="${d.trim()}"]`);if(cb)cb.checked=true;});}}else{['tNombre','tDesc','tHorario','tPrecio','tDireccion'].forEach(f=>document.getElementById(f).value='');document.getElementById('tCupo').value='15';document.getElementById('tInterno').checked=false;}abrirModal('tourModal');}
-async function saveTour(){const n=document.getElementById('tNombre').value.trim();if(!n){showToast('Nombre obligatorio','error');return;}const dias=[...document.querySelectorAll('input[name="dia"]:checked')].map(c=>c.value).join(',');if(!dias){showToast('Selecciona días','error');return;}const tour={id:editingTourId||('tour_'+Date.now()),nombre:n,dias:dias,descripcion:document.getElementById('tDesc').value,horario:document.getElementById('tHorario').value,cupo:parseInt(document.getElementById('tCupo').value)||15,precio:parseFloat(document.getElementById('tPrecio').value)||0,direccion:document.getElementById('tDireccion').value,activo:'true',interno:String(document.getElementById('tInterno').checked)};showLoading();try{await apiCall({action:'saveTour',data:tour});cerrarModal('tourModal');await loadTours();showToast(editingTourId?'Tour actualizado':'Tour creado');}catch(e){showToast(e.message,'error',6000);}hideLoading();}
+function renderTours(){const gr=document.getElementById('toursGrid');if(!tours.length){gr.innerHTML='<div class="empty-state"><div class="ei">🗺</div>No hay tours.</div>';return;}gr.innerHTML=tours.map(t=>{const activo=t.activo===true||t.activo==='true';const esInt=t.interno===true||t.interno==='true';const dias=t.dias?t.dias.split(',').map(d=>`<span class="dia-chip">${DIAS_MAP[d.trim()]||d}</span>`).join(''):'';return`<div class="tour-card ${activo?'':'inactive'}"><div><div class="tour-name">${escH(t.nombre)}${t.videoUrl?'<span style="background:rgba(192,57,43,.15);color:#e74c3c;padding:1px 6px;margin-left:6px">▶</span>':''}</div><div class="tour-desc">${escH(t.descripcion||'')}</div><div class="tour-meta"><span>🕐 ${t.horario||'--'}</span><span>👥 ${t.cupo}</span><span>💶 ${t.precio}€/p</span><span class="badge ${activo?(esInt?'b-navy':'b-green'):'b-red'}">${activo?(esInt?'🔒 Interno':'Activo'):'Pausado'}</span></div><div class="dias-list">${dias}</div></div><div class="tour-actions"><button class="btn btn-ghost btn-sm" onclick="openTourModal('${t.id}')">✏️ Editar</button><button class="btn btn-ghost btn-sm" onclick="copiarLinkResena(${JSON.stringify(t).replace(/"/g,'&quot;')})">🔗 Link de reseña</button><button class="btn btn-ghost btn-sm" onclick="toggleTour('${t.id}')">${activo?'⏸ Pausar':'▶ Activar'}</button></div></div>`;}).join('');}
+function openTourModal(id){editingTourId=id||null;document.querySelectorAll('input[name="dia"]').forEach(c=>c.checked=false);if(id){const t=tours.find(x=>String(x.id)==String(id));if(t){document.getElementById('tNombre').value=t.nombre||'';document.getElementById('tDesc').value=t.descripcion||'';document.getElementById('tDescLarga').value=t.descripcionLarga||'';document.getElementById('tHorario').value=t.horario||'';document.getElementById('tPrecio').value=t.precio||'';document.getElementById('tCupo').value=t.cupo||'15';document.getElementById('tDireccion').value=t.direccion||'';document.getElementById('tVideoUrl').value=t.videoUrl||'';document.getElementById('tTiktokUrl').value=t.tiktokUrl||'';document.getElementById('tInterno').checked=t.interno==='true';if(t.dias)t.dias.split(',').forEach(d=>{const cb=document.querySelector(`input[name="dia"][value="${d.trim()}"]`);if(cb)cb.checked=true;});}}else{['tNombre','tDesc','tDescLarga','tHorario','tPrecio','tDireccion','tVideoUrl','tTiktokUrl'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});document.getElementById('tCupo').value='15';document.getElementById('tInterno').checked=false;document.querySelectorAll('input[name="dia"]').forEach(c=>c.checked=false);}abrirModal('tourModal');}
+async function saveTour(){const n=document.getElementById('tNombre').value.trim();if(!n){showToast('Nombre obligatorio','error');return;}const dias=[...document.querySelectorAll('input[name="dia"]:checked')].map(c=>c.value).join(',');if(!dias){showToast('Selecciona días','error');return;}const tour={id:editingTourId||('tour_'+Date.now()),nombre:n,dias:dias,descripcion:document.getElementById('tDesc').value,descripcionLarga:document.getElementById('tDescLarga').value,horario:document.getElementById('tHorario').value,cupo:parseInt(document.getElementById('tCupo').value)||15,precio:parseFloat(document.getElementById('tPrecio').value)||0,direccion:document.getElementById('tDireccion').value,videoUrl:document.getElementById('tVideoUrl').value,tiktokUrl:document.getElementById('tTiktokUrl').value,activo:'true',interno:String(document.getElementById('tInterno').checked)};showLoading();try{await apiCall({action:'saveTour',data:tour});cerrarModal('tourModal');await loadTours();showToast(editingTourId?'Tour actualizado':'Tour creado');}catch(e){showToast(e.message,'error',6000);}hideLoading();}
 async function toggleTour(id){const t=tours.find(x=>String(x.id)==String(id));if(!t)return;t.activo=t.activo===true||t.activo==='true'?'false':'true';showLoading();try{await apiCall({action:'saveTour',data:t});await loadTours();showToast('Estado actualizado');}catch(e){showToast('Error','error');}hideLoading();}
 function openBloqueoModal(){document.getElementById('bFecha').value='';abrirModal('bloqueoModal');}
-async function saveBloqueo(){const f=document.getElementById('bFecha').value;if(!f){showToast('Selecciona fecha','error');return;}const b={id:'blq_'+Date.now(),fecha:f,tourId:document.getElementById('bTourId').value,motivo:document.getElementById('bMotivo')?.value||''};showLoading();try{await apiCall({action:'saveBloqueo',data:b});cerrarModal('bloqueoModal');await loadBloqueos();showToast('Bloqueado');}catch(e){showToast('Error','error');}hideLoading();}
+async function saveBloqueo(){const f=document.getElementById('bFecha').value;if(!f){showToast('Selecciona fecha','error');return;}const b={id:'blq_'+Date.now(),fecha:f,tourId:document.getElementById('bTourId').value,motivo:''};showLoading();try{await apiCall({action:'saveBloqueo',data:b});cerrarModal('bloqueoModal');await loadBloqueos();showToast('Bloqueado');}catch(e){showToast('Error','error');}hideLoading();}
 async function deleteBloqueo(id){if(!confirm('¿Eliminar?'))return;showLoading();try{await apiCall({action:'deleteBloqueo',id});await loadBloqueos();showToast('Eliminado');}catch(e){showToast('Error','error');}hideLoading();}
 async function loadBloqueos(){try{const r=await apiCall({action:'getBloqueos'});bloqueos=(Array.isArray(r)?r:[]).map(b=>({...b,fecha:normalizarFecha(b.fecha)}));renderBloqueos();}catch(e){showToast('Error cargando bloqueos','error');}}
 function renderBloqueos(){const g=document.getElementById('bloqueosGrid');const s=[...bloqueos].sort((a,b)=>a.fecha>b.fecha?1:-1);if(!s.length){g.innerHTML='<div class="empty-state"><div class="ei">✅</div>No hay bloqueos.</div>';return;}g.innerHTML=s.map(b=>{const tn=b.tourId==='all'?'Todos':((tours.find(t=>t.id==b.tourId)||{}).nombre||b.tourId);return`<div class="bloqueo-card"><div><div style="font-size:.95rem">📅 ${formatDate(b.fecha)}</div><div style="font-size:.78rem;color:var(--muted)">🚫 ${escH(tn)}${b.motivo?' — '+escH(b.motivo):''}</div></div><button class="btn btn-danger btn-sm" onclick="deleteBloqueo('${b.id}')">Eliminar</button></div>`;}).join('');}
 async function renderClientes(){const c=document.getElementById('clientesContainer');c.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando...</div>';try{const r=await apiCall({action:'getClientes'});_clientes=Array.isArray(r)?r:[];filtrarClientes();}catch(e){c.innerHTML=`<div class="empty-state"><div class="ei">⚠️</div>Error: ${escH(e.message)}</div>`;}}
-function filtrarClientes(){const q=(document.getElementById('filtroCliente')?.value||'').toLowerCase();const lista=q?_clientes.filter(c=>(c.nombre||'').toLowerCase().includes(q)||(c.whatsapp||'').replace(/\s/g,'').includes(q.replace(/\s/g,''))):_clientes;document.getElementById('clientesCount')&&(document.getElementById('clientesCount').textContent=lista.length+' cliente'+(lista.length!==1?'s':''));const cont=document.getElementById('clientesContainer');if(!lista.length){cont.innerHTML='<div class="empty-state"><div class="ei">📇</div>'+(q?'Sin resultados':'Sin clientes')+'</div>';return;}const sorted=[...lista].sort((a,b)=>(b.ultima_fecha||'')>(a.ultima_fecha||'')?1:-1);let html='<div class="clientes-grid"><div class="cliente-card cliente-card-header"><span>Cliente</span><span>WhatsApp</span><span>Email</span><span>Primer tour</span><span>Último tour</span><span>Reservas</span><span></span></div>';sorted.forEach(c=>{html+=`<div class="cliente-card"><span>${escH(c.nombre||'—')}</span><span><a href="https://wa.me/${(c.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="cliente-wa">${escH(c.whatsapp||'—')}</a></span><span>${escH(c.email||'—')}</span><span>${escH(c.primer_tour||'—')}<br>${escH(c.primer_fecha||'')}</span><span>${escH(c.ultimo_tour||'—')}<br>${escH(c.ultima_fecha||'')}</span><span><span class="badge b-gold">${c.cant_reservas||1}</span> · ${c.total_pax||0} pax</span><span><button class="btn-cliente-eliminar" onclick="eliminarCliente('${escH(c.whatsapp)}')">🗑</button></span></div>`;});html+='</div>';cont.innerHTML=html;}
+function filtrarClientes(){const q=(document.getElementById('filtroCliente')?.value||'').toLowerCase();const lista=q?_clientes.filter(c=>(c.nombre||'').toLowerCase().includes(q)||(c.whatsapp||'').replace(/\s/g,'').includes(q.replace(/\s/g,''))):_clientes;const countSpan=document.getElementById('clientesCount');if(countSpan) countSpan.textContent=lista.length+' cliente'+(lista.length!==1?'s':'');const cont=document.getElementById('clientesContainer');if(!lista.length){cont.innerHTML='<div class="empty-state"><div class="ei">📇</div>'+(q?'Sin resultados':'Sin clientes')+'</div>';return;}const sorted=[...lista].sort((a,b)=>(b.ultima_fecha||'')>(a.ultima_fecha||'')?1:-1);let html='<div class="clientes-grid"><div class="cliente-card cliente-card-header"><span>Cliente</span><span>WhatsApp</span><span>Email</span><span>Primer tour</span><span>Último tour</span><span>Reservas</span><span></span></div>';sorted.forEach(c=>{html+=`<div class="cliente-card"><span>${escH(c.nombre||'—')}</span><span><a href="https://wa.me/${(c.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="cliente-wa">${escH(c.whatsapp||'—')}</a></span><span>${escH(c.email||'—')}</span><span>${escH(c.primer_tour||'—')}<br>${escH(c.primer_fecha||'')}</span><span>${escH(c.ultimo_tour||'—')}<br>${escH(c.ultima_fecha||'')}</span><span><span class="badge b-gold">${c.cant_reservas||1}</span> · ${c.total_pax||0} pax</span><span><button class="btn-cliente-eliminar" onclick="eliminarCliente('${escH(c.whatsapp)}')">🗑</button></span></div>`;});html+='</div>';cont.innerHTML=html;}
 async function eliminarCliente(whatsapp){if(!confirm('¿Eliminar cliente?'))return;showLoading();try{await apiCall({action:'deleteCliente',whatsapp});showToast('Cliente eliminado');renderClientes();}catch(e){showToast('Error: '+e.message,'error');}hideLoading();}
 function exportarCSVClientes(){if(!_clientes.length){showToast('No hay clientes','error');return;}const sorted=[..._clientes].sort((a,b)=>(b.ultima_fecha||'')>(a.ultima_fecha||'')?1:-1);const esc=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';const h=['WhatsApp','Nombre','Email','Primer tour','Primera fecha','Último tour','Última fecha','Reservas','PAX total'];const filas=sorted.map(c=>[c.whatsapp,c.nombre,c.email,c.primer_tour,c.primer_fecha,c.ultimo_tour,c.ultima_fecha,c.cant_reservas,c.total_pax].map(esc).join(','));const blob=new Blob(['\uFEFF'+[h.join(','),...filas].join('\r\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='clientes_'+new Date().toISOString().slice(0,10)+'.csv';a.click();}
 function exportarCSV(){const lista=reservas;if(!lista.length){showToast('No hay reservas','error');return;}const esc=v=>'"'+String(v).replace(/"/g,'""')+'"';const headers=['ID','Fecha','Tour','Horario','Cliente','WhatsApp','Adultos','Menores','Total','Estado','Vista','Timestamp'];const filas=lista.map(r=>[r.id,r.fecha,r.tourNombre,r.horario,r.nombre,r.whatsapp,r.adultos,r.menores,r.total,r.estado||'confirmada',r.vista||'no',r.timestamp].map(esc).join(','));const blob=new Blob(['\uFEFF'+[headers.join(','),...filas].join('\r\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='reservas_'+new Date().toISOString().slice(0,10)+'.csv';a.click();}
@@ -431,190 +570,96 @@ async function updateDossierField(guia,id,campo,valor){const entry=dossierEntrie
 async function deleteDossierEntry(guia,id){if(!confirm('¿Eliminar?'))return;showLoading();try{await apiCall({action:'deleteDossierEntry',guia,id});dossierEntries[guia]=dossierEntries[guia]?.filter(e=>e.id!==id)||[];renderDossierContent(guia);showToast('Eliminado');}catch(e){showToast('Error','error');}hideLoading();}
 function openNewGuiaPrompt(){document.getElementById('newGuiaName').value='';abrirModal('newGuiaModal');}
 async function createNewGuia(){const n=document.getElementById('newGuiaName').value.trim();if(!n){showToast('Nombre obligatorio','error');return;}if(dossierGuias.includes(n)){showToast('Ya existe','warning');cerrarModal('newGuiaModal');return;}showLoading();try{await apiCall({action:'getDossier',guia:n});dossierGuias.push(n);dossierActivo=n;dossierEntries[n]=[];renderDossierTabs();renderDossierContent(n);cerrarModal('newGuiaModal');showToast('Dossier creado');}catch(e){showToast('Error','error');}hideLoading();}
-function openManualDossierEntry(guia){document.getElementById('manualDossierGuia').value=guia;document.getElementById('manualTourNombre').value='';document.getElementById('manualFecha').value=new Date().toISOString().slice(0,10);['manualHorario','manualIdioma','manualPax','manualAsistentes','manualCreditos'].forEach(id=>document.getElementById(id).value='');abrirModal('manualDossierModal');}
+function openManualDossierEntry(guia){document.getElementById('manualDossierGuia').value=guia;document.getElementById('manualTourNombre').value='';document.getElementById('manualFecha').value=new Date().toISOString().slice(0,10);['manualHorario','manualIdioma','manualPax','manualAsistentes','manualCreditos'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});abrirModal('manualDossierModal');}
 async function saveManualDossierEntry(){const guia=document.getElementById('manualDossierGuia').value;const tn=document.getElementById('manualTourNombre').value.trim();const f=document.getElementById('manualFecha').value;if(!tn||!f){showToast('Faltan datos','error');return;}const semInfo=getSemanaKey(f);const entry={id:'dos_man_'+normalizeId(guia)+'_'+Date.now(),guia:guia,fecha:f,tourNombre:tn,horario:document.getElementById('manualHorario').value||'',idioma:document.getElementById('manualIdioma').value.trim()||'',paxTotal:parseInt(document.getElementById('manualPax').value)||0,asistentes:parseInt(document.getElementById('manualAsistentes').value)||0,creditos:parseInt(document.getElementById('manualCreditos').value)||0,semana:semInfo.key,timestamp:new Date().toISOString()};showLoading();try{await apiCall({action:'saveDossierEntry',guia,data:entry});if(!dossierEntries[guia])dossierEntries[guia]=[];dossierEntries[guia].push(entry);cerrarModal('manualDossierModal');renderDossierContent(guia);showToast('Registro añadido');}catch(e){showToast('Error: '+e.message,'error');}hideLoading();}
-function downloadDossierPublic(guia){const entries=dossierEntries[guia]||[];const mn=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];const byM={};entries.forEach(e=>{if(!e.fecha)return;const p=normalizarFecha(e.fecha).split('-'),mk=p[0]+'-'+p[1];if(!byM[mk])byM[mk]=[];byM[mk].push(e);});let body='';Object.keys(byM).sort().forEach(mk=>{const p=mk.split('-');body+=`<div style="font-size:.68rem;color:#7fa7d9;margin:10px 0 6px">/////// ${(mn[parseInt(p[1])-1]||'').toUpperCase()} ${p[0]} ///////</div>`;byM[mk].sort((a,b)=>a.fecha>b.fecha?1:-1).forEach(e=>{const ip=e.estadoPago==='pagado';body+=`<div style="background:#1a1a1a;border:1px solid #2c2c2c;border-radius:8px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;"><div><div style="font-weight:700">${escH(e.tourNombre)}</div><div style="font-size:.72rem;color:#888">${formatDDMMYYYY(e.fecha)}${e.horario?' · '+e.horario:''} · PAX: ${e.paxTotal||0} · Asist: ${e.asistentes||0}</div></div><div style="text-align:right"><div style="font-family:Georgia;font-size:1.1rem;color:${ip?'#27ae60':'#c9a84c'}">${e.creditos||0} cr.</div><div style="font-size:.68rem">${ip?'✅ Pagado':'⏳ Pend.'}</div></div></div>`;});});const html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+escH(guia)+' · Dossier</title><style>body{background:#0f0f0f;color:#f5f2ec;font-family:sans-serif;padding:20px}.wrap{max-width:800px;margin:0 auto}.hdr{background:#1B2B4B;padding:18px;border-radius:10px;margin-bottom:20px}</style></head><body><div class="wrap"><div class="hdr"><div style="font-size:1.2rem;">📁 Dossier — '+escH(guia)+'</div></div>'+body+'</div></body></html>';const blob=new Blob([html],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='dossier-'+guia.replace(/\s+/g,'-')+'.html';a.click();}
+function downloadDossierPublic(guia){const entries=dossierEntries[guia]||[];const mn=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];const byM={};entries.forEach(e=>{if(!e.fecha)return;const p=e.fecha.split('-'),mk=p[0]+'-'+p[1];if(!byM[mk])byM[mk]=[];byM[mk].push(e);});let body='';Object.keys(byM).sort().forEach(mk=>{const p=mk.split('-');body+=`<div style="font-size:.68rem;color:#7fa7d9;margin:10px 0 6px">/////// ${(mn[parseInt(p[1])-1]||'').toUpperCase()} ${p[0]} ///////</div>`;byM[mk].sort((a,b)=>a.fecha>b.fecha?1:-1).forEach(e=>{const ip=e.estadoPago==='pagado';body+=`<div style="background:#1a1a1a;border:1px solid #2c2c2c;border-radius:8px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;"><div><div style="font-weight:700">${escH(e.tourNombre)}</div><div style="font-size:.72rem;color:#888">${formatDDMMYYYY(e.fecha)}${e.horario?' · '+e.horario:''} · PAX: ${e.paxTotal||0} · Asist: ${e.asistentes||0}</div></div><div style="text-align:right"><div style="font-family:Georgia;font-size:1.1rem;color:${ip?'#27ae60':'#c9a84c'}">${e.creditos||0} cr.</div><div style="font-size:.68rem">${ip?'✅ Pagado':'⏳ Pend.'}</div></div></div>`;});});const html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+escH(guia)+' · Dossier</title><style>body{background:#0f0f0f;color:#f5f2ec;font-family:sans-serif;padding:20px}.wrap{max-width:800px;margin:0 auto}.hdr{background:#1B2B4B;padding:18px;border-radius:10px;margin-bottom:20px}</style></head><body><div class="wrap"><div class="hdr"><div style="font-size:1.2rem;">📁 Dossier — '+escH(guia)+'</div></div>'+body+'</div></body></html>';const blob=new Blob([html],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='dossier-'+guia.replace(/\s+/g,'-')+'.html';a.click();}
 async function initGuias(){const g=document.getElementById('guiasGrid');g.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando...</div>';showLoading();try{const r=await apiCall({action:'getGuiasData'});guiasData=Array.isArray(r)?r:[];renderGuias();}catch(e){g.innerHTML='<div class="empty-state"><div class="ei">❌</div>Error</div>';showToast('Error cargando guías','error');}hideLoading();}
-function renderGuias(){const g=document.getElementById('guiasGrid');if(!guiasData.length){g.innerHTML='<div class="empty-state"><div class="ei">👤</div>No hay guías.</div>';return;}g.innerHTML=guiasData.map(gu=>{const activo=String(gu.activo).toLowerCase()==='true';return`<div class="guia-card ${activo?'':'inactivo'}"><div><div class="guia-nombre">${escH(gu.nombre)}</div><div class="guia-pin">PIN: <span class="pin-dots" id="pd-${escH(gu.nombre)}"><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span></span> <button class="btn btn-ghost btn-sm" style="padding:2px 8px;" data-action="verpin" data-pin="${escH(gu.pin)}" data-target="pd-${escH(gu.nombre)}">Ver</button></div><div><span class="badge ${activo?'b-green':'b-muted'}">${activo?'✅ Activo':'⏸ Inactivo'}</span></div></div><div class="guia-actions"><button class="btn btn-ghost btn-sm" data-action="editar" data-nombre="${escH(gu.nombre)}">✏️</button><button class="btn btn-ghost btn-sm" data-action="toggle" data-nombre="${escH(gu.nombre)}" data-activo="${String(gu.activo).toLowerCase()}">${activo?'⏸':'▶'}</button><button class="btn btn-danger btn-sm" data-action="eliminar" data-nombre="${escH(gu.nombre)}">🗑</button></div></div>`;}).join('');}
-function toggleVerPin(btn){const pin=btn.getAttribute('data-pin'),target=btn.getAttribute('data-target');const el=document.getElementById(target);if(!el)return;if(btn.textContent==='Ver'){el.innerHTML=`<span style="font-family:monospace;color:var(--gold);">${pin}</span>`;btn.textContent='Ocultar';}else{el.innerHTML='<span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span><span class="pin-dot"></span>';btn.textContent='Ver';}}
-function openGuiaModal(nombre){editingGuiaNombre=nombre||null;document.getElementById('guiaModalTitle').textContent=nombre?'Editar':'Nuevo';if(nombre){const g=guiasData.find(x=>x.nombre===nombre);if(g){document.getElementById('gNombre').value=g.nombre;document.getElementById('gNombre').disabled=true;document.getElementById('gPin').value=g.pin;document.getElementById('gActivo').checked=g.activo==='true';}}else{document.getElementById('gNombre').value='';document.getElementById('gNombre').disabled=false;document.getElementById('gPin').value='';document.getElementById('gActivo').checked=true;}abrirModal('guiaModal');}
-async function saveGuia(){const n=document.getElementById('gNombre').value.trim();const p=String(document.getElementById('gPin').value).trim();if(!n){showToast('Nombre obligatorio','error');return;}if(!/^[0-9]{4}$/.test(p)){showToast('PIN 4 dígitos','error');return;}const dup=guiasData.find(g=>String(g.pin)===p&&g.nombre!==n);if(dup){showToast('PIN ya usado por '+dup.nombre,'error');return;}showLoading();try{await apiCall({action:'saveGuia',data:{nombre:n,pin:p,activo:String(document.getElementById('gActivo').checked)}});cerrarModal('guiaModal');await initGuias();showToast(editingGuiaNombre?'Guía actualizado':'Guía creado');}catch(e){showToast('Error al guardar','error');}hideLoading();}
-async function toggleGuiaActivo(nombre,activoActual){const g=guiasData.find(x=>x.nombre===nombre);if(!g)return;showLoading();try{await apiCall({action:'saveGuia',data:{nombre:g.nombre,pin:g.pin,activo:activoActual==='true'?'false':'true'}});await initGuias();showToast('Estado actualizado');}catch(e){showToast('Error','error');}hideLoading();}
+function renderGuias(){const g=document.getElementById('guiasGrid');if(!guiasData.length){g.innerHTML='<div class="empty-state"><div class="ei">👤</div>No hay guías.</div>';return;}g.innerHTML=guiasData.map(gu=>{const activo=String(gu.activo).toLowerCase()==='true';return`<div class="guia-card ${activo?'':'inactivo'}"><div><div class="guia-nombre">${escH(gu.nombre)}</div><div class="guia-pin">PIN: **** <button class="btn btn-ghost btn-sm" onclick="verPinGuia('${escH(gu.nombre)}','${escH(gu.pin)}')">Ver</button></div><div><span class="badge ${activo?'b-green':'b-muted'}">${activo?'✅ Activo':'⏸ Inactivo'}</span></div></div><div class="guia-actions"><button class="btn btn-ghost btn-sm" onclick="openGuiaModal('${escH(gu.nombre)}')">✏️</button><button class="btn btn-ghost btn-sm" onclick="toggleGuiaActivo('${escH(gu.nombre)}','${String(gu.activo).toLowerCase()}')">${activo?'⏸':'▶'}</button><button class="btn btn-danger btn-sm" onclick="eliminarGuia('${escH(gu.nombre)}')">🗑</button></div></div>`;}).join('');}
+function verPinGuia(nombre,pin){showToast(`PIN de ${nombre}: ${pin}`,'info',5000);}
+function openGuiaModal(nombre){editingGuiaNombre=nombre||null;let modal=document.getElementById('guiaModal');if(nombre){let g=guiasData.find(x=>x.nombre===nombre);if(g){document.getElementById('gNombre').value=g.nombre;document.getElementById('gNombre').disabled=true;document.getElementById('gPin').value=g.pin;document.getElementById('gActivo').checked=g.activo==='true';}}else{document.getElementById('gNombre').value='';document.getElementById('gNombre').disabled=false;document.getElementById('gPin').value='';document.getElementById('gActivo').checked=true;}modal.classList.add('open');}
+async function saveGuia(){let n=document.getElementById('gNombre').value.trim();let p=String(document.getElementById('gPin').value).trim();if(!n){showToast('Nombre obligatorio','error');return;}if(!/^[0-9]{4}$/.test(p)){showToast('PIN 4 dígitos','error');return;}let dup=guiasData.find(g=>String(g.pin)===p&&g.nombre!==n);if(dup){showToast('PIN ya usado por '+dup.nombre,'error');return;}showLoading();try{await apiCall({action:'saveGuia',data:{nombre:n,pin:p,activo:String(document.getElementById('gActivo').checked)}});cerrarModal('guiaModal');await initGuias();showToast(editingGuiaNombre?'Guía actualizado':'Guía creado');}catch(e){showToast('Error al guardar','error');}hideLoading();}
+async function toggleGuiaActivo(nombre,activoActual){let g=guiasData.find(x=>x.nombre===nombre);if(!g)return;showLoading();try{await apiCall({action:'saveGuia',data:{nombre:g.nombre,pin:g.pin,activo:activoActual==='true'?'false':'true'}});await initGuias();showToast('Estado actualizado');}catch(e){showToast('Error','error');}hideLoading();}
 async function eliminarGuia(nombre){if(!confirm('¿Eliminar guía?'))return;showLoading();try{await apiCall({action:'deleteGuia',nombre});await initGuias();showToast('Guía eliminado');}catch(e){showToast('Error','error');}hideLoading();}
-document.addEventListener('click',e=>{const btn=e.target.closest('[data-action]');if(!btn)return;const grid=document.getElementById('guiasGrid');if(!grid?.contains(btn))return;const act=btn.getAttribute('data-action');if(act==='verpin')toggleVerPin(btn);else if(act==='editar')openGuiaModal(btn.getAttribute('data-nombre'));else if(act==='toggle')toggleGuiaActivo(btn.getAttribute('data-nombre'),btn.getAttribute('data-activo'));else if(act==='eliminar')eliminarGuia(btn.getAttribute('data-nombre'));});
-async function initInformes(){const cont=document.getElementById('informesContent');cont.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando...</div>';try{const guiasRaw=await apiCall({action:'getGuias'});dossierGuias=Array.isArray(guiasRaw)?guiasRaw:[];}catch(e){cont.innerHTML='<div class="empty-state"><div class="ei">⚠️</div>Error: '+escH(e.message)+'</div>';updateInformesNavBadge();return;}if(!dossierGuias.length){cont.innerHTML='<div class="informes-empty"><div class="ei">👤</div><p>No hay guías.</p></div>';updateInformesNavBadge();return;}const results=await Promise.allSettled(dossierGuias.map(g=>apiCall({action:'getDossier',guia:g}).then(entries=>({guia:g,entries:Array.isArray(entries)?entries:[]}))));informesPendientes=[];results.forEach(r=>{if(r.status==='fulfilled'){const{guia,entries}=r.value;entries.filter(e=>String(e.estadoPago).trim()==='informe_pendiente').forEach(e=>informesPendientes.push({...e,guia,fecha:normalizarFecha(e.fecha),horario:normalizarHorario(e.horario),clientes:[]}));}});const guiasCon= [...new Set(informesPendientes.map(e=>e.guia))];await Promise.allSettled(guiasCon.map(guia=>apiCall({action:'getJornadasGuia',guia,includePast:'true'}).then(jornadas=>{informesPendientes.filter(e=>e.guia===guia).forEach(e=>{const jid=String(e.id).replace(/^dos_/,'jor_');const j=(Array.isArray(jornadas)?jornadas:[]).find(x=>x.id===jid);if(j&&j.clientesJSON)try{e.clientes=JSON.parse(j.clientesJSON);}catch(e){}});}).catch(()=>{})));informesPendientes.sort((a,b)=>a.fecha>b.fecha?-1:1);document.getElementById('informes-total-count').textContent=informesPendientes.length;updateInformesNavBadge();renderInformes();}
-function renderInformes() {
-  const cont = document.getElementById('informesContent');
-  if (!informesPendientes.length) {
-    cont.innerHTML = '<div class="informes-empty"><div class="ei">✅</div><div>Todo al día</div><p>No hay informes pendientes.</p></div>';
-    return;
-  }
-  const byGuia = {};
-  informesPendientes.forEach(e => {
-    if (!byGuia[e.guia]) byGuia[e.guia] = [];
-    byGuia[e.guia].push(e);
-  });
-  let html = '';
-  Object.keys(byGuia).forEach(guia => {
-    html += `<div class="informe-guia-group"><div class="informe-guia-label">👤 ${escH(guia)} (${byGuia[guia].length})</div>`;
-    byGuia[guia].forEach(e => {
-      const totalAd = (e.clientes || []).reduce((s, c) => s + (parseInt(c.adults) || 0), 0);
-      const totalMen = (e.clientes || []).reduce((s, c) => s + (parseInt(c.minors) || 0), 0);
-      html += `<div class="informe-card" id="ic-${escH(e.id)}">
+async function initInformes(){let cont=document.getElementById('informesContent');cont.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando...</div>';try{let guiasRaw=await apiCall({action:'getGuias'});dossierGuias=Array.isArray(guiasRaw)?guiasRaw:[];}catch(e){cont.innerHTML='<div class="empty-state"><div class="ei">⚠️</div>Error: '+escH(e.message)+'</div>';updateInformesNavBadge();return;}if(!dossierGuias.length){cont.innerHTML='<div class="informes-empty"><div class="ei">👤</div><p>No hay guías.</p></div>';updateInformesNavBadge();return;}let results=await Promise.allSettled(dossierGuias.map(g=>apiCall({action:'getDossier',guia:g}).then(entries=>({guia:g,entries:Array.isArray(entries)?entries:[]}))));informesPendientes=[];results.forEach(r=>{if(r.status==='fulfilled'){let{guia,entries}=r.value;entries.filter(e=>String(e.estadoPago).trim()==='informe_pendiente').forEach(e=>informesPendientes.push({...e,guia,fecha:normalizarFecha(e.fecha),horario:normalizarHorario(e.horario),clientes:[]}));}});let guiasCon=[...new Set(informesPendientes.map(e=>e.guia))];await Promise.allSettled(guiasCon.map(guia=>apiCall({action:'getJornadasGuia',guia,includePast:'true'}).then(jornadas=>{informesPendientes.filter(e=>e.guia===guia).forEach(e=>{let jid=String(e.id).replace(/^dos_/,'jor_');let j=(Array.isArray(jornadas)?jornadas:[]).find(x=>x.id===jid);if(j&&j.clientesJSON)try{e.clientes=JSON.parse(j.clientesJSON);}catch(e){}});}).catch(()=>{})));informesPendientes.sort((a,b)=>a.fecha>b.fecha?-1:1);document.getElementById('informes-total-count').textContent=informesPendientes.length;updateInformesNavBadge();renderInformes();}
+function renderInformes(){const cont=document.getElementById('informesContent');if(!informesPendientes.length){cont.innerHTML='<div class="informes-empty"><div class="ei">✅</div><div>Todo al día</div><p>No hay informes pendientes.</p></div>';return;}const byGuia={};informesPendientes.forEach(e=>{if(!byGuia[e.guia])byGuia[e.guia]=[];byGuia[e.guia].push(e);});let html='';Object.keys(byGuia).forEach(guia=>{html+=`<div class="informe-guia-group"><div class="informe-guia-label">👤 ${escH(guia)} (${byGuia[guia].length})</div>`;byGuia[guia].forEach(e=>{const totalAd=(e.clientes||[]).reduce((s,c)=>s+(parseInt(c.adults)||0),0);const totalMen=(e.clientes||[]).reduce((s,c)=>s+(parseInt(c.minors)||0),0);html+=`<div class="informe-card" id="ic-${escH(e.id)}">
         <div class="informe-card-left">
-          <div class="informe-tour">🎯 ${escH(e.tourNombre || '—')}</div>
+          <div class="informe-tour">🎯 ${escH(e.tourNombre||'—')}</div>
           <div class="informe-meta">
-            <span>📅 ${formatDate(e.fecha)}</span>${e.horario ? `<span>🕐 ${escH(e.horario)}h</span>` : ''}
+            <span>📅 ${formatDate(e.fecha)}</span>${e.horario?`<span>🕐 ${escH(e.horario)}h</span>`:''}
             <span class="badge b-informe">⏳ Pendiente</span>
           </div>
           <div class="informe-pax">
             <span class="informe-pax-item" id="asist-count-${escH(e.id)}">
-              ✅ ${(e.clientes || []).filter(c => c.present).reduce((s, c) => (parseInt(c.adults) || 0) + (parseInt(c.minors) || 0) + s, 0)} / ${e.paxTotal || 0} asistentes
+              ✅ ${(e.clientes||[]).filter(c=>c.present).reduce((s,c)=>(parseInt(c.adults)||0)+(parseInt(c.minors)||0)+s,0)} / ${e.paxTotal||0} asistentes
             </span>
-            ${totalMen > 0 ? `<span class="informe-pax-item">👤 ${totalAd} adultos · 🧒 ${totalMen} menores</span>` : ''}
+            ${totalMen>0?`<span class="informe-pax-item">👤 ${totalAd} adultos · 🧒 ${totalMen} menores</span>`:''}
           </div>`;
-      if (e.clientes && e.clientes.length) {
-        html += `<div style="margin-top:10px">
+      if(e.clientes&&e.clientes.length){
+        html+=`<div style="margin-top:10px">
           <div onclick="toggleInformeAcord('${escH(e.id)}')" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:.74rem;color:#a78bfa;">
             <span id="iac-arr-${escH(e.id)}">▶</span> Clientes (${e.clientes.length})
           </div>
           <div id="iac-body-${escH(e.id)}" style="display:none;margin-top:8px">`;
-        e.clientes.forEach((c, ci) => {
-          html += `<div style="display:grid;grid-template-columns:22px 1fr 48px 48px 1fr auto;gap:6px;margin-bottom:6px">
-            <input type="checkbox" ${c.present ? 'checked' : ''} onchange="recalcAsistTotal('${escH(e.id)}')" data-client-idx="${ci}">
-            <input type="text" id="ic-cn-${escH(e.id)}-${ci}" value="${escH(c.name || '')}" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);padding:5px;">
-            <input type="number" id="ic-ca-${escH(e.id)}-${ci}" value="${parseInt(c.adults) || 0}" style="width:48px" oninput="recalcAsistTotal('${escH(e.id)}')">
-            <input type="number" id="ic-cm-${escH(e.id)}-${ci}" value="${parseInt(c.minors) || 0}" style="width:48px" oninput="recalcAsistTotal('${escH(e.id)}')">
-            <input type="text" id="ic-cw-${escH(e.id)}-${ci}" value="${escH(c.wa || '')}" placeholder="WhatsApp" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;padding:5px;">
-            <span style="font-size:.68rem">${parseInt(c.adults) || 0}A ${parseInt(c.minors) || 0}M</span>
+        e.clientes.forEach((c,ci)=>{
+          html+=`<div style="display:grid;grid-template-columns:22px 1fr 48px 48px 1fr auto;gap:6px;margin-bottom:6px">
+            <input type="checkbox" ${c.present?'checked':''} onchange="recalcAsistTotal('${escH(e.id)}')" data-client-idx="${ci}">
+            <input type="text" id="ic-cn-${escH(e.id)}-${ci}" value="${escH(c.name||'')}" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);padding:5px;">
+            <input type="number" id="ic-ca-${escH(e.id)}-${ci}" value="${parseInt(c.adults)||0}" style="width:48px" oninput="recalcAsistTotal('${escH(e.id)}')">
+            <input type="number" id="ic-cm-${escH(e.id)}-${ci}" value="${parseInt(c.minors)||0}" style="width:48px" oninput="recalcAsistTotal('${escH(e.id)}')">
+            <input type="text" id="ic-cw-${escH(e.id)}-${ci}" value="${escH(c.wa||'')}" placeholder="WhatsApp" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;padding:5px;">
+            <span style="font-size:.68rem">${parseInt(c.adults)||0}A ${parseInt(c.minors)||0}M</span>
           </div>`;
         });
-        html += `</div></div>`;
+        html+=`</div></div>`;
       }
-      html += `</div><div class="informe-card-right">
+      html+=`</div><div class="informe-card-right">
         <div><div class="informe-cred-label">Créditos</div>
-        <input type="number" min="0" placeholder="0" class="informe-cred-input" id="cred-${escH(e.id)}" value="${parseInt(e.creditos) > 0 ? parseInt(e.creditos) : ''}"></div>
+        <input type="number" min="0" placeholder="0" class="informe-cred-input" id="cred-${escH(e.id)}" value="${parseInt(e.creditos)>0?parseInt(e.creditos):''}"></div>
         <button class="btn-registrar" id="btn-reg-${escH(e.id)}" onclick="registrarInforme('${escH(e.guia)}','${escH(e.id)}')"><span class="btn-reg-icon">✓</span>Registrar</button>
       </div></div>`;
     });
-    html += `</div>`;
+    html+=`</div>`;
   });
-  cont.innerHTML = html;
+  cont.innerHTML=html;
 }
 function toggleInformeAcord(id){const b=document.getElementById('iac-body-'+id);const a=document.getElementById('iac-arr-'+id);if(!b)return;const isOpen=b.style.display!=='none';b.style.display=isOpen?'none':'block';if(a)a.textContent=isOpen?'▶':'▼';}
-function recalcAsistTotal(id){const b=document.getElementById('iac-body-'+id);if(!b)return;let asis=0,total=0;b.querySelectorAll('div[style*="grid-template-columns"]').forEach((row,ci)=>{const ad=parseInt(document.getElementById('ic-ca-'+id+'-'+ci)?.value)||0;const men=parseInt(document.getElementById('ic-cm-'+id+'-'+ci)?.value)||0;total+=ad+men;if(row.querySelector('input[type="checkbox"]')?.checked)asis+=ad+men;});const pill=document.getElementById('asist-count-'+id);if(pill)pill.textContent='✅ '+asis+' / '+total+' asistentes';}
-function registrarInforme(guia, entryId, jornadaId) {
-  const cred = parseInt(document.getElementById('cred-' + entryId)?.value) || 0;
-  const btn = document.getElementById('btn-reg-' + entryId);
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<span class="btn-reg-icon">⏳</span>Guardando...';
-  }
-  
-  const entry = informesPendientes.find(e => e.id === entryId);
-  if (!entry) {
-    showToast('Entry no encontrado', 'error');
-    if (btn) { btn.disabled = false; btn.innerHTML = '<span class="btn-reg-icon">✓</span>Registrar'; }
-    return;
-  }
-  
-  const iacBody = document.getElementById('iac-body-' + entryId);
-  let paxTotal = 0, asistentes = 0;
-  const clientesActualizados = [];
-  
-  if (iacBody) {
-    const rows = iacBody.querySelectorAll('div[style*="grid-template-columns"]');
-    rows.forEach((row, ci) => {
-      const nombre = document.getElementById('ic-cn-' + entryId + '-' + ci)?.value || '';
-      const adultos = parseInt(document.getElementById('ic-ca-' + entryId + '-' + ci)?.value) || 0;
-      const menores = parseInt(document.getElementById('ic-cm-' + entryId + '-' + ci)?.value) || 0;
-      const wa = document.getElementById('ic-cw-' + entryId + '-' + ci)?.value || '';
-      const presente = row.querySelector('input[type="checkbox"]')?.checked || false;
-      
-      clientesActualizados.push({ name: nombre, adults: adultos, minors: menores, wa: wa, present: presente });
-      paxTotal += adultos + menores;
-      if (presente) asistentes += adultos + menores;
-    });
-  } else {
-    paxTotal = parseInt(entry.paxTotal) || 0;
-    asistentes = parseInt(entry.asistentes) || 0;
-  }
-  
-  const semInfo = getSemanaKey(entry.fecha);
-  const updatedEntry = {
-    ...entry,
-    creditos: cred,
-    paxTotal: paxTotal,
-    asistentes: asistentes,
-    estadoPago: 'pendiente',
-    semana: semInfo.key,
-    timestamp: new Date().toISOString()
-  };
-  delete updatedEntry.guia;
-  
-  let errs = [];
-  try {
-    await apiCall({ action: 'saveDossierEntry', guia, data: { ...updatedEntry, guia } });
-  } catch (e) {
-    errs.push('Dossier: ' + e.message);
-  }
-  
-  try {
-    const jid = String(entryId).replace(/^dos_/, 'jor_');
-    await apiCall({ action: 'deleteJornada', id: jid });
-  } catch (e) {
-    errs.push('Jornada: ' + e.message);
-  }
-  
-  if (errs.length) {
-    showToast('⚠️ ' + errs.join(' | '), 'error', 7000);
-    if (btn) { btn.disabled = false; btn.innerHTML = '<span class="btn-reg-icon">✓</span>Registrar'; }
-    return;
-  }
-  
-  const card = document.getElementById('ic-' + entryId);
-  if (card) {
-    card.classList.add('registrado');
-    card.style.opacity = '0';
-    setTimeout(() => card.remove(), 400);
-  }
-  
-  informesPendientes = informesPendientes.filter(e => e.id !== entryId);
-  document.getElementById('informes-total-count').textContent = informesPendientes.length;
-  updateInformesNavBadge();
-  
-  if (!informesPendientes.length) {
-    setTimeout(() => {
-      document.getElementById('informesContent').innerHTML = '<div class="informes-empty"><div class="ei">✅</div><div>¡Todo procesado!</div></div>';
-    }, 450);
-  }
-  
-  showToast(`✅ Informe de ${guia} registrado — ${cred} cr.`);
-  if (dossierEntries[guia]) delete dossierEntries[guia];
-}
+function recalcAsistTotal(id){const b=document.getElementById('iac-body-'+id);if(!b)return;let asis=0,total=0;const rows=b.querySelectorAll('div[style*="grid-template-columns"]');rows.forEach((row,ci)=>{const ad=parseInt(document.getElementById('ic-ca-'+id+'-'+ci)?.value)||0;const men=parseInt(document.getElementById('ic-cm-'+id+'-'+ci)?.value)||0;total+=ad+men;if(row.querySelector('input[type="checkbox"]')?.checked)asis+=ad+men;});const pill=document.getElementById('asist-count-'+id);if(pill)pill.textContent='✅ '+asis+' / '+total+' asistentes';}
+function registrarInforme(guia, entryId, jornadaId){const cred=parseInt(document.getElementById('cred-'+entryId)?.value)||0;const btn=document.getElementById('btn-reg-'+entryId);if(btn){btn.disabled=true;btn.innerHTML='<span class="btn-reg-icon">⏳</span>Guardando...';}const entry=informesPendientes.find(e=>e.id===entryId);if(!entry){showToast('Entry no encontrado','error');if(btn){btn.disabled=false;btn.innerHTML='<span class="btn-reg-icon">✓</span>Registrar';}return;}const iacBody=document.getElementById('iac-body-'+entryId);let paxTotal=0,asistentes=0;const clientesActualizados=[];if(iacBody){const rows=iacBody.querySelectorAll('div[style*="grid-template-columns"]');rows.forEach((row,ci)=>{const nombre=document.getElementById('ic-cn-'+entryId+'-'+ci)?.value||'';const adultos=parseInt(document.getElementById('ic-ca-'+entryId+'-'+ci)?.value)||0;const menores=parseInt(document.getElementById('ic-cm-'+entryId+'-'+ci)?.value)||0;const wa=document.getElementById('ic-cw-'+entryId+'-'+ci)?.value||'';const presente=row.querySelector('input[type="checkbox"]')?.checked||false;clientesActualizados.push({name:nombre,adults:adultos,minors:menores,wa:wa,present:presente});paxTotal+=adultos+menores;if(presente)asistentes+=adultos+menores;});}else{paxTotal=parseInt(entry.paxTotal)||0;asistentes=parseInt(entry.asistentes)||0;}const semInfo=getSemanaKey(entry.fecha);const updatedEntry={...entry,creditos:cred,paxTotal:paxTotal,asistentes:asistentes,estadoPago:'pendiente',semana:semInfo.key,timestamp:new Date().toISOString()};delete updatedEntry.guia;let errs=[];try{await apiCall({action:'saveDossierEntry',guia,data:{...updatedEntry,guia}});}catch(e){errs.push('Dossier: '+e.message);}try{const jid=String(entryId).replace(/^dos_/,'jor_');await apiCall({action:'deleteJornada',id:jid});}catch(e){errs.push('Jornada: '+e.message);}if(errs.length){showToast('⚠️ '+errs.join(' | '),'error',7000);if(btn){btn.disabled=false;btn.innerHTML='<span class="btn-reg-icon">✓</span>Registrar';}return;}const card=document.getElementById('ic-'+entryId);if(card){card.classList.add('registrado');card.style.opacity='0';setTimeout(()=>card.remove(),400);}informesPendientes=informesPendientes.filter(e=>e.id!==entryId);document.getElementById('informes-total-count').textContent=informesPendientes.length;updateInformesNavBadge();if(!informesPendientes.length){setTimeout(()=>{document.getElementById('informesContent').innerHTML='<div class="informes-empty"><div class="ei">✅</div><div>¡Todo procesado!</div></div>';},450);}showToast(`✅ Informe de ${guia} registrado — ${cred} cr.`);if(dossierEntries[guia])delete dossierEntries[guia];}
 function mostrarFormularioJornada(){document.getElementById('formJornadaPanel').style.display='block';initOpsCreate();renderTourCatalogChecks();loadGuiasForDatalist();}
 function cancelarFormularioJornada(){document.getElementById('formJornadaPanel').style.display='none';editingOpsId=null;}
 function initOpsCreate(){editingOpsId=null;document.getElementById('jornadaFormTitle').innerText='Nueva jornada';document.getElementById('ot-guide').value='';document.getElementById('ot-date').value='';document.getElementById('opsToursAccordion').innerHTML='';document.querySelectorAll('input[name="tourCheck"]').forEach(c=>c.checked=false);}
-function guardarJornadaDesdeFormulario(){const g=document.getElementById('ot-guide').value.trim();const d=document.getElementById('ot-date').value;if(!g||!d){showToast('Faltan guía o fecha','error');return;}const toursData=getToursFromForm();if(!toursData.length){showToast('Selecciona al menos un tour','error');return;}const id=editingOpsId||('jor_'+Date.now());opsTours[id]={guide:g,date:d,tours:toursData};if(!opsSaveLocal()){showToast('Error local','error');return;}registrarEnSheetsConLog(g,d,toursData).then(()=>{showToast('Jornada guardada ✓');cancelarFormularioJornada();cargarOperaciones();}).catch(e=>showToast('Error en sincronización','warning'));}
+function guardarJornadaDesdeFormulario(){let g=document.getElementById('ot-guide').value.trim();let d=document.getElementById('ot-date').value;if(!g||!d){showToast('Faltan guía o fecha','error');return;}let toursData=getToursFromForm();if(!toursData.length){showToast('Selecciona al menos un tour','error');return;}let id=editingOpsId||('jor_'+normalizeId(g)+'_'+d+'_'+Date.now());showLoading();try{registrarEnSheetsConLog(g,d,toursData);showToast('Jornada guardada ✓');cancelarFormularioJornada();cargarOperaciones();}catch(e){showToast('Error: '+e.message,'error');}hideLoading();}
 function opsSaveLocal(){try{localStorage.setItem('gdp_tours',JSON.stringify(opsTours));return true;}catch(e){return false;}}
-function getToursFromForm(){const res=[];document.querySelectorAll('.acord-wrap').forEach(wrap=>{const tid=wrap.dataset.tourid;const chk=document.querySelector(`input[name="tourCheck"][value="${tid}"]`);if(!chk?.checked)return;const clients=[];wrap.querySelectorAll('.pax-card').forEach(card=>{const n=card.querySelector('.rn')?.value.trim();if(!n)return;clients.push({name:n,adults:parseInt(card.querySelector('.ra')?.value)||0,minors:parseInt(card.querySelector('.rm')?.value)||0,wa:card.querySelector('.rw')?.value.trim()||'',present:false});});res.push({tourId:tid,tourNombre:chk.dataset.nombre,horario:chk.dataset.horario,clients});});return res;}
-function renderTourCatalogChecks(){const el=document.getElementById('tourCatalogChecks');if(!el)return;const activos=tours.filter(t=>t.activo===true||t.activo==='true');if(!activos.length){el.innerHTML='<div style="color:var(--muted)">No hay tours activos.</div>';return;}el.innerHTML=activos.map(t=>`<label class="tour-check-item"><input type="checkbox" name="tourCheck" value="${t.id}" data-nombre="${escH(t.nombre)}" data-horario="${t.horario||''}" onchange="onTourCheckChange()"><div><div class="tour-check-name">${escH(t.nombre)}</div><div class="tour-check-meta">🕐 ${t.horario||'--'} · 👥 ${t.cupo}</div></div></label>`).join('');}
-function onTourCheckChange(){const checked=[...document.querySelectorAll('input[name="tourCheck"]:checked')];const cont=document.getElementById('opsToursAccordion');const existing=new Set();cont.querySelectorAll('.acord-wrap').forEach(w=>existing.add(w.dataset.tourid));checked.forEach(c=>{if(!existing.has(c.value))cont.appendChild(buildAccordionItem(c.value,c.dataset.nombre,c.dataset.horario,[]));});[...cont.querySelectorAll('.acord-wrap')].forEach(w=>{if(!checked.some(c=>c.value===w.dataset.tourid))w.remove();});}
-function buildAccordionItem(tid,tn,horario,clientes){const wrap=document.createElement('div');wrap.className='acord-wrap';wrap.dataset.tourid=tid;wrap.innerHTML=`<div class="acord-header" onclick="toggleAcord(this)"><div><div class="acord-title">${escH(tn)}</div><div class="acord-meta">🕐 ${horario||'--'}</div></div><span class="acord-arrow">▼</span></div><div class="acord-body"><div class="pax-inputs"></div><button class="addbtn" onclick="opsAddRowInAcord(this.previousElementSibling)">+ Agregar pasajero</button></div>`;const pc=wrap.querySelector('.pax-inputs');(clientes||[]).forEach(c=>opsAddRowInAcord(pc,c));opsAddRowInAcord(pc,null);return wrap;}
-function toggleAcord(header){const body=header.nextElementSibling,arrow=header.querySelector('.acord-arrow');if(!body)return;const isOpen=body.classList.contains('open');body.classList.toggle('open',!isOpen);arrow?.classList.toggle('open',!isOpen);}
-function opsAddRowInAcord(container,c){const d=document.createElement('div');d.className='pax-card';d.innerHTML=`<div class="pax-top"><input type="text" placeholder="Nombre" class="rn" value="${escH(c?.name||'')}"><button onclick="this.closest('.pax-card').remove()">×</button></div><div class="pax-bot"><div class="pcnt"><span>Ad.</span><input type="number" min="0" value="${c?.adults??1}" class="ra"></div><div class="pcnt"><span>Men.</span><input type="number" min="0" value="${c?.minors??0}" class="rm"></div><div class="pwa"><span>📱</span><input type="text" class="rw" value="${escH(c?.wa||'')}" placeholder="+34..."></div></div>`;container.appendChild(d);}
-async function registrarEnSheetsConLog(guide,date,toursData){for(const tx of toursData){const baseId=normalizeId(guide)+'_'+date+'_'+(tx.tourId||'manual');const paxTotal=tx.clients.reduce((s,c)=>s+(c.adults||0)+(c.minors||0),0);const entry={id:'dos_'+baseId,guia:guide,fecha:date,tourNombre:tx.tourNombre,horario:tx.horario,paxTotal:paxTotal,asistentes:0,creditos:0,semana:getSemanaKey(date).key,timestamp:new Date().toISOString()};const jornada={id:'jor_'+baseId,guia:guide,fecha:date,tourId:tx.tourId,tourNombre:tx.tourNombre,horario:tx.horario,clientesJSON:JSON.stringify(tx.clients),timestamp:new Date().toISOString()};await apiCall({action:'saveDossierEntry',guia:guide,data:entry});await apiCall({action:'saveJornada',data:jornada});}}
+function getToursFromForm(){let res=[];document.querySelectorAll('.acord-wrap').forEach(wrap=>{let tid=wrap.dataset.tourid;let chk=document.querySelector(`input[name="tourCheck"][value="${tid}"]`);if(!chk?.checked)return;let clients=[];wrap.querySelectorAll('.pax-card').forEach(card=>{let n=card.querySelector('.rn')?.value.trim();if(!n)return;clients.push({name:n,adults:parseInt(card.querySelector('.ra')?.value)||0,minors:parseInt(card.querySelector('.rm')?.value)||0,wa:card.querySelector('.rw')?.value.trim()||'',present:false});});res.push({tourId:tid,tourNombre:chk.dataset.nombre,horario:chk.dataset.horario,clients});});return res;}
+function renderTourCatalogChecks(){let el=document.getElementById('tourCatalogChecks');if(!el)return;let activos=tours.filter(t=>t.activo===true||t.activo==='true');if(!activos.length){el.innerHTML='<div style="color:var(--muted)">No hay tours activos.</div>';return;}el.innerHTML=activos.map(t=>`<label class="tour-check-item"><input type="checkbox" name="tourCheck" value="${t.id}" data-nombre="${escH(t.nombre)}" data-horario="${t.horario||''}" onchange="onTourCheckChange()"><div><div class="tour-check-name">${escH(t.nombre)}</div><div class="tour-check-meta">🕐 ${t.horario||'--'} · 👥 ${t.cupo}</div></div></label>`).join('');}
+function onTourCheckChange(){let checked=[...document.querySelectorAll('input[name="tourCheck"]:checked')];let cont=document.getElementById('opsToursAccordion');let existing=new Set();cont.querySelectorAll('.acord-wrap').forEach(w=>existing.add(w.dataset.tourid));checked.forEach(c=>{if(!existing.has(c.value))cont.appendChild(buildAccordionItem(c.value,c.dataset.nombre,c.dataset.horario,[]));});[...cont.querySelectorAll('.acord-wrap')].forEach(w=>{if(!checked.some(c=>c.value===w.dataset.tourid))w.remove();});}
+function buildAccordionItem(tid,tn,horario,clientes){let wrap=document.createElement('div');wrap.className='acord-wrap';wrap.dataset.tourid=tid;wrap.innerHTML=`<div class="acord-header" onclick="toggleAcord(this)"><div><div class="acord-title">${escH(tn)}</div><div class="acord-meta">🕐 ${horario||'--'}</div></div><span class="acord-arrow">▼</span></div><div class="acord-body"><div class="pax-inputs"></div><button class="addbtn" onclick="opsAddRowInAcord(this.previousElementSibling)">+ Agregar pasajero</button></div>`;let pc=wrap.querySelector('.pax-inputs');(clientes||[]).forEach(c=>opsAddRowInAcord(pc,c));opsAddRowInAcord(pc,null);return wrap;}
+function toggleAcord(header){let body=header.nextElementSibling;let arrow=header.querySelector('.acord-arrow');if(!body)return;let isOpen=body.classList.contains('open');body.classList.toggle('open',!isOpen);if(arrow)arrow.classList.toggle('open',!isOpen);}
+function opsAddRowInAcord(container,c){let d=document.createElement('div');d.className='pax-card';d.innerHTML=`<div class="pax-top"><input type="text" placeholder="Nombre" class="rn" value="${escH(c?.name||'')}"><button onclick="this.closest('.pax-card').remove()">×</button></div><div class="pax-bot"><div class="pcnt"><span>Ad.</span><input type="number" min="0" value="${c?.adults??1}" class="ra"></div><div class="pcnt"><span>Men.</span><input type="number" min="0" value="${c?.minors??0}" class="rm"></div><div class="pwa"><span>📱</span><input type="text" class="rw" value="${escH(c?.wa||'')}" placeholder="+34..."></div></div>`;container.appendChild(d);}
+async function registrarEnSheetsConLog(guide,date,toursData){for(let tx of toursData){let baseId=normalizeId(guide)+'_'+date+'_'+(tx.tourId||'manual');let paxTotal=tx.clients.reduce((s,c)=>s+(c.adults||0)+(c.minors||0),0);let entry={id:'dos_'+baseId,guia:guide,fecha:date,tourNombre:tx.tourNombre,horario:tx.horario,paxTotal:paxTotal,asistentes:0,creditos:0,semana:getSemanaKey(date).key,timestamp:new Date().toISOString()};let jornada={id:'jor_'+baseId,guia:guide,fecha:date,tourId:tx.tourId,tourNombre:tx.tourNombre,horario:tx.horario,clientesJSON:JSON.stringify(tx.clients),timestamp:new Date().toISOString()};await apiCall({action:'saveDossierEntry',guia:guide,data:entry});await apiCall({action:'saveJornada',data:jornada});}}
 async function editarCliente(jid,idx,nombre,adultos,menores,wa){editingClienteJornadaId=jid;document.getElementById('editClienteId').value=idx;document.getElementById('editClienteJornadaId').value=jid;document.getElementById('editClienteNombre').value=nombre;document.getElementById('editClienteAdultos').value=adultos;document.getElementById('editClienteMenores').value=menores;document.getElementById('editClienteWhatsapp').value=wa;abrirModal('modalEditCliente');}
-async function guardarEdicionCliente(){const jid=document.getElementById('editClienteJornadaId').value;const idx=parseInt(document.getElementById('editClienteId').value);const nombre=document.getElementById('editClienteNombre').value.trim();const adultos=parseInt(document.getElementById('editClienteAdultos').value)||0;const menores=parseInt(document.getElementById('editClienteMenores').value)||0;const wa=document.getElementById('editClienteWhatsapp').value.trim();if(!nombre){showToast('Nombre obligatorio','error');return;}const jornada=jornadasList.find(j=>j.id===jid);if(!jornada||!jornada.clientes[idx]){showToast('Cliente no encontrado','error');return;}jornada.clientes[idx]={...jornada.clientes[idx],name:nombre,adults:adultos,minors:menores,wa:wa};await apiCall({action:'updateJornadaClientes',id:jid,data:jornada.clientes});if(opsTours[jid])opsTours[jid].tours[0].clients=jornada.clientes.map(c=>({name:c.name,adults:c.adults,minors:c.minors,wa:c.wa,present:false}));opsSaveLocal();cerrarModal('modalEditCliente');cargarOperaciones();showToast('Cliente editado');}
-async function eliminarClienteDeJornada(jid,idx){if(!confirm('¿Eliminar este cliente?'))return;showLoading();const jornada=jornadasList.find(j=>j.id===jid);if(!jornada){showToast('Jornada no encontrada','error');hideLoading();return;}jornada.clientes.splice(idx,1);await apiCall({action:'updateJornadaClientes',id:jid,data:jornada.clientes});if(opsTours[jid])opsTours[jid].tours[0].clients=jornada.clientes;opsSaveLocal();await cargarOperaciones();hideLoading();showToast('Cliente eliminado');}
-function abrirModalCambiarGuia(jid,guiaActual){document.getElementById('cambiarGuiaJornadaId').value=jid;const sel=document.getElementById('cambiarGuiaSelect');sel.innerHTML='<option value="">— Selecciona —</option>';const cargar=()=>{const activos=guiasData.filter(g=>g.activo==='true'||g.activo===true);if(activos.length===0){sel.innerHTML='<option value="">— No hay guías —</option>';}else{activos.forEach(g=>{sel.innerHTML+=`<option value="${escH(g.nombre)}" ${g.nombre===guiaActual?'selected':''}>${escH(g.nombre)}</option>`;});}abrirModal('modalCambiarGuia');};if(!guiasData||guiasData.length===0){cargarGuiasParaModales().then(cargar);}else{cargar();}}
-async function guardarCambioGuia(){const btn=document.querySelector('#modalCambiarGuia .btn-modal:last-child');if(btn){btn.disabled=true;btn.textContent='⏳ Cambiando...';}const jid=document.getElementById('cambiarGuiaJornadaId').value;const nuevo=document.getElementById('cambiarGuiaSelect').value;if(!nuevo){showToast('Selecciona un guía','error');if(btn){btn.disabled=false;btn.textContent='🔄 Cambiar';}return;}showLoading();try{let jornada=jornadasList.find(j=>j.id===jid);if(!jornada){const raw=await apiCall({action:'getAllJornadas'});jornadasList=(Array.isArray(raw)?raw:[]).map(j=>{let cli=[];try{cli=JSON.parse(j.clientesJSON||'[]');}catch(e){}return{...j,fecha:normalizarFecha(j.fecha),horario:normalizarHorario(j.horario),clientes:cli,tipo:'jornada'};});jornada=jornadasList.find(j=>j.id===jid);}if(!jornada){showToast('Jornada no encontrada','error');hideLoading();if(btn){btn.disabled=false;btn.textContent='🔄 Cambiar';}return;}jornada.guia=nuevo;await apiCall({action:'saveJornada',data:{id:jid,guia:nuevo,fecha:jornada.fecha,tourId:jornada.tourId,tourNombre:jornada.tourNombre,horario:jornada.horario,clientesJSON:JSON.stringify(jornada.clientes),timestamp:new Date().toISOString()}});if(opsTours[jid])opsTours[jid].guide=nuevo;opsSaveLocal();cerrarModal('modalCambiarGuia');await cargarOperaciones();showToast(`Guía cambiado a ${nuevo}`);}catch(e){showToast('Error: '+e.message,'error');}hideLoading();if(btn){btn.disabled=false;btn.textContent='🔄 Cambiar';}}
-function abrirModalAgregarCliente(jid){document.getElementById('agregarClienteJornadaId').value=jid;document.getElementById('agregarClienteNombre').value='';document.getElementById('agregarClienteAdultos').value='1';document.getElementById('agregarClienteMenores').value='0';document.getElementById('agregarClienteWhatsapp').value='';abrirModal('modalAgregarCliente');}
-async function guardarAgregarCliente(){const btn=document.querySelector('#modalAgregarCliente .btn-modal:last-child');if(btn){btn.disabled=true;btn.textContent='⏳ Agregando...';}const jid=document.getElementById('agregarClienteJornadaId').value;const nombre=document.getElementById('agregarClienteNombre').value.trim();const adultos=parseInt(document.getElementById('agregarClienteAdultos').value)||1;const menores=parseInt(document.getElementById('agregarClienteMenores').value)||0;const wa=document.getElementById('agregarClienteWhatsapp').value.trim();if(!nombre){showToast('Nombre obligatorio','error');if(btn){btn.disabled=false;btn.textContent='➕ Agregar';}return;}const jornada=jornadasList.find(j=>j.id===jid);if(!jornada){showToast('Jornada no encontrada','error');if(btn){btn.disabled=false;btn.textContent='➕ Agregar';}return;}const nuevo={name:nombre,adults:adultos,minors:menores,wa:wa,present:false};jornada.clientes.push(nuevo);await apiCall({action:'updateJornadaClientes',id:jid,data:jornada.clientes});if(opsTours[jid])opsTours[jid].tours[0].clients.push(nuevo);opsSaveLocal();cerrarModal('modalAgregarCliente');cargarOperaciones();showToast('Cliente agregado');if(btn){btn.disabled=false;btn.textContent='➕ Agregar';}}
-function abrirModalDuplicarJornada(jid,fechaOriginal,guiaOriginal){document.getElementById('duplicarJornadaOriginalId').value=jid;document.getElementById('duplicarJornadaFecha').value=fechaOriginal;const sel=document.getElementById('duplicarJornadaGuia');sel.innerHTML='<option value="">— Selecciona —</option>';const cargar=()=>{const activos=guiasData.filter(g=>g.activo==='true'||g.activo===true);if(activos.length===0){sel.innerHTML='<option value="">— No hay guías —</option>';}else{activos.forEach(g=>{sel.innerHTML+=`<option value="${escH(g.nombre)}" ${g.nombre===guiaOriginal?'selected':''}>${escH(g.nombre)}</option>`;});}abrirModal('modalDuplicarJornada');};if(!guiasData||guiasData.length===0){cargarGuiasParaModales().then(cargar);}else{cargar();}}
-async function guardarDuplicarJornada(){const btn=document.querySelector('#modalDuplicarJornada .btn-modal:last-child');if(btn){btn.disabled=true;btn.textContent='⏳ Duplicando...';}const originalId=document.getElementById('duplicarJornadaOriginalId').value;const nuevaFecha=document.getElementById('duplicarJornadaFecha').value;const nuevoGuia=document.getElementById('duplicarJornadaGuia').value;if(!nuevaFecha){showToast('Selecciona fecha','error');if(btn){btn.disabled=false;btn.textContent='📋 Duplicar';}return;}const original=jornadasList.find(j=>j.id===originalId);if(!original){showToast('Original no encontrada','error');if(btn){btn.disabled=false;btn.textContent='📋 Duplicar';}return;}let nuevaId='jor_'+normalizeId(nuevoGuia||original.guia)+'_'+nuevaFecha+'_'+(original.tourId||'manual');if(jornadasList.find(j=>j.id===nuevaId)){showToast('⚠️ Ya existe una jornada con esa fecha/guía/tour','warning',5000);if(btn){btn.disabled=false;btn.textContent='📋 Duplicar';}return;}const clientesCopy=original.clientes.map(c=>({...c,present:false}));let errores=[];try{await apiCall({action:'saveJornada',data:{id:nuevaId,guia:nuevoGuia||original.guia,fecha:nuevaFecha,tourId:original.tourId,tourNombre:original.tourNombre,horario:original.horario,clientesJSON:JSON.stringify(clientesCopy),timestamp:new Date().toISOString()}});}catch(e){errores.push('Jornada:'+e.message);}try{const semInfo=getSemanaKey(nuevaFecha);const paxTotal=clientesCopy.reduce((s,c)=>s+(c.adults||0)+(c.minors||0),0);await apiCall({action:'saveDossierEntry',guia:nuevoGuia||original.guia,data:{id:'dos_'+nuevaId.replace('jor_',''),guia:nuevoGuia||original.guia,fecha:nuevaFecha,tourNombre:original.tourNombre,horario:original.horario,paxTotal:paxTotal,asistentes:0,creditos:0,semana:semInfo.key,timestamp:new Date().toISOString()}});}catch(e){errores.push('Dossier:'+e.message);}if(errores.length>0){showToast('⚠️ Duplicado con errores: '+errores.join(' | '),'warning',6000);}else{showToast('✅ Jornada duplicada');}const nuevaJornada={...original,id:nuevaId,guia:nuevoGuia||original.guia,fecha:nuevaFecha,clientes:clientesCopy};jornadasList.push(nuevaJornada);_todasOperaciones=[...reservas,...jornadasList];_todasOperaciones.sort((a,b)=>a.fecha>b.fecha?-1:1);cerrarModal('modalDuplicarJornada');renderOperacionesUnificado();if(btn){btn.disabled=false;btn.textContent='📋 Duplicar';}}
-async function init(){opsTours={};try{const d=localStorage.getItem('gdp_tours');if(d)opsTours=JSON.parse(d);}catch(e){}const ct=cacheGet('gdp_tours');if(ct){tours=ct;renderTours();populateTourSelect();setSyncStatus('ok','Desde caché');updateDashboard();}const cb=cacheGet('gdp_bloqueos');if(cb){bloqueos=cb;renderBloqueos();}await loadGuiasForDatalist();await refreshFromAPI();}
+async function guardarEdicionCliente(){let jid=document.getElementById('editClienteJornadaId').value;let idx=parseInt(document.getElementById('editClienteId').value);let nombre=document.getElementById('editClienteNombre').value.trim();let adultos=parseInt(document.getElementById('editClienteAdultos').value)||0;let menores=parseInt(document.getElementById('editClienteMenores').value)||0;let wa=document.getElementById('editClienteWhatsapp').value.trim();if(!nombre){showToast('Nombre obligatorio','error');return;}let jornada=jornadasList.find(j=>j.id===jid);if(!jornada||!jornada.clientes[idx]){showToast('Cliente no encontrado','error');return;}jornada.clientes[idx]={...jornada.clientes[idx],name:nombre,adults:adultos,minors:menores,wa:wa};await apiCall({action:'updateJornadaClientes',id:jid,data:jornada.clientes});if(opsTours[jid])opsTours[jid].tours[0].clients=jornada.clientes.map(c=>({name:c.name,adults:c.adults,minors:c.minors,wa:c.wa,present:false}));opsSaveLocal();cerrarModal('modalEditCliente');cargarOperaciones();showToast('Cliente editado');}
+async function eliminarClienteDeJornada(jid,idx){if(!confirm('¿Eliminar este cliente?'))return;let jornada=jornadasList.find(j=>j.id===jid);if(!jornada){showToast('Jornada no encontrada','error');return;}jornada.clientes.splice(idx,1);await apiCall({action:'updateJornadaClientes',id:jid,data:jornada.clientes});if(opsTours[jid])opsTours[jid].tours[0].clients=jornada.clientes;opsSaveLocal();cargarOperaciones();showToast('Cliente eliminado');}
+function abrirModalCambiarGuia(jid,guiaActual){document.getElementById('cambiarGuiaJornadaId').value=jid;let sel=document.getElementById('cambiarGuiaSelect');sel.innerHTML='<option value="">— Selecciona —</option>';let cargar=()=>{let activos=guiasData.filter(g=>g.activo==='true'||g.activo===true);if(activos.length===0){sel.innerHTML='<option value="">— No hay guías —</option>';}else{activos.forEach(g=>{sel.innerHTML+=`<option value="${escH(g.nombre)}" ${g.nombre===guiaActual?'selected':''}>${escH(g.nombre)}</option>`;});}abrirModal('modalCambiarGuia');};if(!guiasData||guiasData.length===0){cargarGuiasParaModales().then(cargar);}else{cargar();}}
+async function guardarCambioGuia(){let jid=document.getElementById('cambiarGuiaJornadaId').value;let nuevo=document.getElementById('cambiarGuiaSelect').value;if(!nuevo){showToast('Selecciona un guía','error');return;}let jornada=jornadasList.find(j=>j.id===jid);if(!jornada){showToast('Jornada no encontrada','error');return;}jornada.guia=nuevo;showLoading();try{await apiCall({action:'saveJornada',data:{id:jid,guia:nuevo,fecha:jornada.fecha,tourId:jornada.tourId,tourNombre:jornada.tourNombre,horario:jornada.horario,clientesJSON:JSON.stringify(jornada.clientes),timestamp:new Date().toISOString()}});cerrarModal('modalCambiarGuia');cargarOperaciones();showToast(`Guía cambiado a ${nuevo}`);}catch(e){showToast('Error: '+e.message,'error');}hideLoading();}
+function abrirModalAgregarCliente(jid){document.getElementById('agregarClienteJornadaId').value=jid;abrirModal('modalAgregarCliente');}
+async function guardarAgregarCliente(){let jid=document.getElementById('agregarClienteJornadaId').value;let nombre=document.getElementById('agregarClienteNombre').value.trim();let adultos=parseInt(document.getElementById('agregarClienteAdultos').value)||1;let menores=parseInt(document.getElementById('agregarClienteMenores').value)||0;let wa=document.getElementById('agregarClienteWhatsapp').value.trim();if(!nombre){showToast('Nombre obligatorio','error');return;}let jornada=jornadasList.find(j=>j.id===jid);if(!jornada){showToast('Jornada no encontrada','error');return;}let nuevo={name:nombre,adults:adultos,minors:menores,wa:wa,present:false};jornada.clientes.push(nuevo);showLoading();try{await apiCall({action:'updateJornadaClientes',id:jid,data:jornada.clientes});cerrarModal('modalAgregarCliente');cargarOperaciones();showToast('Cliente agregado');}catch(e){showToast('Error: '+e.message,'error');}hideLoading();}
+function abrirModalDuplicarJornada(jid,fechaOriginal,guiaOriginal){document.getElementById('duplicarJornadaOriginalId').value=jid;document.getElementById('duplicarJornadaFecha').value=fechaOriginal;let sel=document.getElementById('duplicarJornadaGuia');sel.innerHTML='<option value="">— Selecciona —</option>';let cargar=()=>{let activos=guiasData.filter(g=>g.activo==='true'||g.activo===true);if(activos.length===0){sel.innerHTML='<option value="">— No hay guías —</option>';}else{activos.forEach(g=>{sel.innerHTML+=`<option value="${escH(g.nombre)}" ${g.nombre===guiaOriginal?'selected':''}>${escH(g.nombre)}</option>`;});}abrirModal('modalDuplicarJornada');};if(!guiasData||guiasData.length===0){cargarGuiasParaModales().then(cargar);}else{cargar();}}
+async function guardarDuplicarJornada(){let originalId=document.getElementById('duplicarJornadaOriginalId').value;let nuevaFecha=document.getElementById('duplicarJornadaFecha').value;let nuevoGuia=document.getElementById('duplicarJornadaGuia').value;if(!nuevaFecha){showToast('Selecciona fecha','error');return;}let original=jornadasList.find(j=>j.id===originalId);if(!original){showToast('Original no encontrada','error');return;}let nuevaId='jor_'+normalizeId(nuevoGuia||original.guia)+'_'+nuevaFecha+'_'+(original.tourId||'manual');if(jornadasList.find(j=>j.id===nuevaId)){showToast('⚠️ Ya existe una jornada con esa fecha/guía/tour','warning');return;}let clientesCopy=original.clientes.map(c=>({...c,present:false}));showLoading();try{await apiCall({action:'saveJornada',data:{id:nuevaId,guia:nuevoGuia||original.guia,fecha:nuevaFecha,tourId:original.tourId,tourNombre:original.tourNombre,horario:original.horario,clientesJSON:JSON.stringify(clientesCopy),timestamp:new Date().toISOString()}});let semInfo=getSemanaKey(nuevaFecha);let paxTotal=clientesCopy.reduce((s,c)=>s+(c.adults||0)+(c.minors||0),0);await apiCall({action:'saveDossierEntry',guia:nuevoGuia||original.guia,data:{id:'dos_'+nuevaId.replace('jor_',''),guia:nuevoGuia||original.guia,fecha:nuevaFecha,tourNombre:original.tourNombre,horario:original.horario,paxTotal:paxTotal,asistentes:0,creditos:0,semana:semInfo.key,timestamp:new Date().toISOString()}});cerrarModal('modalDuplicarJornada');cargarOperaciones();showToast('✅ Jornada duplicada');}catch(e){showToast('Error: '+e.message,'error');}hideLoading();}
+async function init(){opsTours={};try{let d=localStorage.getItem('gdp_tours');if(d)opsTours=JSON.parse(d);}catch(e){}let ct=cacheGet('gdp_tours');if(ct){tours=ct;renderTours();populateTourSelect();setSyncStatus('ok','Desde caché');updateDashboard();}let cb=cacheGet('gdp_bloqueos');if(cb){bloqueos=cb;renderBloqueos();}await loadGuiasForDatalist();await refreshFromAPI();cargarResenas();}
 init();
+
+// Reseñas tabs
+document.querySelectorAll('.resenas-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const target=tab.getAttribute('data-resenas-tab');
+    document.querySelectorAll('.resenas-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.resenas-panel').forEach(p=>p.classList.remove('active'));
+    if(target==='pendientes') document.getElementById('resenasPendientesPanel').classList.add('active');
+    else if(target==='aprobadas') document.getElementById('resenasAprobadasPanel').classList.add('active');
+  });
+});
 
 // MENÚ MÓVIL
 const menuToggle=document.getElementById('menuToggle');
@@ -646,7 +691,7 @@ function renderCodigos() {
     grid.innerHTML = '<div class="empty-state"><div class="ei">🏷</div>No hay códigos. Crea el primero.</div>';
     return;
   }
-  grid.innerHTML = `<table><thead><tr>
+  grid.innerHTML = `<tr><thead><tr>
     <th>Código</th><th>Tipo</th><th>Descuento</th><th>Usos</th><th>Expira</th><th>Estado</th><th>Nota</th><th></th>
   </tr></thead><tbody>
   ${codigos.map(c => {
@@ -684,7 +729,7 @@ function openCodigoModal(id) {
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><h2 class="modal-title">${c ? 'Editar' : 'Nuevo'} código</h2><button class="modal-close" onclick="closeCodigoModal()">✕</button></div>
       <div>
         <input type="hidden" id="cId" value="${c?.id||''}">
-        <div class="form-group"><label class="form-group" style="margin-bottom:6px;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Código *</label>
+        <div class="form-group"><label style="margin-bottom:6px;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Código *</label>
           <input class="form-input" id="cCodigo" value="${c?.codigo||''}" placeholder="ej: NAVIDAD25" style="text-transform:uppercase">
         </div>
         <div class="form-row">
