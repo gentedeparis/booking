@@ -360,7 +360,7 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
 </div>
 
 <!-- MODALES (resumidos) -->
-<div id="tourModal" class="modal-overlay"><div class="modal"><div class="modal-title">Tour <button class="modal-close" onclick="cerrarModal('tourModal')">✕</button></div><div class="form-group"><label>Nombre</label><input type="text" id="tNombre"></div><div class="form-group"><label>Descripción</label><textarea id="tDesc"></textarea></div><div class="form-row"><div class="form-group"><label>Horario</label><input type="time" id="tHorario"></div><div class="form-group"><label>Precio</label><input type="number" id="tPrecio"></div></div><div class="form-row"><div class="form-group"><label>Cupo</label><input type="number" id="tCupo" value="15"></div><div class="form-group"><label>Dirección</label><input type="text" id="tDireccion"></div></div><div class="form-group"><label>Días</label><div class="dias-checks"><label class="dia-check"><input type="checkbox" value="lun">Lun</label><label class="dia-check"><input type="checkbox" value="mar">Mar</label><label class="dia-check"><input type="checkbox" value="mie">Mié</label><label class="dia-check"><input type="checkbox" value="jue">Jue</label><label class="dia-check"><input type="checkbox" value="vie">Vie</label><label class="dia-check"><input type="checkbox" value="sab">Sáb</label><label class="dia-check"><input type="checkbox" value="dom">Dom</label></div></div><div class="modal-actions"><button class="btn-modal-cancel" onclick="cerrarModal('tourModal')">Cancelar</button><button class="btn-modal" onclick="saveTour()">Guardar</button></div></div></div>
+<div id="tourModal" class="modal-overlay"><div class="modal"><div class="modal-title">Tour <button class="modal-close" onclick="cerrarModal('tourModal')">✕</button></div><div class="form-group"><label>Nombre</label><input type="text" id="tNombre"></div><div class="form-group"><label>Descripción corta</label><textarea id="tDesc"></textarea></div><div class="form-group"><label>Descripción larga</label><textarea id="tDescLarga"></textarea></div><div class="form-row"><div class="form-group"><label>Horario</label><input type="time" id="tHorario"></div><div class="form-group"><label>Precio</label><input type="number" id="tPrecio"></div></div><div class="form-row"><div class="form-group"><label>Cupo</label><input type="number" id="tCupo" value="15"></div><div class="form-group"><label>Dirección</label><input type="text" id="tDireccion"></div></div><div class="form-row"><div class="form-group"><label>URL Video</label><input type="text" id="tVideoUrl" placeholder="https://..."></div><div class="form-group"><label>URL TikTok</label><input type="text" id="tTiktokUrl" placeholder="https://..."></div></div><div class="form-group"><label><input type="checkbox" id="tInterno"> Tour interno (solo para guías)</label></div><div class="form-group"><label>Días</label><div class="dias-checks"><label class="dia-check"><input type="checkbox" value="lun">Lun</label><label class="dia-check"><input type="checkbox" value="mar">Mar</label><label class="dia-check"><input type="checkbox" value="mie">Mié</label><label class="dia-check"><input type="checkbox" value="jue">Jue</label><label class="dia-check"><input type="checkbox" value="vie">Vie</label><label class="dia-check"><input type="checkbox" value="sab">Sáb</label><label class="dia-check"><input type="checkbox" value="dom">Dom</label></div></div><div class="modal-actions"><button class="btn-modal-cancel" onclick="cerrarModal('tourModal')">Cancelar</button><button class="btn-modal" onclick="saveTour()">Guardar</button></div></div></div>
 <div id="bloqueoModal" class="modal-overlay"><div class="modal"><div class="modal-title">Bloqueo<button class="modal-close" onclick="cerrarModal('bloqueoModal')">✕</button></div><div class="form-group"><label>Fecha</label><input type="date" id="bFecha"></div><div class="form-group"><label>Tour</label><select id="bTourId"><option value="all">Todos</option></select></div><div class="modal-actions"><button class="btn-modal-cancel" onclick="cerrarModal('bloqueoModal')">Cancelar</button><button class="btn-modal" onclick="saveBloqueo()">Bloquear</button></div></div></div>
 <div id="guiaModal" class="modal-overlay"><div class="modal"><div class="modal-title">Guía<button class="modal-close" onclick="cerrarModal('guiaModal')">✕</button></div><div class="form-group"><label>Nombre</label><input type="text" id="gNombre"></div><div class="form-group"><label>PIN</label><input type="number" id="gPin" placeholder="1234"></div><div class="form-group"><label><input type="checkbox" id="gActivo" checked> Activo</label></div><div class="modal-actions"><button class="btn-modal-cancel" onclick="cerrarModal('guiaModal')">Cancelar</button><button class="btn-modal" onclick="saveGuia()">Guardar</button></div></div></div>
 <div id="newGuiaModal" class="modal-overlay"><div class="modal"><div class="modal-title">Nuevo guía<button class="modal-close" onclick="cerrarModal('newGuiaModal')">✕</button></div><div class="form-group"><select id="newGuiaName"></select></div><div class="modal-actions"><button class="btn-modal-cancel" onclick="cerrarModal('newGuiaModal')">Cancelar</button><button class="btn-modal" onclick="createNewGuia()">Crear</button></div></div></div>
@@ -541,7 +541,7 @@ function toggleHistoricoOperaciones(){_mostrarHistorico=!_mostrarHistorico;docum
 async function marcarVistaIndividual(id){await apiCall({action:'marcarVista',id});cargarOperaciones();}
 async function cancelarReserva(id){if(!confirm('¿Cancelar?'))return;await apiCall({action:'cancelReserva',id});cargarOperaciones();}
 async function eliminarReserva(id){if(!confirm('¿Eliminar?'))return;await apiCall({action:'deleteReserva',id});cargarOperaciones();}
-async function eliminarJornadaCompleta(id){if(!confirm('¿Eliminar jornada?'))return;showLoading();await apiCall({action:'deleteJornada',id});if(opsTours[id])delete opsTours[id];opsSaveLocal();cargarOperaciones();hideLoading();showToast('Jornada eliminada');}
+async function eliminarJornadaCompleta(id){if(!confirm('¿Eliminar jornada?'))return;showLoading();try{await apiCall({action:'deleteJornada',id});cargarOperaciones();showToast('Jornada eliminada');}catch(e){showToast('Error: '+e.message,'error');}finally{hideLoading();}}
 async function loadTours(){setSyncStatus('loading','Cargando...');try{const r=await apiCall({action:'getTours'});tours=(Array.isArray(r)?r.filter(t=>t&&t.id):[]).map(t=>({...t,horario:normalizarHorario(t.horario)}));cacheSet('gdp_tours',tours);renderTours();populateTourSelect();setSyncStatus('ok','Sincronizado');updateDashboard();}catch(e){setSyncStatus('error','Error');showToast('Error cargando tours: '+e.message,'error',6000);}}
 function renderTours(){const gr=document.getElementById('toursGrid');if(!tours.length){gr.innerHTML='<div class="empty-state"><div class="ei">🗺</div>No hay tours.</div>';return;}gr.innerHTML=tours.map(t=>{const activo=t.activo===true||t.activo==='true';const esInt=t.interno===true||t.interno==='true';const dias=t.dias?t.dias.split(',').map(d=>`<span class="dia-chip">${DIAS_MAP[d.trim()]||d}</span>`).join(''):'';return`<div class="tour-card ${activo?'':'inactive'}"><div><div class="tour-name">${escH(t.nombre)}${t.videoUrl?'<span style="background:rgba(192,57,43,.15);color:#e74c3c;padding:1px 6px;margin-left:6px">▶</span>':''}</div><div class="tour-desc">${escH(t.descripcion||'')}</div><div class="tour-meta"><span>🕐 ${t.horario||'--'}</span><span>👥 ${t.cupo}</span><span>💶 ${t.precio}€/p</span><span class="badge ${activo?(esInt?'b-navy':'b-green'):'b-red'}">${activo?(esInt?'🔒 Interno':'Activo'):'Pausado'}</span></div><div class="dias-list">${dias}</div></div><div class="tour-actions"><button class="btn btn-ghost btn-sm" onclick="openTourModal('${t.id}')">✏️ Editar</button><button class="btn btn-ghost btn-sm" onclick="copiarLinkResena(${JSON.stringify(t).replace(/"/g,'&quot;')})">🔗 Link de reseña</button><button class="btn btn-ghost btn-sm" onclick="toggleTour('${t.id}')">${activo?'⏸ Pausar':'▶ Activar'}</button></div></div>`;}).join('');}
 function openTourModal(id){editingTourId=id||null;document.querySelectorAll('input[name="dia"]').forEach(c=>c.checked=false);if(id){const t=tours.find(x=>String(x.id)==String(id));if(t){document.getElementById('tNombre').value=t.nombre||'';document.getElementById('tDesc').value=t.descripcion||'';document.getElementById('tDescLarga').value=t.descripcionLarga||'';document.getElementById('tHorario').value=t.horario||'';document.getElementById('tPrecio').value=t.precio||'';document.getElementById('tCupo').value=t.cupo||'15';document.getElementById('tDireccion').value=t.direccion||'';document.getElementById('tVideoUrl').value=t.videoUrl||'';document.getElementById('tTiktokUrl').value=t.tiktokUrl||'';document.getElementById('tInterno').checked=t.interno==='true';if(t.dias)t.dias.split(',').forEach(d=>{const cb=document.querySelector(`input[name="dia"][value="${d.trim()}"]`);if(cb)cb.checked=true;});}}else{['tNombre','tDesc','tDescLarga','tHorario','tPrecio','tDireccion','tVideoUrl','tTiktokUrl'].forEach(f=>{const el=document.getElementById(f);if(el)el.value='';});document.getElementById('tCupo').value='15';document.getElementById('tInterno').checked=false;document.querySelectorAll('input[name="dia"]').forEach(c=>c.checked=false);}abrirModal('tourModal');}
@@ -578,7 +578,31 @@ function renderGuias(){const g=document.getElementById('guiasGrid');if(!guiasDat
 function verPinGuia(nombre,pin){showToast(`PIN de ${nombre}: ${pin}`,'info',5000);}
 function openGuiaModal(nombre){editingGuiaNombre=nombre||null;let modal=document.getElementById('guiaModal');if(nombre){let g=guiasData.find(x=>x.nombre===nombre);if(g){document.getElementById('gNombre').value=g.nombre;document.getElementById('gNombre').disabled=true;document.getElementById('gPin').value=g.pin;document.getElementById('gActivo').checked=g.activo==='true';}}else{document.getElementById('gNombre').value='';document.getElementById('gNombre').disabled=false;document.getElementById('gPin').value='';document.getElementById('gActivo').checked=true;}modal.classList.add('open');}
 async function saveGuia(){let n=document.getElementById('gNombre').value.trim();let p=String(document.getElementById('gPin').value).trim();if(!n){showToast('Nombre obligatorio','error');return;}if(!/^[0-9]{4}$/.test(p)){showToast('PIN 4 dígitos','error');return;}let dup=guiasData.find(g=>String(g.pin)===p&&g.nombre!==n);if(dup){showToast('PIN ya usado por '+dup.nombre,'error');return;}showLoading();try{await apiCall({action:'saveGuia',data:{nombre:n,pin:p,activo:String(document.getElementById('gActivo').checked)}});cerrarModal('guiaModal');await initGuias();showToast(editingGuiaNombre?'Guía actualizado':'Guía creado');}catch(e){showToast('Error al guardar','error');}hideLoading();}
-async function toggleGuiaActivo(nombre,activoActual){let g=guiasData.find(x=>x.nombre===nombre);if(!g)return;showLoading();try{await apiCall({action:'saveGuia',data:{nombre:g.nombre,pin:g.pin,activo:activoActual==='true'?'false':'true'}});await initGuias();showToast('Estado actualizado');}catch(e){showToast('Error','error');}hideLoading();}
+async function toggleGuiaActivo(nombre, activoActual){
+    const guia = guiasData.find(x => x.nombre === nombre);
+    if (!guia) {
+        showToast('Guía no encontrado', 'error');
+        return;
+    }
+    showLoading();
+    try {
+        await apiCall({
+            action: 'saveGuia',
+            data: {
+                nombre: guia.nombre,
+                pin: guia.pin,
+                activo: activoActual === 'true' ? 'false' : 'true'
+            }
+        });
+        await initGuias();
+        showToast('Estado actualizado');
+    } catch(e) {
+        showToast('Error: ' + e.message, 'error');
+    }
+    hideLoading();
+}
+
+window.toggleGuiaActivo = toggleGuiaActivo;
 async function eliminarGuia(nombre){if(!confirm('¿Eliminar guía?'))return;showLoading();try{await apiCall({action:'deleteGuia',nombre});await initGuias();showToast('Guía eliminado');}catch(e){showToast('Error','error');}hideLoading();}
 async function initInformes(){let cont=document.getElementById('informesContent');cont.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando...</div>';try{let guiasRaw=await apiCall({action:'getGuias'});dossierGuias=Array.isArray(guiasRaw)?guiasRaw:[];}catch(e){cont.innerHTML='<div class="empty-state"><div class="ei">⚠️</div>Error: '+escH(e.message)+'</div>';updateInformesNavBadge();return;}if(!dossierGuias.length){cont.innerHTML='<div class="informes-empty"><div class="ei">👤</div><p>No hay guías.</p></div>';updateInformesNavBadge();return;}let results=await Promise.allSettled(dossierGuias.map(g=>apiCall({action:'getDossier',guia:g}).then(entries=>({guia:g,entries:Array.isArray(entries)?entries:[]}))));informesPendientes=[];results.forEach(r=>{if(r.status==='fulfilled'){let{guia,entries}=r.value;entries.filter(e=>String(e.estadoPago).trim()==='informe_pendiente').forEach(e=>informesPendientes.push({...e,guia,fecha:normalizarFecha(e.fecha),horario:normalizarHorario(e.horario),clientes:[]}));}});let guiasCon=[...new Set(informesPendientes.map(e=>e.guia))];await Promise.allSettled(guiasCon.map(guia=>apiCall({action:'getJornadasGuia',guia,includePast:'true'}).then(jornadas=>{informesPendientes.filter(e=>e.guia===guia).forEach(e=>{let jid=String(e.id).replace(/^dos_/,'jor_');let j=(Array.isArray(jornadas)?jornadas:[]).find(x=>x.id===jid);if(j&&j.clientesJSON)try{e.clientes=JSON.parse(j.clientesJSON);}catch(e){}});}).catch(()=>{})));informesPendientes.sort((a,b)=>a.fecha>b.fecha?-1:1);document.getElementById('informes-total-count').textContent=informesPendientes.length;updateInformesNavBadge();renderInformes();}
 function renderInformes(){const cont=document.getElementById('informesContent');if(!informesPendientes.length){cont.innerHTML='<div class="informes-empty"><div class="ei">✅</div><div>Todo al día</div><p>No hay informes pendientes.</p></div>';return;}const byGuia={};informesPendientes.forEach(e=>{if(!byGuia[e.guia])byGuia[e.guia]=[];byGuia[e.guia].push(e);});let html='';Object.keys(byGuia).forEach(guia=>{html+=`<div class="informe-guia-group"><div class="informe-guia-label">👤 ${escH(guia)} (${byGuia[guia].length})</div>`;byGuia[guia].forEach(e=>{const totalAd=(e.clientes||[]).reduce((s,c)=>s+(parseInt(c.adults)||0),0);const totalMen=(e.clientes||[]).reduce((s,c)=>s+(parseInt(c.minors)||0),0);html+=`<div class="informe-card" id="ic-${escH(e.id)}">
@@ -624,7 +648,102 @@ function renderInformes(){const cont=document.getElementById('informesContent');
 }
 function toggleInformeAcord(id){const b=document.getElementById('iac-body-'+id);const a=document.getElementById('iac-arr-'+id);if(!b)return;const isOpen=b.style.display!=='none';b.style.display=isOpen?'none':'block';if(a)a.textContent=isOpen?'▶':'▼';}
 function recalcAsistTotal(id){const b=document.getElementById('iac-body-'+id);if(!b)return;let asis=0,total=0;const rows=b.querySelectorAll('div[style*="grid-template-columns"]');rows.forEach((row,ci)=>{const ad=parseInt(document.getElementById('ic-ca-'+id+'-'+ci)?.value)||0;const men=parseInt(document.getElementById('ic-cm-'+id+'-'+ci)?.value)||0;total+=ad+men;if(row.querySelector('input[type="checkbox"]')?.checked)asis+=ad+men;});const pill=document.getElementById('asist-count-'+id);if(pill)pill.textContent='✅ '+asis+' / '+total+' asistentes';}
-function registrarInforme(guia, entryId, jornadaId){const cred=parseInt(document.getElementById('cred-'+entryId)?.value)||0;const btn=document.getElementById('btn-reg-'+entryId);if(btn){btn.disabled=true;btn.innerHTML='<span class="btn-reg-icon">⏳</span>Guardando...';}const entry=informesPendientes.find(e=>e.id===entryId);if(!entry){showToast('Entry no encontrado','error');if(btn){btn.disabled=false;btn.innerHTML='<span class="btn-reg-icon">✓</span>Registrar';}return;}const iacBody=document.getElementById('iac-body-'+entryId);let paxTotal=0,asistentes=0;const clientesActualizados=[];if(iacBody){const rows=iacBody.querySelectorAll('div[style*="grid-template-columns"]');rows.forEach((row,ci)=>{const nombre=document.getElementById('ic-cn-'+entryId+'-'+ci)?.value||'';const adultos=parseInt(document.getElementById('ic-ca-'+entryId+'-'+ci)?.value)||0;const menores=parseInt(document.getElementById('ic-cm-'+entryId+'-'+ci)?.value)||0;const wa=document.getElementById('ic-cw-'+entryId+'-'+ci)?.value||'';const presente=row.querySelector('input[type="checkbox"]')?.checked||false;clientesActualizados.push({name:nombre,adults:adultos,minors:menores,wa:wa,present:presente});paxTotal+=adultos+menores;if(presente)asistentes+=adultos+menores;});}else{paxTotal=parseInt(entry.paxTotal)||0;asistentes=parseInt(entry.asistentes)||0;}const semInfo=getSemanaKey(entry.fecha);const updatedEntry={...entry,creditos:cred,paxTotal:paxTotal,asistentes:asistentes,estadoPago:'pendiente',semana:semInfo.key,timestamp:new Date().toISOString()};delete updatedEntry.guia;let errs=[];try{await apiCall({action:'saveDossierEntry',guia,data:{...updatedEntry,guia}});}catch(e){errs.push('Dossier: '+e.message);}try{const jid=String(entryId).replace(/^dos_/,'jor_');await apiCall({action:'deleteJornada',id:jid});}catch(e){errs.push('Jornada: '+e.message);}if(errs.length){showToast('⚠️ '+errs.join(' | '),'error',7000);if(btn){btn.disabled=false;btn.innerHTML='<span class="btn-reg-icon">✓</span>Registrar';}return;}const card=document.getElementById('ic-'+entryId);if(card){card.classList.add('registrado');card.style.opacity='0';setTimeout(()=>card.remove(),400);}informesPendientes=informesPendientes.filter(e=>e.id!==entryId);document.getElementById('informes-total-count').textContent=informesPendientes.length;updateInformesNavBadge();if(!informesPendientes.length){setTimeout(()=>{document.getElementById('informesContent').innerHTML='<div class="informes-empty"><div class="ei">✅</div><div>¡Todo procesado!</div></div>';},450);}showToast(`✅ Informe de ${guia} registrado — ${cred} cr.`);if(dossierEntries[guia])delete dossierEntries[guia];}
+async function registrarInforme(guia, entryId, jornadaId){
+    const cred = parseInt(document.getElementById('cred-'+entryId)?.value) || 0;
+    const btn = document.getElementById('btn-reg-'+entryId);
+    if(btn){
+        btn.disabled = true;
+        btn.innerHTML = '<span class="btn-reg-icon">⏳</span>Guardando...';
+    }
+    
+    const entry = informesPendientes.find(e => e.id === entryId);
+    if(!entry){
+        showToast('Entry no encontrado', 'error');
+        if(btn){
+            btn.disabled = false;
+            btn.innerHTML = '<span class="btn-reg-icon">✓</span>Registrar';
+        }
+        return;
+    }
+    
+    const iacBody = document.getElementById('iac-body-'+entryId);
+    let paxTotal = 0, asistentes = 0;
+    const clientesActualizados = [];
+    
+    if(iacBody){
+        const rows = iacBody.querySelectorAll('div[style*="grid-template-columns"]');
+        rows.forEach((row, ci) => {
+            const nombre = document.getElementById('ic-cn-'+entryId+'-'+ci)?.value || '';
+            const adultos = parseInt(document.getElementById('ic-ca-'+entryId+'-'+ci)?.value) || 0;
+            const menores = parseInt(document.getElementById('ic-cm-'+entryId+'-'+ci)?.value) || 0;
+            const wa = document.getElementById('ic-cw-'+entryId+'-'+ci)?.value || '';
+            const presente = row.querySelector('input[type="checkbox"]')?.checked || false;
+            clientesActualizados.push({name: nombre, adults: adultos, minors: menores, wa: wa, present: presente});
+            paxTotal += adultos + menores;
+            if(presente) asistentes += adultos + menores;
+        });
+    } else {
+        paxTotal = parseInt(entry.paxTotal) || 0;
+        asistentes = parseInt(entry.asistentes) || 0;
+    }
+    
+    const semInfo = getSemanaKey(entry.fecha);
+    const updatedEntry = {
+        ...entry,
+        creditos: cred,
+        paxTotal: paxTotal,
+        asistentes: asistentes,
+        estadoPago: 'pendiente',
+        semana: semInfo.key,
+        timestamp: new Date().toISOString()
+    };
+    delete updatedEntry.guia;
+    
+    let errs = [];
+    try {
+        await apiCall({action: 'saveDossierEntry', guia, data: {...updatedEntry, guia}});
+    } catch(e) {
+        errs.push('Dossier: ' + e.message);
+    }
+    
+    try {
+        const jid = String(entryId).replace(/^dos_/, 'jor_');
+        await apiCall({action: 'deleteJornada', id: jid});
+    } catch(e) {
+        errs.push('Jornada: ' + e.message);
+    }
+    
+    if(errs.length){
+        showToast('⚠️ ' + errs.join(' | '), 'error', 7000);
+        if(btn){
+            btn.disabled = false;
+            btn.innerHTML = '<span class="btn-reg-icon">✓</span>Registrar';
+        }
+        return;
+    }
+    
+    const card = document.getElementById('ic-'+entryId);
+    if(card){
+        card.classList.add('registrado');
+        card.style.opacity = '0';
+        setTimeout(() => card.remove(), 400);
+    }
+    
+    informesPendientes = informesPendientes.filter(e => e.id !== entryId);
+    document.getElementById('informes-total-count').textContent = informesPendientes.length;
+    updateInformesNavBadge();
+    
+    if(!informesPendientes.length){
+        setTimeout(() => {
+            document.getElementById('informesContent').innerHTML = '<div class="informes-empty"><div class="ei">✅</div><div>¡Todo procesado!</div></div>';
+        }, 450);
+    }
+    
+    showToast(`✅ Informe de ${guia} registrado — ${cred} cr.`);
+    if(dossierEntries[guia]) delete dossierEntries[guia];
+}
+
+window.registrarInforme = registrarInforme;
 function mostrarFormularioJornada(){document.getElementById('formJornadaPanel').style.display='block';initOpsCreate();renderTourCatalogChecks();loadGuiasForDatalist();}
 function cancelarFormularioJornada(){document.getElementById('formJornadaPanel').style.display='none';editingOpsId=null;}
 function initOpsCreate(){editingOpsId=null;document.getElementById('jornadaFormTitle').innerText='Nueva jornada';document.getElementById('ot-guide').value='';document.getElementById('ot-date').value='';document.getElementById('opsToursAccordion').innerHTML='';document.querySelectorAll('input[name="tourCheck"]').forEach(c=>c.checked=false);}
@@ -647,8 +766,33 @@ async function guardarAgregarCliente(){let jid=document.getElementById('agregarC
 function abrirModalDuplicarJornada(jid,fechaOriginal,guiaOriginal){document.getElementById('duplicarJornadaOriginalId').value=jid;document.getElementById('duplicarJornadaFecha').value=fechaOriginal;let sel=document.getElementById('duplicarJornadaGuia');sel.innerHTML='<option value="">— Selecciona —</option>';let cargar=()=>{let activos=guiasData.filter(g=>g.activo==='true'||g.activo===true);if(activos.length===0){sel.innerHTML='<option value="">— No hay guías —</option>';}else{activos.forEach(g=>{sel.innerHTML+=`<option value="${escH(g.nombre)}" ${g.nombre===guiaOriginal?'selected':''}>${escH(g.nombre)}</option>`;});}abrirModal('modalDuplicarJornada');};if(!guiasData||guiasData.length===0){cargarGuiasParaModales().then(cargar);}else{cargar();}}
 async function guardarDuplicarJornada(){let originalId=document.getElementById('duplicarJornadaOriginalId').value;let nuevaFecha=document.getElementById('duplicarJornadaFecha').value;let nuevoGuia=document.getElementById('duplicarJornadaGuia').value;if(!nuevaFecha){showToast('Selecciona fecha','error');return;}let original=jornadasList.find(j=>j.id===originalId);if(!original){showToast('Original no encontrada','error');return;}let nuevaId='jor_'+normalizeId(nuevoGuia||original.guia)+'_'+nuevaFecha+'_'+(original.tourId||'manual');if(jornadasList.find(j=>j.id===nuevaId)){showToast('⚠️ Ya existe una jornada con esa fecha/guía/tour','warning');return;}let clientesCopy=original.clientes.map(c=>({...c,present:false}));showLoading();try{await apiCall({action:'saveJornada',data:{id:nuevaId,guia:nuevoGuia||original.guia,fecha:nuevaFecha,tourId:original.tourId,tourNombre:original.tourNombre,horario:original.horario,clientesJSON:JSON.stringify(clientesCopy),timestamp:new Date().toISOString()}});let semInfo=getSemanaKey(nuevaFecha);let paxTotal=clientesCopy.reduce((s,c)=>s+(c.adults||0)+(c.minors||0),0);await apiCall({action:'saveDossierEntry',guia:nuevoGuia||original.guia,data:{id:'dos_'+nuevaId.replace('jor_',''),guia:nuevoGuia||original.guia,fecha:nuevaFecha,tourNombre:original.tourNombre,horario:original.horario,paxTotal:paxTotal,asistentes:0,creditos:0,semana:semInfo.key,timestamp:new Date().toISOString()}});cerrarModal('modalDuplicarJornada');cargarOperaciones();showToast('✅ Jornada duplicada');}catch(e){showToast('Error: '+e.message,'error');}hideLoading();}
 async function init(){opsTours={};try{let d=localStorage.getItem('gdp_tours');if(d)opsTours=JSON.parse(d);}catch(e){}let ct=cacheGet('gdp_tours');if(ct){tours=ct;renderTours();populateTourSelect();setSyncStatus('ok','Desde caché');updateDashboard();}let cb=cacheGet('gdp_bloqueos');if(cb){bloqueos=cb;renderBloqueos();}await loadGuiasForDatalist();await refreshFromAPI();cargarResenas();}
-init();
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        await init();
+    } catch(e) {
+        console.error('Error en init:', e);
+        setSyncStatus('error', 'Error de inicio');
+        showToast('Error al cargar la aplicación: ' + e.message, 'error');
+    }
+});
 
+window.refreshFromAPI = refreshFromAPI;
+// ============================================
+// FUNCIONES FALTANTES
+// ============================================
+
+function toggleAcord(headerElement) {
+    const body = headerElement.nextElementSibling;
+    const arrow = headerElement.querySelector('.acord-arrow');
+    if (!body) return;
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    if (arrow) arrow.classList.toggle('open', !isOpen);
+}
+
+window.toggleAcord = toggleAcord;
+
+// ============================================
 // Reseñas tabs
 document.querySelectorAll('.resenas-tab').forEach(tab=>{
   tab.addEventListener('click',()=>{
@@ -803,7 +947,53 @@ async function toggleCodigo(id, currentActivo) {
   await apiCall({ action: 'saveCodigo', data: { ...c, activo: currentActivo === 'true' ? 'false' : 'true' } });
   loadCodigos();
 }
-
+window.openCodigoModal = openCodigoModal;
+window.saveCodigo = saveCodigo;
+window.editCodigo = editCodigo;
+window.toggleCodigo = toggleCodigo;
+// ============================================
+// EXPONER FUNCIONES FALTANTES GLOBALMENTE
+// ============================================
+window.nav = nav;
+window.navMobile = navMobile;
+window.closeMenu = closeMenu;
+window.openMenu = openMenu;
+window.cargarOperaciones = cargarOperaciones;
+window.toggleHistoricoOperaciones = toggleHistoricoOperaciones;
+window.marcarVistaIndividual = marcarVistaIndividual;
+window.cancelarReserva = cancelarReserva;
+window.eliminarReserva = eliminarReserva;
+window.eliminarJornadaCompleta = eliminarJornadaCompleta;
+window.editarCliente = editarCliente;
+window.guardarEdicionCliente = guardarEdicionCliente;
+window.eliminarClienteDeJornada = eliminarClienteDeJornada;
+window.guardarCambioGuia = guardarCambioGuia;
+window.guardarAgregarCliente = guardarAgregarCliente;
+window.guardarDuplicarJornada = guardarDuplicarJornada;
+window.mostrarFormularioJornada = mostrarFormularioJornada;
+window.cancelarFormularioJornada = cancelarFormularioJornada;
+window.guardarJornadaDesdeFormulario = guardarJornadaDesdeFormulario;
+window.onTourCheckChange = onTourCheckChange;
+window.opsAddRowInAcord = opsAddRowInAcord;
+window.recalcAsistTotal = recalcAsistTotal;
+window.toggleInformeAcord = toggleInformeAcord;
+window.toggleDossierMes = toggleDossierMes;
+window.updateDossierField = updateDossierField;
+window.deleteDossierEntry = deleteDossierEntry;
+window.openManualDossierEntry = openManualDossierEntry;
+window.saveManualDossierEntry = saveManualDossierEntry;
+window.downloadDossierPublic = downloadDossierPublic;
+window.selectDossierGuia = selectDossierGuia;
+window.exportarCSV = exportarCSV;
+window.exportarCSVClientes = exportarCSVClientes;
+window.eliminarCliente = eliminarCliente;
+window.filtrarClientes = filtrarClientes;
+window.aprobarResena = aprobarResena;
+window.rechazarResena = rechazarResena;
+window.retirarResena = retirarResena;
+window.copiarLinkResena = copiarLinkResena;
+// ============================================
+window.deleteCodigo = deleteCodigo;
 async function deleteCodigo(id) {
   if (!confirm('¿Eliminar este código?')) return;
   await apiCall({ action: 'deleteCodigo', id });
