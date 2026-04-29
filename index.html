@@ -24,8 +24,9 @@ body{background:var(--noir);color:var(--white);font-family:'DM Sans',sans-serif;
 .modal-close:hover{color:var(--white);}
 .form-group{margin-bottom:18px;}
 .form-group label{display:block;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
-.form-group input,.form-group select{width:100%;background:var(--graphite);border:1px solid var(--smoke);border-radius:8px;color:var(--white);font-size:.9rem;padding:10px 14px;outline:none;}
-.form-group input:focus,.form-group select:focus{border-color:var(--gold);}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:var(--graphite);border:1px solid var(--smoke);border-radius:8px;color:var(--white);font-size:.9rem;padding:10px 14px;outline:none;font-family:'DM Sans',sans-serif;}
+.form-group textarea{min-height:70px;resize:vertical;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--gold);}
 .modal-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:20px;}
 .btn-modal{background:var(--gold);color:var(--noir);border:none;border-radius:8px;padding:10px 20px;font-size:.85rem;font-weight:600;cursor:pointer;}
 .btn-modal:hover{opacity:.88;}
@@ -331,7 +332,7 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
   </div>
   <div class="section" id="sec-tours"><div class="sec-header"><h1 class="sec-title">Tours</h1><button class="btn btn-gold" onclick="openTourModal()">+ Nuevo tour</button></div><div class="tours-grid" id="toursGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div></div>
   <div class="section" id="sec-bloqueos"><div class="sec-header"><h1 class="sec-title">Bloqueos</h1><button class="btn btn-gold" onclick="openBloqueoModal()">+ Nuevo bloqueo</button></div><div class="bloqueos-grid" id="bloqueosGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div></div>
-  <div class="section" id="sec-operaciones"><div class="sec-header"><h1 class="sec-title">Operaciones</h1><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-terra" onclick="mostrarFormularioJornada()">+ Crear jornada</button><button class="btn btn-ghost btn-sm" onclick="exportarCSV()">⬇ CSV</button><button class="btn btn-ghost btn-sm" onclick="cargarOperaciones()">↻</button></div></div><div class="filter-bar"><input type="date" id="filtroOperacionesFecha" onchange="cargarOperaciones()"><button class="btn btn-ghost btn-sm" onclick="document.getElementById('filtroOperacionesFecha').value='';cargarOperaciones()">Ver todas</button><button class="btn btn-ghost btn-sm" id="btnToggleHistorico" onclick="toggleHistoricoOperaciones()">📦 Ocultar histórico</button></div><div id="operacionesContainer"><div class="empty-state"><div class="ei">📋</div>Cargando...</div></div><div id="formJornadaPanel" style="display:none; margin-top:30px; background:var(--charcoal); border:1px solid var(--graphite); border-radius:12px; padding:20px;"><div style="display:flex; justify-content:space-between;"><h3 id="jornadaFormTitle">Nueva jornada</h3><button class="btn btn-ghost btn-sm" onclick="cancelarFormularioJornada()">✖</button></div><div class="form-row"><div class="form-group"><label>Guía</label><select id="ot-guide"></select></div><div class="form-group"><label>Fecha</label><input type="date" id="ot-date"></div></div><div><div style="font-size:.72rem;margin-bottom:8px;">Tours del día</div><div id="tourCatalogChecks"></div></div><div id="opsToursAccordion"></div><button class="btn btn-terra" style="width:100%;margin-top:12px" onclick="guardarJornadaDesdeFormulario()">💾 Guardar</button><div id="opsJornadaLog" class="save-log" style="display:none;margin-top:12px;"></div></div></div>
+  <div class="section" id="sec-operaciones"><div class="sec-header"><h1 class="sec-title">Operaciones</h1><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-terra" onclick="mostrarFormularioJornada()">+ Crear jornada</button><button class="btn btn-ghost btn-sm" onclick="exportarCSV()">⬇ CSV</button><button class="btn btn-ghost btn-sm" onclick="cargarOperaciones()">↻</button></div></div><div class="filter-bar"><input type="date" id="filtroOperacionesFecha" onchange="cargarOperaciones()"><button class="btn btn-ghost btn-sm" onclick="document.getElementById('filtroOperacionesFecha').value='';cargarOperaciones()">Ver todas</button><button class="btn btn-ghost btn-sm" id="btnToggleHistorico" onclick="toggleHistoricoOperaciones()">📦 Ver histórico</button></div><div id="operacionesContainer"><div class="empty-state"><div class="ei">📋</div>Cargando...</div></div><div id="formJornadaPanel" style="display:none; margin-top:30px; background:var(--charcoal); border:1px solid var(--graphite); border-radius:12px; padding:20px;"><div style="display:flex; justify-content:space-between;"><h3 id="jornadaFormTitle">Nueva jornada</h3><button class="btn btn-ghost btn-sm" onclick="cancelarFormularioJornada()">✖</button></div><div class="form-row"><div class="form-group"><label>Guía</label><select id="ot-guide"></select></div><div class="form-group"><label>Fecha</label><input type="date" id="ot-date" oninput="renderTourCatalogChecks();onTourCheckChange();"></div></div><div><div style="font-size:.72rem;margin-bottom:8px;">Tours del día</div><div id="tourCatalogChecks"></div></div><div id="opsToursAccordion"></div><button class="btn btn-terra" style="width:100%;margin-top:12px" onclick="guardarJornadaDesdeFormulario()">💾 Guardar</button><div id="opsJornadaLog" class="save-log" style="display:none;margin-top:12px;"></div></div></div>
   <div class="section" id="sec-clientes"><div class="sec-header"><h1 class="sec-title">Clientes</h1><div><button class="btn btn-ghost btn-sm" onclick="exportarCSVClientes()">⬇ CSV</button><button class="btn btn-ghost btn-sm" onclick="renderClientes()">↻</button></div></div><div class="filter-bar"><input type="search" id="filtroCliente" placeholder="Buscar..." oninput="filtrarClientes()"><span id="clientesCount"></span></div><div id="clientesContainer"><div class="empty-state"><div class="ei">📇</div>Cargando...</div></div></div>
   <div class="section" id="sec-informes"><div class="sec-header"><h1 class="sec-title">Informes</h1><button class="btn btn-ghost btn-sm" onclick="initInformes()">↻</button></div><div class="informes-header-banner"><div class="informes-header-icon">📥</div><div class="informes-header-body"><div class="informes-header-title">Informes pendientes</div><div class="informes-header-sub">Asigna créditos y pulsa Registrar</div></div><div><div class="informes-count" id="informes-total-count">—</div><div class="informes-count-label">pendientes</div></div></div><div id="informesContent"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div></div>
   <div class="section" id="sec-dossier"><div class="sec-header"><h1 class="sec-title">Dossier</h1><button class="btn btn-gold" onclick="openNewGuiaPrompt()">+ Nuevo guía</button></div><div class="dossier-tabs" id="dossierTabs"></div><div id="dossierContent"><div class="empty-state"><div class="ei">📁</div>Selecciona un guía</div></div></div>
@@ -389,13 +390,18 @@ async function cargarResenas(){
   try{
     const resp=await apiCall({action:'getResenas'});
     todasResenas=Array.isArray(resp)?resp:[];
-    resenasPendientes=todasResenas.filter(r=>r.estado==='pendiente');
-    resenasAprobadas=todasResenas.filter(r=>r.estado==='aprobada');
-    document.getElementById('resenasPendientesCount')&&(document.getElementById('resenasPendientesCount').textContent=resenasPendientes.length);
-    document.getElementById('resenasNavBadge')&&(document.getElementById('resenasNavBadge').style.display=resenasPendientes.length>0?'inline-flex':'none');
-    renderResenasPendientes();
-    renderResenasAprobadas();
-  }catch(e){console.warn('Error cargando reseñas:',e);}
+  }catch(e){
+    console.warn('Reseñas no disponibles (backend pendiente):',e.message);
+    todasResenas=[];
+  }
+  resenasPendientes=todasResenas.filter(r=>r.estado==='pendiente');
+  resenasAprobadas=todasResenas.filter(r=>r.estado==='aprobada');
+  const cnt=document.getElementById('resenasPendientesCount');
+  if(cnt)cnt.textContent=resenasPendientes.length;
+  const badge=document.getElementById('resenasNavBadge');
+  if(badge)badge.style.display=resenasPendientes.length>0?'inline-flex':'none';
+  renderResenasPendientes();
+  renderResenasAprobadas();
 }
 
 function renderResenasPendientes(){
@@ -534,13 +540,61 @@ function updateInformesNavBadge(){const b=document.getElementById('informesNavBa
 function populateTourSelect(){const sel=document.getElementById('bTourId');if(!sel)return;sel.innerHTML='<option value="all">🚫 Todos los tours</option>';tours.filter(t=>t.activo==='true'||t.activo===true).forEach(t=>sel.innerHTML+=`<option value="${t.id}">${escH(t.nombre)}</option>`);}
 async function cargarGuiasParaModales(){try{const r=await apiCall({action:'getGuiasData'});guiasData=Array.isArray(r)?r:[];const sc=document.getElementById('cambiarGuiaSelect'),sd=document.getElementById('duplicarJornadaGuia');const opts='<option value="">— Selecciona —</option>'+guiasData.filter(g=>g.activo==='true'||g.activo===true).map(g=>`<option value="${escH(g.nombre)}">${escH(g.nombre)}</option>`).join('');if(sc)sc.innerHTML=opts;if(sd)sd.innerHTML=opts;}catch(e){console.warn(e);}}
 async function cargarOperaciones(){const c=document.getElementById('operacionesContainer');if(!c)return;c.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando...</div>';try{const resRaw=await apiCall({action:'getReservas'});reservas=(Array.isArray(resRaw)?resRaw:[]).map(r=>({...r,fecha:normalizarFecha(r.fecha),horario:normalizarHorario(r.horario),tipo:'reserva'}));updateDashboard();let jorRaw=[];try{jorRaw=await apiCall({action:'getAllJornadas'});}catch(e){console.warn('getAllJornadas no soportado:',e);jorRaw=[];}jornadasList=(Array.isArray(jorRaw)?jorRaw:[]).map(j=>{let cli=[];try{cli=JSON.parse(j.clientesJSON||'[]');}catch(e){}return{...j,fecha:normalizarFecha(j.fecha),horario:normalizarHorario(j.horario),clientes:cli,tipo:'jornada'};});_todasOperaciones=[...reservas,...jornadasList];_todasOperaciones.sort((a,b)=>a.fecha>b.fecha?-1:1);renderOperacionesUnificado();}catch(e){c.innerHTML=`<div class="empty-state"><div class="ei">⚠️</div>Error: ${escH(e.message)}</div>`;}}
-function renderOperacionesUnificado(){const cont=document.getElementById('operacionesContainer');if(!cont)return;const ff=document.getElementById('filtroOperacionesFecha')?.value||'';let data=_todasOperaciones.filter(op=>!ff||op.fecha===ff);if(!_mostrarHistorico)data=data.filter(op=>op.fecha>=hoy());const grupos=new Map();data.forEach(op=>{const key=op.fecha+'|'+(op.tourId||op.id)+'|'+op.horario;if(!grupos.has(key))grupos.set(key,{fecha:op.fecha,tourNombre:op.tourNombre||'—',horario:op.horario,reservas:[],jornadas:[]});if(op.tipo==='reserva')grupos.get(key).reservas.push(op);else grupos.get(key).jornadas.push(op);});const arr=Array.from(grupos.values()).sort((a,b)=>a.fecha>b.fecha?-1:1);if(!arr.length){cont.innerHTML='<div class="empty-state"><div class="ei">✅</div>No hay operaciones.</div>';return;}let html='';arr.forEach((g,idx)=>{html+=`<div class="listado-grupo"><div class="listado-acord-header" onclick="toggleGrupoOperaciones(${idx})"><div><div class="listado-grupo-title">🎯 ${escH(g.tourNombre)}</div><div class="listado-grupo-meta">📅 ${formatDate(g.fecha)} · 🕐 ${g.horario||'--'}</div></div><div class="listado-grupo-stats"><span class="badge b-gold">${g.reservas.reduce((s,r)=>s+(r.adultos||0)+(r.menores||0),0)} PAX</span><span class="badge b-muted">${g.reservas.length} res.</span>${g.jornadas.length?'<span class="badge b-informe">📋 Jornada(s)</span>':''}<span class="listado-acord-arrow">▼</span></div></div><div class="listado-acord-body" id="acord-body-${idx}"><div class="listado-grupo-body">`;g.reservas.forEach(r=>{const esNueva=String(r.vista)!=='si';html+=`<div class="lr-pax-row ${esNueva?'listado-pax-nueva':''}"><div><span class="lr-pax-name">${escH(r.nombre)}</span>${esNueva?'<span class="badge b-new">NUEVA</span>':''}</div><div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div><a href="https://wa.me/${(r.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="lr-wa">📱 ${escH(r.whatsapp)}</a><div class="lr-pax-actions"><button class="btn btn-ghost btn-sm" onclick="marcarVistaIndividual('${r.id}')">👁</button><button class="btn btn-cancel-res btn-sm" onclick="cancelarReserva('${r.id}')">✕</button><button class="btn btn-danger btn-sm" onclick="eliminarReserva('${r.id}')">🗑</button></div></div>`;});g.jornadas.forEach(j=>{html+=`<div class="acordeon-grupo" style="margin-top:8px;border:1px solid var(--informe);"><div class="acordeon-grupo-header" onclick="toggleClienteJornada('clientes-jornada-${j.id}')" style="background:rgba(139,92,246,0.2);"><span>📋 JORNADA · Guía: ${escH(j.guia)}</span><span class="acordeon-grupo-arrow">▼</span></div><div id="clientes-jornada-${j.id}" class="acordeon-grupo-body" style="display:none;padding:8px;">${(j.clientes||[]).map((c,ci)=>`<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;"><div><strong>${escH(c.name)}</strong><br>👥 ${c.adults||0}A ${c.minors||0}M · ${c.wa?`<a href="https://wa.me/${c.wa.replace(/[^0-9]/g,'')}" target="_blank">📱 ${escH(c.wa)}</a>`:'Sin WhatsApp'}</div><div class="cliente-actions"><button class="btn-cliente-edit" onclick="editarCliente('${j.id}',${ci},'${escH(c.name)}',${c.adults||0},${c.minors||0},'${escH(c.wa||'')}')">✏️</button><button class="btn-cliente-eliminar" onclick="eliminarClienteDeJornada('${j.id}',${ci})">🗑</button></div></div>`).join('')}<div class="jornada-buttons"><button class="btn-jornada" onclick="abrirModalAgregarCliente('${j.id}')">➕ Añadiendo cliente</button><button class="btn-jornada" onclick="abrirModalCambiarGuia('${j.id}','${escH(j.guia)}')">🔄 Cambiando guía</button><button class="btn-jornada" onclick="abrirModalDuplicarJornada('${j.id}','${j.fecha}','${escH(j.guia)}')">📋 Duplicando</button><button class="btn-jornada btn-jornada-danger" onclick="eliminarJornadaCompleta('${j.id}')">🗑 Eliminando jornada completa</button></div></div></div>`;});html+=`</div></div></div>`;});cont.innerHTML=html;}
+function renderOperacionesUnificado(){const cont=document.getElementById('operacionesContainer');if(!cont)return;const ff=document.getElementById('filtroOperacionesFecha')?.value||'';let data=_todasOperaciones.filter(op=>!ff||op.fecha===ff);if(!_mostrarHistorico)data=data.filter(op=>op.fecha>=hoy());const grupos=new Map();data.forEach(op=>{const key=op.fecha+'|'+(op.tourId||op.id)+'|'+op.horario;if(!grupos.has(key))grupos.set(key,{fecha:op.fecha,tourNombre:op.tourNombre||'—',horario:op.horario,reservas:[],jornadas:[]});if(op.tipo==='reserva')grupos.get(key).reservas.push(op);else grupos.get(key).jornadas.push(op);});const arr=Array.from(grupos.values()).sort((a,b)=>a.fecha>b.fecha?-1:1);if(!arr.length){cont.innerHTML='<div class="empty-state"><div class="ei">✅</div>No hay operaciones.</div>';return;}let html='';arr.forEach((g,idx)=>{html+=`<div class="listado-grupo"><div class="listado-acord-header" onclick="toggleGrupoOperaciones(${idx})"><div><div class="listado-grupo-title">🎯 ${escH(g.tourNombre)}</div><div class="listado-grupo-meta">📅 ${formatDate(g.fecha)} · 🕐 ${g.horario||'--'}</div></div><div class="listado-grupo-stats"><span class="badge b-gold">${g.reservas.reduce((s,r)=>s+(r.adultos||0)+(r.menores||0),0)} PAX</span><span class="badge b-muted">${g.reservas.length} res.</span>${g.jornadas.length?'<span class="badge b-informe">📋 Jornada(s)</span>':''}<span class="listado-acord-arrow">▼</span></div></div><div class="listado-acord-body" id="acord-body-${idx}"><div class="listado-grupo-body">`;g.reservas.forEach(r=>{const esNueva=String(r.vista)!=='si';html+=`<div class="lr-pax-row ${esNueva?'listado-pax-nueva':''}"><div><span class="lr-pax-name">${escH(r.nombre)}</span>${esNueva?'<span class="badge b-new">NUEVA</span>':''}</div><div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div><a href="https://wa.me/${(r.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="lr-wa">📱 ${escH(r.whatsapp)}</a><div class="lr-pax-actions"><button class="btn btn-ghost btn-sm" onclick="marcarVistaIndividual('${r.id}')">👁</button><button class="btn btn-cancel-res btn-sm" onclick="cancelarReserva('${r.id}')">✕</button><button class="btn btn-danger btn-sm" onclick="eliminarReserva('${r.id}')">🗑</button></div></div>`;});if(g.reservas.length > 0){const tourIdGrupo=g.reservas[0].tourId||'';const fechaGrupo=g.fecha||'';const horarioGrupo=g.horario||'';html+=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08);text-align:right"><button class="btn btn-danger btn-sm" onclick="eliminarGrupoReservas('${escH(fechaGrupo)}','${escH(tourIdGrupo)}','${escH(horarioGrupo)}')" style="font-size:.72rem">🗑 Eliminar todo el grupo (${g.reservas.length} res.)</button></div>`;}g.jornadas.forEach(j=>{html+=`<div class="acordeon-grupo" style="margin-top:8px;border:1px solid var(--informe);"><div class="acordeon-grupo-header" onclick="toggleClienteJornada('clientes-jornada-${j.id}')" style="background:rgba(139,92,246,0.2);"><span>📋 JORNADA · Guía: ${escH(j.guia)}</span><span class="acordeon-grupo-arrow">▼</span></div><div id="clientes-jornada-${j.id}" class="acordeon-grupo-body" style="display:none;padding:8px;">${(j.clientes||[]).map((c,ci)=>`<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;"><div><strong>${escH(c.name)}</strong><br>👥 ${c.adults||0}A ${c.minors||0}M · ${c.wa?`<a href="https://wa.me/${c.wa.replace(/[^0-9]/g,'')}" target="_blank">📱 ${escH(c.wa)}</a>`:'Sin WhatsApp'}</div><div class="cliente-actions"><button class="btn-cliente-edit" onclick="editarCliente('${j.id}',${ci},'${escH(c.name)}',${c.adults||0},${c.minors||0},'${escH(c.wa||'')}')">✏️</button><button class="btn-cliente-eliminar" onclick="eliminarClienteDeJornada('${j.id}',${ci})">🗑</button></div></div>`).join('')}<div class="jornada-buttons"><button class="btn-jornada" onclick="abrirModalAgregarCliente('${j.id}')">➕ Añadiendo cliente</button><button class="btn-jornada" onclick="abrirModalCambiarGuia('${j.id}','${escH(j.guia)}')">🔄 Cambiando guía</button><button class="btn-jornada" onclick="abrirModalDuplicarJornada('${j.id}','${j.fecha}','${escH(j.guia)}')">📋 Duplicando</button><button class="btn-jornada btn-jornada-danger" onclick="eliminarJornadaCompleta('${j.id}')">🗑 Eliminando jornada completa</button></div></div></div>`;});html+=`</div></div></div>`;});cont.innerHTML=html;}
 function toggleGrupoOperaciones(idx){const b=document.getElementById(`acord-body-${idx}`);if(!b)return;const isOpen=b.classList.contains('open');document.querySelectorAll('.listado-acord-body').forEach(b=>b.classList.remove('open'));document.querySelectorAll('.listado-acord-arrow').forEach(a=>a.classList.remove('open'));if(!isOpen){b.classList.add('open');b.previousElementSibling.querySelector('.listado-acord-arrow')?.classList.add('open');}}
 function toggleClienteJornada(id){const el=document.getElementById(id);if(!el)return;const isOpen=el.style.display==='block';el.style.display=isOpen?'none':'block';const arr=el.previousElementSibling.querySelector('.acordeon-grupo-arrow');if(arr)arr.innerHTML=isOpen?'▼':'▲';}
 function toggleHistoricoOperaciones(){_mostrarHistorico=!_mostrarHistorico;document.getElementById('btnToggleHistorico').textContent=_mostrarHistorico?'📦 Ocultar histórico':'📦 Ver histórico';renderOperacionesUnificado();}
-async function marcarVistaIndividual(id){await apiCall({action:'marcarVista',id});cargarOperaciones();}
-async function cancelarReserva(id){if(!confirm('¿Cancelar?'))return;await apiCall({action:'cancelReserva',id});cargarOperaciones();}
-async function eliminarReserva(id){if(!confirm('¿Eliminar?'))return;await apiCall({action:'deleteReserva',id});cargarOperaciones();}
+async function marcarVistaIndividual(id){
+  try{
+    await apiCall({action:'marcarVista',id});
+    await cargarOperaciones();
+  }catch(e){
+    showToast('Error al marcar vista: '+e.message,'error',6000);
+  }
+}
+async function cancelarReserva(id){
+  if(!confirm('¿Cancelar esta reserva? La reserva quedará tachada pero no se eliminará.'))return;
+  showLoading();
+  try{
+    await apiCall({action:'cancelReserva',id});
+    await cargarOperaciones();
+    showToast('Reserva cancelada ✓');
+  }catch(e){
+    showToast('Error al cancelar: '+e.message,'error',6000);
+  }
+  hideLoading();
+}
+async function eliminarGrupoReservas(fecha,tourId,horario){
+  if(!confirm('¿Eliminar TODAS las reservas del '+fecha+' '+horario+'? Los clientes pasarán a la sección Clientes.'))return;
+  showLoading();
+  try{
+    const grupo=reservas.filter(r=>r.fecha===fecha&&String(r.tourId)===String(tourId)&&r.horario===horario&&r.estado!=='cancelada');
+    let eliminadas=0;
+    for(const r of grupo){
+      try{
+        await apiCall({action:'archiveReservas',diasAviso:0});
+        await apiCall({action:'deleteReserva',id:r.id});
+        eliminadas++;
+      }catch(e){console.warn('Error eliminando '+r.id,e);}
+    }
+    showToast('✅ '+eliminadas+' reservas eliminadas. Clientes guardados.');
+    await cargarOperaciones();
+    if(typeof renderClientes==='function') renderClientes();
+  }catch(e){showToast('Error: '+e.message,'error');}
+  hideLoading();
+}
+async function eliminarReserva(id){
+  if(!confirm('¿Eliminar esta reserva permanentemente? Esta acción no se puede deshacer.'))return;
+  showLoading();
+  try{
+    await apiCall({action:'deleteReserva',id});
+    await cargarOperaciones();
+    showToast('Reserva eliminada ✓');
+  }catch(e){
+    showToast('Error al eliminar: '+e.message,'error',6000);
+  }
+  hideLoading();
+}
 async function eliminarJornadaCompleta(id){if(!confirm('¿Eliminar jornada?'))return;showLoading();try{await apiCall({action:'deleteJornada',id});cargarOperaciones();showToast('Jornada eliminada');}catch(e){showToast('Error: '+e.message,'error');}finally{hideLoading();}}
 async function loadTours(){setSyncStatus('loading','Cargando...');try{const r=await apiCall({action:'getTours'});tours=(Array.isArray(r)?r.filter(t=>t&&t.id):[]).map(t=>({...t,horario:normalizarHorario(t.horario)}));cacheSet('gdp_tours',tours);renderTours();populateTourSelect();setSyncStatus('ok','Sincronizado');updateDashboard();}catch(e){setSyncStatus('error','Error');showToast('Error cargando tours: '+e.message,'error',6000);}}
 function renderTours(){const gr=document.getElementById('toursGrid');if(!tours.length){gr.innerHTML='<div class="empty-state"><div class="ei">🗺</div>No hay tours.</div>';return;}gr.innerHTML=tours.map(t=>{const activo=t.activo===true||t.activo==='true';const esInt=t.interno===true||t.interno==='true';const dias=t.dias?t.dias.split(',').map(d=>`<span class="dia-chip">${DIAS_MAP[d.trim()]||d}</span>`).join(''):'';return`<div class="tour-card ${activo?'':'inactive'}"><div><div class="tour-name">${escH(t.nombre)}${t.videoUrl?'<span style="background:rgba(192,57,43,.15);color:#e74c3c;padding:1px 6px;margin-left:6px">▶</span>':''}</div><div class="tour-desc">${escH(t.descripcion||'')}</div><div class="tour-meta"><span>🕐 ${t.horario||'--'}</span><span>👥 ${t.cupo}</span><span>💶 ${t.precio}€/p</span><span class="badge ${activo?(esInt?'b-navy':'b-green'):'b-red'}">${activo?(esInt?'🔒 Interno':'Activo'):'Pausado'}</span></div><div class="dias-list">${dias}</div></div><div class="tour-actions"><button class="btn btn-ghost btn-sm" onclick="openTourModal('${t.id}')">✏️ Editar</button><button class="btn btn-ghost btn-sm" onclick="copiarLinkResena(${JSON.stringify(t).replace(/"/g,'&quot;')})">🔗 Link de reseña</button><button class="btn btn-ghost btn-sm" onclick="toggleTour('${t.id}')">${activo?'⏸ Pausar':'▶ Activar'}</button></div></div>`;}).join('');}
@@ -605,7 +659,25 @@ async function toggleGuiaActivo(nombre, activoActual){
 window.toggleGuiaActivo = toggleGuiaActivo;
 async function eliminarGuia(nombre){if(!confirm('¿Eliminar guía?'))return;showLoading();try{await apiCall({action:'deleteGuia',nombre});await initGuias();showToast('Guía eliminado');}catch(e){showToast('Error','error');}hideLoading();}
 async function initInformes(){let cont=document.getElementById('informesContent');cont.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando...</div>';try{let guiasRaw=await apiCall({action:'getGuias'});dossierGuias=Array.isArray(guiasRaw)?guiasRaw:[];}catch(e){cont.innerHTML='<div class="empty-state"><div class="ei">⚠️</div>Error: '+escH(e.message)+'</div>';updateInformesNavBadge();return;}if(!dossierGuias.length){cont.innerHTML='<div class="informes-empty"><div class="ei">👤</div><p>No hay guías.</p></div>';updateInformesNavBadge();return;}let results=await Promise.allSettled(dossierGuias.map(g=>apiCall({action:'getDossier',guia:g}).then(entries=>({guia:g,entries:Array.isArray(entries)?entries:[]}))));informesPendientes=[];results.forEach(r=>{if(r.status==='fulfilled'){let{guia,entries}=r.value;entries.filter(e=>String(e.estadoPago).trim()==='informe_pendiente').forEach(e=>informesPendientes.push({...e,guia,fecha:normalizarFecha(e.fecha),horario:normalizarHorario(e.horario),clientes:[]}));}});let guiasCon=[...new Set(informesPendientes.map(e=>e.guia))];await Promise.allSettled(guiasCon.map(guia=>apiCall({action:'getJornadasGuia',guia,includePast:'true'}).then(jornadas=>{informesPendientes.filter(e=>e.guia===guia).forEach(e=>{let jid=String(e.id).replace(/^dos_/,'jor_');let j=(Array.isArray(jornadas)?jornadas:[]).find(x=>x.id===jid);if(j&&j.clientesJSON)try{e.clientes=JSON.parse(j.clientesJSON);}catch(e){}});}).catch(()=>{})));informesPendientes.sort((a,b)=>a.fecha>b.fecha?-1:1);document.getElementById('informes-total-count').textContent=informesPendientes.length;updateInformesNavBadge();renderInformes();}
-function renderInformes(){const cont=document.getElementById('informesContent');if(!informesPendientes.length){cont.innerHTML='<div class="informes-empty"><div class="ei">✅</div><div>Todo al día</div><p>No hay informes pendientes.</p></div>';return;}const byGuia={};informesPendientes.forEach(e=>{if(!byGuia[e.guia])byGuia[e.guia]=[];byGuia[e.guia].push(e);});let html='';Object.keys(byGuia).forEach(guia=>{html+=`<div class="informe-guia-group"><div class="informe-guia-label">👤 ${escH(guia)} (${byGuia[guia].length})</div>`;byGuia[guia].forEach(e=>{const totalAd=(e.clientes||[]).reduce((s,c)=>s+(parseInt(c.adults)||0),0);const totalMen=(e.clientes||[]).reduce((s,c)=>s+(parseInt(c.minors)||0),0);html+=`<div class="informe-card" id="ic-${escH(e.id)}">
+function renderInformes(){
+  const cont=document.getElementById('informesContent');
+  if(!informesPendientes.length){
+    cont.innerHTML='<div class="informes-empty"><div class="ei">✅</div><div>Todo al día</div><p>No hay informes pendientes.</p></div>';
+    return;
+  }
+  const byGuia={};
+  informesPendientes.forEach(e=>{if(!byGuia[e.guia])byGuia[e.guia]=[];byGuia[e.guia].push(e);});
+  let html='';
+  Object.keys(byGuia).forEach(guia=>{
+    html+=`<div class="informe-guia-group"><div class="informe-guia-label">👤 ${escH(guia)} (${byGuia[guia].length})</div>`;
+    byGuia[guia].forEach(e=>{
+      const tieneClientes=e.clientes&&e.clientes.length>0;
+      const asistFromClientes=tieneClientes?e.clientes.filter(c=>c.present).reduce((s,c)=>s+(parseInt(c.adults)||0)+(parseInt(c.minors)||0),0):null;
+      const asistShow=asistFromClientes!==null?asistFromClientes:(parseInt(e.asistentes)||0);
+      const paxShow=tieneClientes?e.clientes.reduce((s,c)=>s+(parseInt(c.adults)||0)+(parseInt(c.minors)||0),0):(parseInt(e.paxTotal)||0);
+      const totalAd=tieneClientes?e.clientes.reduce((s,c)=>s+(parseInt(c.adults)||0),0):0;
+      const totalMen=tieneClientes?e.clientes.reduce((s,c)=>s+(parseInt(c.minors)||0),0):0;
+      html+=`<div class="informe-card" id="ic-${escH(e.id)}" style="align-items:flex-start">
         <div class="informe-card-left">
           <div class="informe-tour">🎯 ${escH(e.tourNombre||'—')}</div>
           <div class="informe-meta">
@@ -613,28 +685,30 @@ function renderInformes(){const cont=document.getElementById('informesContent');
             <span class="badge b-informe">⏳ Pendiente</span>
           </div>
           <div class="informe-pax">
-            <span class="informe-pax-item" id="asist-count-${escH(e.id)}">
-              ✅ ${(e.clientes||[]).filter(c=>c.present).reduce((s,c)=>(parseInt(c.adults)||0)+(parseInt(c.minors)||0)+s,0)} / ${e.paxTotal||0} asistentes
-            </span>
+            <span class="informe-pax-item" id="asist-count-${escH(e.id)}">✅ ${asistShow} / ${paxShow} asistentes</span>
             ${totalMen>0?`<span class="informe-pax-item">👤 ${totalAd} adultos · 🧒 ${totalMen} menores</span>`:''}
           </div>`;
-      if(e.clientes&&e.clientes.length){
-        html+=`<div style="margin-top:10px">
-          <div onclick="toggleInformeAcord('${escH(e.id)}')" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:.74rem;color:#a78bfa;">
-            <span id="iac-arr-${escH(e.id)}">▶</span> Clientes (${e.clientes.length})
+      if(tieneClientes){
+        html+=`<div style="margin-top:12px;border-top:1px solid rgba(139,92,246,.2);padding-top:10px">
+          <div onclick="toggleInformeAcord('${escH(e.id)}')" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:.78rem;color:#a78bfa;font-weight:500;margin-bottom:8px">
+            <span id="iac-arr-${escH(e.id)}">▼</span> Clientes (${e.clientes.length}) — editable
           </div>
-          <div id="iac-body-${escH(e.id)}" style="display:none;margin-top:8px">`;
+          <div id="iac-body-${escH(e.id)}" style="display:block">
+            <div style="display:grid;grid-template-columns:24px 1fr 56px 56px 1.2fr;gap:6px;margin-bottom:5px;font-size:.64rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">
+              <span title="Asistió">✓</span><span>Nombre</span><span style="text-align:center">Ad.</span><span style="text-align:center">Men.</span><span>WhatsApp</span>
+            </div>`;
         e.clientes.forEach((c,ci)=>{
-          html+=`<div style="display:grid;grid-template-columns:22px 1fr 48px 48px 1fr auto;gap:6px;margin-bottom:6px">
-            <input type="checkbox" ${c.present?'checked':''} onchange="recalcAsistTotal('${escH(e.id)}')" data-client-idx="${ci}">
-            <input type="text" id="ic-cn-${escH(e.id)}-${ci}" value="${escH(c.name||'')}" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);padding:5px;">
-            <input type="number" id="ic-ca-${escH(e.id)}-${ci}" value="${parseInt(c.adults)||0}" style="width:48px" oninput="recalcAsistTotal('${escH(e.id)}')">
-            <input type="number" id="ic-cm-${escH(e.id)}-${ci}" value="${parseInt(c.minors)||0}" style="width:48px" oninput="recalcAsistTotal('${escH(e.id)}')">
-            <input type="text" id="ic-cw-${escH(e.id)}-${ci}" value="${escH(c.wa||'')}" placeholder="WhatsApp" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;padding:5px;">
-            <span style="font-size:.68rem">${parseInt(c.adults)||0}A ${parseInt(c.minors)||0}M</span>
+          html+=`<div data-row-id="${escH(e.id)}" style="display:grid;grid-template-columns:24px 1fr 56px 56px 1.2fr;gap:6px;margin-bottom:5px;align-items:center">
+            <input type="checkbox" ${c.present?'checked':''} onchange="recalcAsistTotal('${escH(e.id)}')" title="Asistió" style="cursor:pointer">
+            <input type="text" id="ic-cn-${escH(e.id)}-${ci}" value="${escH(c.name||'')}" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);padding:6px 8px;font-size:.82rem;outline:none">
+            <input type="number" id="ic-ca-${escH(e.id)}-${ci}" value="${parseInt(c.adults)||0}" min="0" oninput="recalcAsistTotal('${escH(e.id)}')" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);padding:6px;font-size:.82rem;text-align:center;outline:none">
+            <input type="number" id="ic-cm-${escH(e.id)}-${ci}" value="${parseInt(c.minors)||0}" min="0" oninput="recalcAsistTotal('${escH(e.id)}')" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);padding:6px;font-size:.82rem;text-align:center;outline:none">
+            <input type="text" id="ic-cw-${escH(e.id)}-${ci}" value="${escH(c.wa||'')}" placeholder="+33..." style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);padding:6px 8px;font-size:.82rem;outline:none">
           </div>`;
         });
         html+=`</div></div>`;
+      }else{
+        html+=`<div style="margin-top:12px;padding:10px 12px;background:rgba(139,92,246,.06);border:1px dashed rgba(139,92,246,.3);border-radius:6px;font-size:.74rem;color:var(--muted)">ℹ️ Listado detallado de clientes no disponible. Mostrando totales del informe enviado por el guía.</div>`;
       }
       html+=`</div><div class="informe-card-right">
         <div><div class="informe-cred-label">Créditos</div>
@@ -647,7 +721,20 @@ function renderInformes(){const cont=document.getElementById('informesContent');
   cont.innerHTML=html;
 }
 function toggleInformeAcord(id){const b=document.getElementById('iac-body-'+id);const a=document.getElementById('iac-arr-'+id);if(!b)return;const isOpen=b.style.display!=='none';b.style.display=isOpen?'none':'block';if(a)a.textContent=isOpen?'▶':'▼';}
-function recalcAsistTotal(id){const b=document.getElementById('iac-body-'+id);if(!b)return;let asis=0,total=0;const rows=b.querySelectorAll('div[style*="grid-template-columns"]');rows.forEach((row,ci)=>{const ad=parseInt(document.getElementById('ic-ca-'+id+'-'+ci)?.value)||0;const men=parseInt(document.getElementById('ic-cm-'+id+'-'+ci)?.value)||0;total+=ad+men;if(row.querySelector('input[type="checkbox"]')?.checked)asis+=ad+men;});const pill=document.getElementById('asist-count-'+id);if(pill)pill.textContent='✅ '+asis+' / '+total+' asistentes';}
+function recalcAsistTotal(id){
+  const b=document.getElementById('iac-body-'+id);
+  if(!b)return;
+  let asis=0,total=0;
+  const rows=b.querySelectorAll('div[data-row-id="'+id+'"]');
+  rows.forEach((row,ci)=>{
+    const ad=parseInt(document.getElementById('ic-ca-'+id+'-'+ci)?.value)||0;
+    const men=parseInt(document.getElementById('ic-cm-'+id+'-'+ci)?.value)||0;
+    total+=ad+men;
+    if(row.querySelector('input[type="checkbox"]')?.checked)asis+=ad+men;
+  });
+  const pill=document.getElementById('asist-count-'+id);
+  if(pill)pill.textContent='✅ '+asis+' / '+total+' asistentes';
+}
 async function registrarInforme(guia, entryId, jornadaId){
     const cred = parseInt(document.getElementById('cred-'+entryId)?.value) || 0;
     const btn = document.getElementById('btn-reg-'+entryId);
@@ -671,7 +758,7 @@ async function registrarInforme(guia, entryId, jornadaId){
     const clientesActualizados = [];
     
     if(iacBody){
-        const rows = iacBody.querySelectorAll('div[style*="grid-template-columns"]');
+        const rows = iacBody.querySelectorAll('div[data-row-id="'+entryId+'"]');
         rows.forEach((row, ci) => {
             const nombre = document.getElementById('ic-cn-'+entryId+'-'+ci)?.value || '';
             const adultos = parseInt(document.getElementById('ic-ca-'+entryId+'-'+ci)?.value) || 0;
@@ -750,7 +837,52 @@ function initOpsCreate(){editingOpsId=null;document.getElementById('jornadaFormT
 function guardarJornadaDesdeFormulario(){let g=document.getElementById('ot-guide').value.trim();let d=document.getElementById('ot-date').value;if(!g||!d){showToast('Faltan guía o fecha','error');return;}let toursData=getToursFromForm();if(!toursData.length){showToast('Selecciona al menos un tour','error');return;}let id=editingOpsId||('jor_'+normalizeId(g)+'_'+d+'_'+Date.now());showLoading();try{registrarEnSheetsConLog(g,d,toursData);showToast('Jornada guardada ✓');cancelarFormularioJornada();cargarOperaciones();}catch(e){showToast('Error: '+e.message,'error');}hideLoading();}
 function opsSaveLocal(){try{localStorage.setItem('gdp_tours',JSON.stringify(opsTours));return true;}catch(e){return false;}}
 function getToursFromForm(){let res=[];document.querySelectorAll('.acord-wrap').forEach(wrap=>{let tid=wrap.dataset.tourid;let chk=document.querySelector(`input[name="tourCheck"][value="${tid}"]`);if(!chk?.checked)return;let clients=[];wrap.querySelectorAll('.pax-card').forEach(card=>{let n=card.querySelector('.rn')?.value.trim();if(!n)return;clients.push({name:n,adults:parseInt(card.querySelector('.ra')?.value)||0,minors:parseInt(card.querySelector('.rm')?.value)||0,wa:card.querySelector('.rw')?.value.trim()||'',present:false});});res.push({tourId:tid,tourNombre:chk.dataset.nombre,horario:chk.dataset.horario,clients});});return res;}
-function renderTourCatalogChecks(){let el=document.getElementById('tourCatalogChecks');if(!el)return;let activos=tours.filter(t=>t.activo===true||t.activo==='true');if(!activos.length){el.innerHTML='<div style="color:var(--muted)">No hay tours activos.</div>';return;}el.innerHTML=activos.map(t=>`<label class="tour-check-item"><input type="checkbox" name="tourCheck" value="${t.id}" data-nombre="${escH(t.nombre)}" data-horario="${t.horario||''}" onchange="onTourCheckChange()"><div><div class="tour-check-name">${escH(t.nombre)}</div><div class="tour-check-meta">🕐 ${t.horario||'--'} · 👥 ${t.cupo}</div></div></label>`).join('');}
+function renderTourCatalogChecks(){
+  const el=document.getElementById('tourCatalogChecks');
+  if(!el)return;
+  const fecha=document.getElementById('ot-date')?.value||'';
+  let activos=tours.filter(t=>t.activo===true||t.activo==='true');
+  const fecha=document.getElementById('ot-date')?.value||'';
+  if(!fecha){el.innerHTML='<div style="font-size:.74rem;color:var(--gold);margin:10px 0">⚠️ Selecciona una fecha para ver los tours disponibles</div>';return;}
+  const diasMap=['dom','lun','mar','mie','jue','vie','sab'];
+  const diaSemana=diasMap[new Date(fecha+'T00:00:00').getDay()];
+  const bloqueoTotal=bloqueos.some(b=>b.fecha===fecha&&b.tourId==='all');
+  if(bloqueoTotal){el.innerHTML='<div style="color:#e74c3c;padding:10px;background:rgba(192,57,43,.1);border-radius:6px">🚫 Día bloqueado para todos los tours</div>';return;}
+  const idsBloqueados=new Set(bloqueos.filter(b=>b.fecha===fecha&&b.tourId!=='all').map(b=>String(b.tourId)));
+  activos=activos.filter(t=>{
+    const dias=String(t.dias||'').split(',').map(d=>d.trim());
+    if(!dias.includes(diaSemana))return false;
+    if(idsBloqueados.has(String(t.id)))return false;
+    return true;
+  });
+  let aviso='';
+  if(!fecha){
+    aviso='<div style="font-size:.74rem;color:var(--gold);margin-bottom:10px;padding:8px 12px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.3);border-radius:6px">⚠️ Selecciona una fecha primero para ver los tours disponibles ese día</div>';
+    el.innerHTML=aviso;
+    return;
+  }
+  const diasMap=['dom','lun','mar','mie','jue','vie','sab'];
+  const diaSemana=diasMap[new Date(fecha+'T00:00:00').getDay()];
+  const nombresDias={lun:'lunes',mar:'martes',mie:'miércoles',jue:'jueves',vie:'viernes',sab:'sábado',dom:'domingo'};
+  const bloqueoTotal=bloqueos.some(b=>b.fecha===fecha&&b.tourId==='all');
+  if(bloqueoTotal){
+    el.innerHTML='<div style="color:#e74c3c;padding:10px 14px;background:rgba(192,57,43,.1);border:1px solid var(--red);border-radius:6px">🚫 Día completamente bloqueado para todos los tours.</div>';
+    return;
+  }
+  const idsBloqueados=new Set(bloqueos.filter(b=>b.fecha===fecha&&b.tourId!=='all').map(b=>String(b.tourId)));
+  activos=activos.filter(t=>{
+    const dias=String(t.dias||'').split(',').map(d=>d.trim());
+    if(!dias.includes(diaSemana))return false;
+    if(idsBloqueados.has(String(t.id)))return false;
+    return true;
+  });
+  aviso=`<div style="font-size:.72rem;color:var(--muted);margin-bottom:10px">📅 Tours disponibles para <strong style="color:var(--gold)">${nombresDias[diaSemana]} ${formatDDMMYYYY(fecha)}</strong></div>`;
+  if(!activos.length){
+    el.innerHTML=aviso+'<div style="color:var(--muted);padding:10px;background:rgba(255,255,255,.02);border-radius:6px">No hay tours programados para este día.</div>';
+    return;
+  }
+  el.innerHTML=aviso+activos.map(t=>`<label class="tour-check-item" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--graphite);border:1px solid var(--smoke);border-radius:6px;margin-bottom:6px;cursor:pointer"><input type="checkbox" name="tourCheck" value="${t.id}" data-nombre="${escH(t.nombre)}" data-horario="${t.horario||''}" onchange="onTourCheckChange()"><div><div class="tour-check-name" style="font-size:.86rem;color:var(--white)">${escH(t.nombre)}</div><div class="tour-check-meta" style="font-size:.72rem;color:var(--muted)">🕐 ${t.horario||'--'} · 👥 ${t.cupo}</div></div></label>`).join('');
+}
 function onTourCheckChange(){let checked=[...document.querySelectorAll('input[name="tourCheck"]:checked')];let cont=document.getElementById('opsToursAccordion');let existing=new Set();cont.querySelectorAll('.acord-wrap').forEach(w=>existing.add(w.dataset.tourid));checked.forEach(c=>{if(!existing.has(c.value))cont.appendChild(buildAccordionItem(c.value,c.dataset.nombre,c.dataset.horario,[]));});[...cont.querySelectorAll('.acord-wrap')].forEach(w=>{if(!checked.some(c=>c.value===w.dataset.tourid))w.remove();});}
 function buildAccordionItem(tid,tn,horario,clientes){let wrap=document.createElement('div');wrap.className='acord-wrap';wrap.dataset.tourid=tid;wrap.innerHTML=`<div class="acord-header" onclick="toggleAcord(this)"><div><div class="acord-title">${escH(tn)}</div><div class="acord-meta">🕐 ${horario||'--'}</div></div><span class="acord-arrow">▼</span></div><div class="acord-body"><div class="pax-inputs"></div><button class="addbtn" onclick="opsAddRowInAcord(this.previousElementSibling)">+ Agregar pasajero</button></div>`;let pc=wrap.querySelector('.pax-inputs');(clientes||[]).forEach(c=>opsAddRowInAcord(pc,c));opsAddRowInAcord(pc,null);return wrap;}
 function toggleAcord(header){let body=header.nextElementSibling;let arrow=header.querySelector('.acord-arrow');if(!body)return;let isOpen=body.classList.contains('open');body.classList.toggle('open',!isOpen);if(arrow)arrow.classList.toggle('open',!isOpen);}
@@ -835,7 +967,7 @@ function renderCodigos() {
     grid.innerHTML = '<div class="empty-state"><div class="ei">🏷</div>No hay códigos. Crea el primero.</div>';
     return;
   }
-  grid.innerHTML = `<tr><thead><tr>
+  grid.innerHTML = `<div class="table-wrap"><table><thead><tr>
     <th>Código</th><th>Tipo</th><th>Descuento</th><th>Usos</th><th>Expira</th><th>Estado</th><th>Nota</th><th></th>
   </tr></thead><tbody>
   ${codigos.map(c => {
@@ -863,46 +995,44 @@ function renderCodigos() {
       </td>
     </tr>`;
   }).join('')}
-  </tbody></table>`;
+  </tbody></table></div>`;
 }
 
 function openCodigoModal(id) {
   const c = id ? codigos.find(x => x.id === id) : null;
-  const html = `<div class="modal-overlay active" id="modalCodigo" onclick="if(event.target===this)closeCodigoModal()">
+  const html = `<div class="modal-overlay open" id="modalCodigo" style="display:flex" onclick="if(event.target===this)closeCodigoModal()">
     <div class="modal" style="max-width:440px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><h2 class="modal-title">${c ? 'Editar' : 'Nuevo'} código</h2><button class="modal-close" onclick="closeCodigoModal()">✕</button></div>
-      <div>
-        <input type="hidden" id="cId" value="${c?.id||''}">
-        <div class="form-group"><label style="margin-bottom:6px;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Código *</label>
-          <input class="form-input" id="cCodigo" value="${c?.codigo||''}" placeholder="ej: NAVIDAD25" style="text-transform:uppercase">
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Tipo *</label>
-            <select class="form-input" id="cTipo">
-              <option value="%" ${c?.tipo==='%'?'selected':''}>% Porcentaje</option>
-              <option value="€" ${c?.tipo==='€'?'selected':''}>€ Euros fijos</option>
-            </select>
-          </div>
-          <div class="form-group"><label class="form-label">Descuento *</label>
-            <input class="form-input" id="cDescuento" type="number" min="0" step="0.5" value="${c?.descuento||''}" placeholder="ej: 10">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Usos máximos (0=ilimitado)</label>
-            <input class="form-input" id="cUsosMax" type="number" min="0" value="${c?.usos_max||0}">
-          </div>
-          <div class="form-group"><label class="form-label">Fecha expiración (opcional)</label>
-            <input class="form-input" id="cExpira" type="date" value="${c?.expira||''}">
-          </div>
-        </div>
-        <div class="form-group"><label class="form-label">Nota interna</label>
-          <input class="form-input" id="cNota" value="${c?.nota||''}" placeholder="ej: Campaña TikTok mayo 2025">
-        </div>
-        <div id="codigoSaveLog" class="save-log" style="display:none"></div>
+      <div class="modal-title">${c ? 'Editar' : 'Nuevo'} código<button class="modal-close" onclick="closeCodigoModal()">✕</button></div>
+      <input type="hidden" id="cId" value="${c?.id||''}">
+      <div class="form-group"><label>Código *</label>
+        <input id="cCodigo" value="${c?.codigo||''}" placeholder="ej: NAVIDAD25" style="text-transform:uppercase">
       </div>
+      <div class="form-row">
+        <div class="form-group"><label>Tipo *</label>
+          <select id="cTipo">
+            <option value="%" ${c?.tipo==='%'?'selected':''}>% Porcentaje</option>
+            <option value="€" ${c?.tipo==='€'?'selected':''}>€ Euros fijos</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Descuento *</label>
+          <input id="cDescuento" type="number" min="0" step="0.5" value="${c?.descuento||''}" placeholder="ej: 10">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Usos máximos (0=ilimitado)</label>
+          <input id="cUsosMax" type="number" min="0" value="${c?.usos_max||0}">
+        </div>
+        <div class="form-group"><label>Fecha expiración (opcional)</label>
+          <input id="cExpira" type="date" value="${c?.expira||''}">
+        </div>
+      </div>
+      <div class="form-group"><label>Nota interna</label>
+        <input id="cNota" value="${c?.nota||''}" placeholder="ej: Campaña TikTok mayo 2025">
+      </div>
+      <div id="codigoSaveLog" style="display:none;color:var(--muted);font-size:.78rem;margin-top:8px"></div>
       <div class="modal-actions">
-        <button class="btn btn-ghost" onclick="closeCodigoModal()">Cancelar</button>
-        <button class="btn btn-gold" onclick="saveCodigo()">Guardar</button>
+        <button class="btn-modal-cancel" onclick="closeCodigoModal()">Cancelar</button>
+        <button class="btn-modal" onclick="saveCodigo()">Guardar</button>
       </div>
     </div>
   </div>`;
@@ -963,6 +1093,7 @@ window.toggleHistoricoOperaciones = toggleHistoricoOperaciones;
 window.marcarVistaIndividual = marcarVistaIndividual;
 window.cancelarReserva = cancelarReserva;
 window.eliminarReserva = eliminarReserva;
+window.eliminarGrupoReservas = eliminarGrupoReservas;
 window.eliminarJornadaCompleta = eliminarJornadaCompleta;
 window.editarCliente = editarCliente;
 window.guardarEdicionCliente = guardarEdicionCliente;
