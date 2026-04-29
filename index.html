@@ -92,6 +92,7 @@ body{background:var(--noir);color:var(--white);font-family:'DM Sans',sans-serif;
 .b-terra{background:rgba(196,98,45,.18);color:var(--terra);}
 .b-muted{background:rgba(136,136,136,.15);color:var(--muted);}
 .b-navy{background:rgba(27,43,75,.4);color:#7fa7d9;}
+.b-orange{background:rgba(230,126,34,.18);color:#e67e22;}
 .b-new{background:rgba(201,168,76,.25);color:var(--gold);border:1px solid rgba(201,168,76,.5);}
 .b-informe{background:rgba(139,92,246,.2);color:#a78bfa;border:1px solid rgba(139,92,246,.4);}
 .b-jornada{background:rgba(139,92,246,.25);color:#c4b5fd;border:1px solid rgba(139,92,246,.4);}
@@ -270,6 +271,8 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
     <div class="nav-item" onclick="nav('informes')" data-sec="informes" id="nav-informes"><span>📥</span><span> Informes</span><span class="nav-badge nb-informe" id="informesNavBadge" style="display:none">0</span></div>
     <div class="nav-item" onclick="nav('dossier')" data-sec="dossier"><span>📁</span><span> Dossier</span></div>
     <div class="nav-item" onclick="nav('guias')" data-sec="guias"><span>👤</span><span> Guías</span></div>
+    <div class="nav-group-sep"></div>
+    <div class="nav-item" onclick="nav('codigos')" data-sec="codigos"><span>🏷</span><span> Códigos</span></div>
   </nav>
   <div class="topbar-right">
     <div class="sync-wrap"><div class="sync-dot" id="syncDot"></div><span id="syncText">Conectando...</span></div>
@@ -286,6 +289,7 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
   <div class="nav-item" onclick="navMobile('informes')" data-sec="informes"><span>📥</span><span> Informes</span><span class="nav-badge nb-informe" id="informesNavBadgeMobile" style="display:none">0</span></div>
   <div class="nav-item" onclick="navMobile('dossier')" data-sec="dossier"><span>📁</span><span> Dossier</span></div>
   <div class="nav-item" onclick="navMobile('guias')" data-sec="guias"><span>👤</span><span> Guías</span></div>
+  <div class="nav-item" onclick="navMobile('codigos')" data-sec="codigos"><span>🏷</span><span> Códigos</span></div>
 </div>
 <div class="content">
   <div class="section active" id="sec-dash">
@@ -303,6 +307,14 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
   <div class="section" id="sec-informes"><div class="sec-header"><h1 class="sec-title">Informes</h1><button class="btn btn-ghost btn-sm" onclick="initInformes()">↻</button></div><div class="informes-header-banner"><div class="informes-header-icon">📥</div><div class="informes-header-body"><div class="informes-header-title">Informes pendientes</div><div class="informes-header-sub">Asigna créditos y pulsa Registrar</div></div><div><div class="informes-count" id="informes-total-count">—</div><div class="informes-count-label">pendientes</div></div></div><div id="informesContent"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div></div>
   <div class="section" id="sec-dossier"><div class="sec-header"><h1 class="sec-title">Dossier</h1><button class="btn btn-gold" onclick="openNewGuiaPrompt()">+ Nuevo guía</button></div><div class="dossier-tabs" id="dossierTabs"></div><div id="dossierContent"><div class="empty-state"><div class="ei">📁</div>Selecciona un guía</div></div></div>
   <div class="section" id="sec-guias"><div class="sec-header"><h1 class="sec-title">Guías</h1><button class="btn btn-gold" onclick="openGuiaModal()">+ Nuevo guía</button></div><div class="guias-grid" id="guiasGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div></div>
+
+  <div class="section" id="sec-codigos">
+    <div class="sec-header">
+      <h1 class="sec-title">Códigos de descuento</h1>
+      <button class="btn btn-gold" onclick="openCodigoModal()">+ Nuevo código</button>
+    </div>
+    <div id="codigosGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div>
+  </div>
 </div>
 
 <!-- MODALES (resumidos) -->
@@ -319,7 +331,13 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
 <div class="toast" id="toast"></div>
 
 <script>
-https://script.google.com/macros/s/AKfycbxclPkEfE7mTvy-MyEJMBYoCyZWkCdgDeYWawcSgYHMJzez9l1fibOxydDuMM0Goixl/exec
+const API = (() => {
+  const scriptUrl = document.currentScript?.src || '';
+  const match = scriptUrl.match(/(https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec)/);
+  if (match) return match[1];
+  // Fallback: la URL que Google nos da correcta
+  return 'https://script.google.com/macros/s/AKfycbxclPkEfE7mTvy-MyEJMBYoCyZWkCdgDeYWawcSgYHMJzez9l1fibOxydDuMM0Goixl/exec';
+})();
 const DIAS_MAP={lun:'Lun',mar:'Mar',mie:'Mié',jue:'Jue',vie:'Vie',sab:'Sáb',dom:'Dom'};
 let tours=[],bloqueos=[],reservas=[],jornadasList=[],opsTours={};
 let editingTourId=null,editingOpsId=null,editingGuiaNombre=null,editingClienteJornadaId=null;
@@ -343,7 +361,7 @@ function hoy(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1
 function getSemanaKey(fechaStr){var d=new Date(fechaStr+'T00:00:00'),dow=d.getDay(),diff=dow===0?-6:1-dow;var lun=new Date(d);lun.setDate(d.getDate()+diff);var dom=new Date(lun);dom.setDate(lun.getDate()+6);var fmt=function(x){return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');};return{key:fmt(lun)+'_'+fmt(dom),inicio:fmt(lun),fin:fmt(dom)};}
 function cacheGet(k){try{const o=JSON.parse(localStorage.getItem(k)||'null');return o&&(Date.now()-o.ts<300000)?o.data:null;}catch{return null;}}
 function cacheSet(k,d){try{localStorage.setItem(k,JSON.stringify({ts:Date.now(),data:d}));}catch{}}
-function nav(sec){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));document.getElementById('sec-'+sec).classList.add('active');document.querySelector('[data-sec="'+sec+'"]')?.classList.add('active');if(sec==='operaciones')cargarOperaciones();if(sec==='clientes')renderClientes();if(sec==='dash')updateDashboard();if(sec==='dossier')initDossier();if(sec==='guias')initGuias();if(sec==='informes')initInformes();if(sec==='tours')loadTours();if(sec==='bloqueos')loadBloqueos();}
+function nav(sec){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));document.getElementById('sec-'+sec).classList.add('active');document.querySelector('[data-sec="'+sec+'"]')?.classList.add('active');if(sec==='operaciones')cargarOperaciones();if(sec==='clientes')renderClientes();if(sec==='dash')updateDashboard();if(sec==='dossier')initDossier();if(sec==='guias')initGuias();if(sec==='informes')initInformes();if(sec==='tours')loadTours();if(sec==='bloqueos')loadBloqueos();if(sec==='codigos')loadCodigos();}
 function updateInformesNavBadge(){const b=document.getElementById('informesNavBadge'),bm=document.getElementById('informesNavBadgeMobile');const c=informesPendientes.length;if(b){b.textContent=c;b.style.display=c>0?'inline-flex':'none';}if(bm){bm.textContent=c;bm.style.display=c>0?'inline-flex':'none';}}
 function populateTourSelect(){const sel=document.getElementById('bTourId');if(!sel)return;sel.innerHTML='<option value="all">🚫 Todos los tours</option>';tours.filter(t=>t.activo==='true'||t.activo===true).forEach(t=>sel.innerHTML+=`<option value="${t.id}">${escH(t.nombre)}</option>`);}
 async function cargarGuiasParaModales(){try{const r=await apiCall({action:'getGuiasData'});guiasData=Array.isArray(r)?r:[];const sc=document.getElementById('cambiarGuiaSelect'),sd=document.getElementById('duplicarJornadaGuia');const opts='<option value="">— Selecciona —</option>'+guiasData.filter(g=>g.activo==='true'||g.activo===true).map(g=>`<option value="${escH(g.nombre)}">${escH(g.nombre)}</option>`).join('');if(sc)sc.innerHTML=opts;if(sd)sd.innerHTML=opts;}catch(e){console.warn(e);}}
@@ -353,8 +371,37 @@ function toggleGrupoOperaciones(idx){const b=document.getElementById(`acord-body
 function toggleClienteJornada(id){const el=document.getElementById(id);if(!el)return;const isOpen=el.style.display==='block';el.style.display=isOpen?'none':'block';const arr=el.previousElementSibling.querySelector('.acordeon-grupo-arrow');if(arr)arr.innerHTML=isOpen?'▼':'▲';}
 function toggleHistoricoOperaciones(){_mostrarHistorico=!_mostrarHistorico;document.getElementById('btnToggleHistorico').textContent=_mostrarHistorico?'📦 Ocultar histórico':'📦 Ver histórico';renderOperacionesUnificado();}
 async function marcarVistaIndividual(id){await apiCall({action:'marcarVista',id});cargarOperaciones();}
-async function cancelarReserva(id){if(!confirm('¿Cancelar?'))return;await apiCall({action:'cancelReserva',id});cargarOperaciones();}
-async function eliminarReserva(id){if(!confirm('¿Eliminar?'))return;await apiCall({action:'deleteReserva',id});cargarOperaciones();}
+async function cancelarReserva(id) {
+  if (!confirm('¿Cancelar esta reserva?')) return;
+  showLoading();
+  try {
+    await apiCall({ action: 'cancelReserva', id });
+    const reserva = reservas.find(r => r.id === id);
+    if (reserva) reserva.estado = 'cancelada';
+    _todasOperaciones = [...reservas, ...jornadasList];
+    _todasOperaciones.sort((a, b) => a.fecha > b.fecha ? -1 : 1);
+    renderOperacionesUnificado();
+    showToast('✅ Reserva cancelada');
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+  hideLoading();
+}
+async function eliminarReserva(id) {
+  if (!confirm('¿Eliminar DEFINITIVAMENTE esta reserva?')) return;
+  showLoading();
+  try {
+    await apiCall({ action: 'deleteReserva', id });
+    reservas = reservas.filter(r => r.id !== id);
+    _todasOperaciones = [...reservas, ...jornadasList];
+    _todasOperaciones.sort((a, b) => a.fecha > b.fecha ? -1 : 1);
+    renderOperacionesUnificado();
+    showToast('🗑️ Reserva eliminada');
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+  hideLoading();
+}
 async function eliminarJornadaCompleta(id){if(!confirm('¿Eliminar jornada?'))return;showLoading();await apiCall({action:'deleteJornada',id});if(opsTours[id])delete opsTours[id];opsSaveLocal();cargarOperaciones();hideLoading();showToast('Jornada eliminada');}
 async function loadTours(){setSyncStatus('loading','Cargando...');try{const r=await apiCall({action:'getTours'});tours=(Array.isArray(r)?r.filter(t=>t&&t.id):[]).map(t=>({...t,horario:normalizarHorario(t.horario)}));cacheSet('gdp_tours',tours);renderTours();populateTourSelect();setSyncStatus('ok','Sincronizado');updateDashboard();}catch(e){setSyncStatus('error','Error');showToast('Error cargando tours: '+e.message,'error',6000);}}
 function renderTours(){const gr=document.getElementById('toursGrid');if(!tours.length){gr.innerHTML='<div class="empty-state"><div class="ei">🗺</div>No hay tours.</div>';return;}gr.innerHTML=tours.map(t=>{const activo=t.activo===true||t.activo==='true';const esInt=t.interno===true||t.interno==='true';const dias=t.dias?t.dias.split(',').map(d=>`<span class="dia-chip">${DIAS_MAP[d.trim()]||d}</span>`).join(''):'';return`<div class="tour-card ${activo?'':'inactive'}"><div><div class="tour-name">${escH(t.nombre)}${t.videoUrl?'<span style="background:rgba(192,57,43,.15);color:#e74c3c;padding:1px 6px;margin-left:6px">▶</span>':''}</div><div class="tour-desc">${escH(t.descripcion||'')}</div><div class="tour-meta"><span>🕐 ${t.horario||'--'}</span><span>👥 ${t.cupo}</span><span>💶 ${t.precio}€/p</span><span class="badge ${activo?(esInt?'b-navy':'b-green'):'b-red'}">${activo?(esInt?'🔒 Interno':'Activo'):'Pausado'}</span></div><div class="dias-list">${dias}</div></div><div class="tour-actions"><button class="btn btn-ghost btn-sm" onclick="openTourModal('${t.id}')">✏️ Editar</button><button class="btn btn-ghost btn-sm" onclick="toggleTour('${t.id}')">${activo?'⏸ Pausar':'▶ Activar'}</button></div></div>`;}).join('');}
@@ -578,6 +625,145 @@ function closeMenu(){navMenu.classList.remove('open');navOverlay2.style.display=
 if(menuToggle){menuToggle.addEventListener('click',openMenu);}
 if(navOverlay2){navOverlay2.addEventListener('click',closeMenu);}
 function navMobile(sec){closeMenu();nav(sec);}
+
+// ── CÓDIGOS DE DESCUENTO ─────────────────────────────────────────
+let codigos = [];
+
+async function loadCodigos() {
+  document.getElementById('codigosGrid').innerHTML = '<div class="empty-state"><div class="ei">⏳</div>Cargando...</div>';
+  try {
+    const res = await apiCall({ action: 'getCodigos' });
+    codigos = Array.isArray(res) ? res : [];
+    renderCodigos();
+  } catch(e) {
+    document.getElementById('codigosGrid').innerHTML = '<div class="empty-state"><div class="ei">⚠️</div>Error al cargar</div>';
+  }
+}
+
+function renderCodigos() {
+  const grid = document.getElementById('codigosGrid');
+  if (!codigos.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="ei">🏷</div>No hay códigos. Crea el primero.</div>';
+    return;
+  }
+  grid.innerHTML = `<table><thead><tr>
+    <th>Código</th><th>Tipo</th><th>Descuento</th><th>Usos</th><th>Expira</th><th>Estado</th><th>Nota</th><th></th>
+  </tr></thead><tbody>
+  ${codigos.map(c => {
+    const activo = c.activo === 'true';
+    const usosMax = parseInt(c.usos_max) || 0;
+    const usosAct = parseInt(c.usos_actuales) || 0;
+    const agotado = usosMax > 0 && usosAct >= usosMax;
+    const caducado = c.expira && new Date(c.expira + 'T00:00:00') < new Date();
+    const estadoBadge = !activo ? '<span class="b-red">Inactivo</span>'
+      : agotado ? '<span class="b-orange">Agotado</span>'
+      : caducado ? '<span class="b-orange">Caducado</span>'
+      : '<span class="b-green">Activo</span>';
+    return `<tr>
+      <td><strong style="color:var(--gold);letter-spacing:.08em">${c.codigo}</strong></td>
+      <td>${c.tipo}</td>
+      <td><strong>${c.descuento}${c.tipo}</strong></td>
+      <td>${usosAct} / ${usosMax === 0 ? '∞' : usosMax}</td>
+      <td>${c.expira || '—'}</td>
+      <td>${estadoBadge}</td>
+      <td style="color:var(--muted);font-size:.78rem">${c.nota || ''}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="editCodigo('${c.id}')">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleCodigo('${c.id}','${activo}')">${activo?'⏸':'▶'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="deleteCodigo('${c.id}')">🗑</button>
+      </td>
+    </tr>`;
+  }).join('')}
+  </tbody></table>`;
+}
+
+function openCodigoModal(id) {
+  const c = id ? codigos.find(x => x.id === id) : null;
+  const html = `<div class="modal-overlay active" id="modalCodigo" onclick="if(event.target===this)closeCodigoModal()">
+    <div class="modal" style="max-width:440px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px"><h2 class="modal-title">${c ? 'Editar' : 'Nuevo'} código</h2><button class="modal-close" onclick="closeCodigoModal()">✕</button></div>
+      <div>
+        <input type="hidden" id="cId" value="${c?.id||''}">
+        <div class="form-group"><label class="form-group" style="margin-bottom:6px;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Código *</label>
+          <input class="form-input" id="cCodigo" value="${c?.codigo||''}" placeholder="ej: NAVIDAD25" style="text-transform:uppercase">
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Tipo *</label>
+            <select class="form-input" id="cTipo">
+              <option value="%" ${c?.tipo==='%'?'selected':''}>% Porcentaje</option>
+              <option value="€" ${c?.tipo==='€'?'selected':''}>€ Euros fijos</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Descuento *</label>
+            <input class="form-input" id="cDescuento" type="number" min="0" step="0.5" value="${c?.descuento||''}" placeholder="ej: 10">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Usos máximos (0=ilimitado)</label>
+            <input class="form-input" id="cUsosMax" type="number" min="0" value="${c?.usos_max||0}">
+          </div>
+          <div class="form-group"><label class="form-label">Fecha expiración (opcional)</label>
+            <input class="form-input" id="cExpira" type="date" value="${c?.expira||''}">
+          </div>
+        </div>
+        <div class="form-group"><label class="form-label">Nota interna</label>
+          <input class="form-input" id="cNota" value="${c?.nota||''}" placeholder="ej: Campaña TikTok mayo 2025">
+        </div>
+        <div id="codigoSaveLog" class="save-log" style="display:none"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeCodigoModal()">Cancelar</button>
+        <button class="btn btn-gold" onclick="saveCodigo()">Guardar</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function closeCodigoModal() { document.getElementById('modalCodigo')?.remove(); }
+
+async function saveCodigo() {
+  const id = document.getElementById('cId').value;
+  const codigo = document.getElementById('cCodigo').value.trim().toUpperCase();
+  const tipo = document.getElementById('cTipo').value;
+  const descuento = parseFloat(document.getElementById('cDescuento').value);
+  const usosMax = parseInt(document.getElementById('cUsosMax').value) || 0;
+  const expira = document.getElementById('cExpira').value;
+  const nota = document.getElementById('cNota').value.trim();
+  if (!codigo) { alert('El código no puede estar vacío'); return; }
+  if (!descuento || descuento <= 0) { alert('El descuento debe ser mayor que 0'); return; }
+  const log = document.getElementById('codigoSaveLog');
+  log.style.display = 'block'; log.textContent = 'Guardando...';
+  const existing = codigos.find(c => c.id === id);
+  const data = {
+    id: id || 'cod_' + Date.now(),
+    codigo, tipo, descuento,
+    usos_max: usosMax,
+    usos_actuales: existing ? parseInt(existing.usos_actuales)||0 : 0,
+    activo: existing ? existing.activo : 'true',
+    expira, nota
+  };
+  try {
+    await apiCall({ action: 'saveCodigo', data });
+    closeCodigoModal();
+    loadCodigos();
+  } catch(e) { log.textContent = 'Error: ' + e.message; }
+}
+
+function editCodigo(id) { openCodigoModal(id); }
+
+async function toggleCodigo(id, currentActivo) {
+  const c = codigos.find(x => x.id === id);
+  if (!c) return;
+  await apiCall({ action: 'saveCodigo', data: { ...c, activo: currentActivo === 'true' ? 'false' : 'true' } });
+  loadCodigos();
+}
+
+async function deleteCodigo(id) {
+  if (!confirm('¿Eliminar este código?')) return;
+  await apiCall({ action: 'deleteCodigo', id });
+  loadCodigos();
+}
 </script>
 </body>
 </html>
