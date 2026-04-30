@@ -565,24 +565,36 @@ async function cancelarReserva(id){
   hideLoading();
 }
 async function eliminarGrupoReservas(fecha,tourId,horario){
-  if(!confirm('¿Eliminar TODAS las reservas del '+fecha+' '+horario+'? Los clientes pasarán a la sección Clientes.'))return;
+  if(!confirm('¿Eliminar TODAS las reservas del '+fecha+' '+horario+'?'))return;
   showLoading();
   try{
-    const grupo=reservas.filter(r=>r.fecha===fecha&&String(r.tourId||r.id)===String(tourId)&&r.horario===horario&&r.estado!=='cancelada');
+    console.log('Buscando reservas con fecha:',fecha,'tourId:',tourId,'horario:',horario);
+    console.log('Total reservas en memoria:',reservas.length);
+    const grupo=reservas.filter(r=>{
+      const coincideFecha=r.fecha===fecha;
+      const coincideTour=String(r.tourId||r.id)===String(tourId);
+      const coincideHorario=r.horario===horario;
+      const noCancelada=r.estado!=='cancelada';
+      return coincideFecha&&coincideTour&&coincideHorario&&noCancelada;
+    });
+    console.log('Reservas encontradas en grupo:',grupo.length);
     let eliminadas=0;
     let errores=0;
     for(const r of grupo){
-      const rid=r.id||r.ID||r.Id;
+      console.log('Procesando reserva:',JSON.stringify(r));
+      const rid=r.id||r.ID||r.Id||r[0];
       if(!rid){console.warn('Reserva sin ID:',r);errores++;continue;}
       try{
-        await apiCall({action:'deleteReserva',id:rid});
+        console.log('Eliminando ID:',rid);
+        const resp=await apiCall({action:'deleteReserva',id:rid});
+        console.log('Respuesta:',resp);
         eliminadas++;
       }catch(e){console.warn('Error eliminando '+rid,e);errores++;}
     }
     if(eliminadas>0){
       showToast('✅ '+eliminadas+' reservas eliminadas'+(errores>0?' ('+errores+' errores)':''));
     }else{
-      showToast('⚠️ No se pudo eliminar ninguna reserva','warning');
+      showToast('⚠️ No se pudo eliminar ninguna reserva. Revisa consola (F12).','warning');
     }
     await cargarOperaciones();
   }catch(e){showToast('Error: '+e.message,'error');}
