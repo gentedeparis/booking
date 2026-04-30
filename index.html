@@ -831,7 +831,7 @@ async function registrarInforme(guia, entryId, jornadaId){
 }
 
 window.registrarInforme = registrarInforme;
-function mostrarFormularioJornada(){document.getElementById('formJornadaPanel').style.display='block';initOpsCreate();renderTourCatalogChecks();loadGuiasForDatalist();}
+function mostrarFormularioJornada(){document.getElementById('formJornadaPanel').style.display='block';initOpsCreate();renderTourCatalogChecks();loadGuiasForDatalist();document.getElementById('formJornadaPanel').scrollIntoView({behavior:'smooth'});}
 function cancelarFormularioJornada(){document.getElementById('formJornadaPanel').style.display='none';editingOpsId=null;}
 function initOpsCreate(){editingOpsId=null;document.getElementById('jornadaFormTitle').innerText='Nueva jornada';document.getElementById('ot-guide').value='';document.getElementById('ot-date').value='';document.getElementById('opsToursAccordion').innerHTML='';document.querySelectorAll('input[name="tourCheck"]').forEach(c=>c.checked=false);}
 async function guardarJornadaDesdeFormulario(){let g=document.getElementById('ot-guide').value.trim();let d=document.getElementById('ot-date').value;if(!g||!d){showToast('Faltan guía o fecha','error');return;}let toursData=getToursFromForm();if(!toursData.length){showToast('Selecciona al menos un tour','error');return;}let id=editingOpsId||('jor_'+normalizeId(g)+'_'+d+'_'+Date.now());showLoading();try{await registrarEnSheetsConLog(g,d,toursData);showToast('Jornada guardada ✓');cancelarFormularioJornada();cargarOperaciones();}catch(e){showToast('Error: '+e.message,'error');}hideLoading();}
