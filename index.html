@@ -570,16 +570,19 @@ async function eliminarGrupoReservas(fecha,tourId,horario){
   try{
     const grupo=reservas.filter(r=>r.fecha===fecha&&String(r.tourId)===String(tourId)&&r.horario===horario&&r.estado!=='cancelada');
     let eliminadas=0;
+    let errores=0;
     for(const r of grupo){
       try{
-        await apiCall({action:'archiveReservas',diasAviso:0});
         await apiCall({action:'deleteReserva',id:r.id});
         eliminadas++;
-      }catch(e){console.warn('Error eliminando '+r.id,e);}
+      }catch(e){console.warn('Error eliminando '+r.id,e);errores++;}
     }
-    showToast('✅ '+eliminadas+' reservas eliminadas. Clientes guardados.');
+    if(eliminadas>0){
+      showToast('✅ '+eliminadas+' reservas eliminadas'+(errores>0?' ('+errores+' errores)':''));
+    }else{
+      showToast('⚠️ No se pudo eliminar ninguna reserva','warning');
+    }
     await cargarOperaciones();
-    if(typeof renderClientes==='function') renderClientes();
   }catch(e){showToast('Error: '+e.message,'error');}
   hideLoading();
 }
