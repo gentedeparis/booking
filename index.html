@@ -582,7 +582,7 @@ async function eliminarGrupoReservas(fecha,tourId,horario){
     let errores=0;
     for(const r of grupo){
       console.log('Procesando reserva:',JSON.stringify(r));
-      const rid=r.id||r.ID||r.Id||r[0];
+      const rid=r.id||r.ID||r.Id||r["*"]||r[0];
       if(!rid){console.warn('Reserva sin ID:',r);errores++;continue;}
       try{
         console.log('Eliminando ID:',rid);
