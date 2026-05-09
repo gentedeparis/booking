@@ -109,6 +109,37 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .loading-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;}
 .loading-overlay.open{display:flex;}
+.resenas-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:300;align-items:flex-start;justify-content:center;overflow-y:auto;padding:18px 12px;}
+.resenas-modal.open{display:flex;}
+.resenas-modal-content{background:var(--charcoal);border-radius:14px;padding:22px 18px 18px;max-width:520px;width:100%;border:1px solid var(--graphite);position:relative;margin:10px 0 30px;}
+.resenas-modal-content h2{color:var(--gold);font-size:1.1rem;margin-bottom:4px;font-weight:600;padding-right:30px;}
+.resenas-modal-content .modal-sub{color:var(--muted);font-size:.78rem;margin-bottom:18px;font-style:italic;}
+.resenas-modal-close{position:absolute;top:10px;right:10px;background:transparent;color:var(--muted);border:none;font-size:1.6rem;cursor:pointer;line-height:1;width:34px;height:34px;border-radius:50%;}
+.resenas-modal-close:hover{background:var(--graphite);color:var(--white);}
+.foto-section{background:var(--graphite);border-radius:10px;padding:14px;margin-bottom:18px;}
+.foto-section-label{display:block;color:var(--white);font-size:.82rem;margin-bottom:10px;font-weight:500;}
+.foto-input-btn{display:block;width:100%;background:var(--navy);color:var(--gold);border:1px dashed var(--gold);border-radius:8px;padding:14px;text-align:center;font-size:.85rem;cursor:pointer;font-weight:600;transition:all .2s;}
+.foto-input-btn:hover{background:rgba(201,168,76,.1);}
+.foto-input-btn input[type="file"]{display:none;}
+.foto-preview{margin-top:12px;text-align:center;}
+.foto-preview img{max-width:100%;max-height:160px;border-radius:8px;border:2px solid var(--gold);}
+.foto-preview-info{color:var(--muted);font-size:.72rem;margin-top:6px;}
+.foto-quitar{display:inline-block;color:var(--muted);font-size:.72rem;margin-top:6px;cursor:pointer;text-decoration:underline;}
+.foto-quitar:hover{color:#ff8888;}
+.resenas-clientes-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.resena-cliente-row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--graphite);border-radius:8px;padding:10px 12px;}
+.resena-cliente-info{flex:1;min-width:0;overflow:hidden;}
+.resena-cliente-name{color:var(--white);font-size:.88rem;font-weight:500;}
+.resena-cliente-wa{color:var(--gold);font-size:.7rem;margin-top:2px;}
+.resena-cliente-status{color:var(--muted);font-size:.68rem;font-style:italic;margin-top:2px;}
+.resena-cliente-status.sent{color:#5db97e;}
+.btn-compartir{background:var(--gold);color:var(--navy);border:none;border-radius:8px;padding:8px 14px;font-size:.78rem;font-weight:700;cursor:pointer;white-space:nowrap;}
+.btn-compartir:hover{background:#d4b563;}
+.btn-compartir.sent{background:rgba(93,185,126,.18);color:#5db97e;border:1px solid #5db97e;}
+.resena-cliente-row.no-wa{opacity:.5;}
+.resena-cliente-row.no-wa .btn-compartir{display:none;}
+.btn-cerrar-modal{display:block;width:100%;background:var(--graphite);color:var(--muted);border:1px solid var(--graphite);border-radius:8px;padding:12px;font-size:.85rem;font-weight:500;cursor:pointer;margin-top:10px;}
+.btn-cerrar-modal:hover{color:var(--white);background:rgba(255,255,255,.05);}
 .voucher-card{background:var(--charcoal);border:1px solid var(--graphite);border-radius:12px;padding:20px;margin-top:20px;}
 .voucher-cliente-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;margin-bottom:6px;border-radius:8px;cursor:pointer;transition:all 0.2s;background:var(--graphite);}
 .voucher-cliente-item:hover{background:rgba(201,168,76,0.15);}
@@ -195,6 +226,22 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
 </div>
 <div class="toast" id="toast"></div>
 <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
+
+<!-- Modal: pedir reseñas a clientes después de enviar informe -->
+<div class="resenas-modal" id="resenasModal">
+  <div class="resenas-modal-content">
+    <button class="resenas-modal-close" data-action="cerrarresenasmodal" aria-label="Cerrar">×</button>
+    <h2>📸 Pedir reseñas a tus clientes</h2>
+    <p class="modal-sub" id="resenasModalSub">Opcional · solo lleva un par de toques</p>
+    <div class="foto-section">
+      <span class="foto-section-label">📷 Foto del grupo (opcional, viaja con cada mensaje)</span>
+      <label class="foto-input-btn"><span id="fotoInputText">Tomar / elegir foto</span><input type="file" id="fotoInput" accept="image/*" capture="environment"></label>
+      <div class="foto-preview" id="fotoPreview"></div>
+    </div>
+    <div class="resenas-clientes-list" id="resenasClientesList"></div>
+    <button class="btn-cerrar-modal" data-action="cerrarresenasmodal">Cerrar</button>
+  </div>
+</div>
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbxclPkEfE7mTvy-MyEJMBYoCyZWkCdgDeYWawcSgYHMJzez9l1fibOxydDuMM0Goixl/exec';
 const ADMIN_WA = '33760940851';
@@ -708,7 +755,8 @@ function enviarInforme(jornadaId, gi) {
       showToast('✅ Informe enviado al administrador');
       if (btn) { btn.disabled = false; btn.textContent = '📤 Enviar informe'; }
       jornadaOpen[jornadaId] = false;
-      loadAll();
+      // Abrir modal para pedir reseñas (loadAll se llama al cerrar el modal)
+      abrirResenasModal(j);
     })
     .catch(function(e) {
       showToast('Error: ' + e.message);
@@ -822,6 +870,177 @@ document.addEventListener('change', function(e) {
 });
 
 document.addEventListener('keydown', function(e) { if (e.key === 'Enter' && document.getElementById('loginWrap').style.display !== 'none') { doLogin(); } if (document.getElementById('pinInput') === document.activeElement) { document.getElementById('pinInput').classList.remove('error'); document.getElementById('loginError').textContent = ''; } });
+
+// ============================================
+// SISTEMA DE PEDIDO DE RESEÑAS POST-INFORME
+// ============================================
+var resenasModalState = { jornada: null, photo: null, sentMap: {} };
+
+function abrirResenasModal(jornada) {
+  resenasModalState = { jornada: jornada, photo: null, sentMap: {} };
+  var fechaCorta = formatearFechaCortaResena(jornada.fecha);
+  document.getElementById('resenasModalSub').textContent = (jornada.tourNombre || 'Tour') + ' · ' + fechaCorta;
+  document.getElementById('fotoInputText').textContent = 'Tomar / elegir foto';
+  document.getElementById('fotoPreview').innerHTML = '';
+  document.getElementById('fotoInput').value = '';
+  renderResenasClientes();
+  document.getElementById('resenasModal').classList.add('open');
+}
+
+function cerrarResenasModal() {
+  document.getElementById('resenasModal').classList.remove('open');
+  resenasModalState = { jornada: null, photo: null, sentMap: {} };
+  loadAll();
+}
+
+function renderResenasClientes() {
+  var jornada = resenasModalState.jornada;
+  var list = document.getElementById('resenasClientesList');
+  if (!jornada) { list.innerHTML = ''; return; }
+  var clientes = jornada.clientes || [];
+  if (clientes.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px;font-size:.82rem;">No hay clientes en esta jornada</div>';
+    return;
+  }
+  list.innerHTML = clientes.map(function(c, ci) {
+    var hasWa = c.wa && String(c.wa).replace(/[^0-9]/g, '').length >= 7;
+    var sent = !!resenasModalState.sentMap[ci];
+    var statusHtml = sent ? '<div class="resena-cliente-status sent">✓ Compartido</div>' : '';
+    var btnHtml = hasWa ? '<button class="btn-compartir' + (sent ? ' sent' : '') + '" data-action="compartirresena" data-ci="' + ci + '">' + (sent ? '✓' : '📤 Compartir') + '</button>' : '';
+    return '<div class="resena-cliente-row' + (!hasWa ? ' no-wa' : '') + '">' +
+      '<div class="resena-cliente-info">' +
+        '<div class="resena-cliente-name">' + escH(c.name || 'Sin nombre') + '</div>' +
+        (hasWa ? '<div class="resena-cliente-wa">📱 ' + escH(c.wa) + '</div>' : '<div class="resena-cliente-status">Sin WhatsApp</div>') +
+        statusHtml +
+      '</div>' + btnHtml +
+    '</div>';
+  }).join('');
+}
+
+function formatearFechaCortaResena(iso) {
+  try {
+    var p = String(iso).split('-');
+    var meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    return parseInt(p[2]) + ' ' + meses[parseInt(p[1])-1] + ' ' + p[0];
+  } catch (e) { return iso; }
+}
+
+function comprimirImagen(file) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var maxW = 1600;
+        var ratio = Math.min(maxW / img.width, 1);
+        var canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * ratio);
+        canvas.height = Math.round(img.height * ratio);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(function(blob) {
+          if (!blob) return reject(new Error('No se pudo comprimir'));
+          resolve(new File([blob], 'foto-tour.jpg', { type: 'image/jpeg' }));
+        }, 'image/jpeg', 0.85);
+      };
+      img.onerror = function() { reject(new Error('Imagen inválida')); };
+      img.src = e.target.result;
+    };
+    reader.onerror = function() { reject(new Error('No se pudo leer el archivo')); };
+    reader.readAsDataURL(file);
+  });
+}
+
+function quitarFotoResena() {
+  resenasModalState.photo = null;
+  document.getElementById('fotoInput').value = '';
+  document.getElementById('fotoPreview').innerHTML = '';
+  document.getElementById('fotoInputText').textContent = 'Tomar / elegir foto';
+}
+
+function abrirWaMe(numero, mensaje) {
+  var phone = String(numero).replace(/[^0-9]/g, '');
+  window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(mensaje), '_blank');
+}
+
+function marcarCompartido(ci) {
+  resenasModalState.sentMap[ci] = true;
+  renderResenasClientes();
+}
+
+async function compartirResenaCliente(ci) {
+  var jornada = resenasModalState.jornada;
+  if (!jornada) return;
+  var cliente = (jornada.clientes || [])[ci];
+  if (!cliente || !cliente.wa) return;
+
+  var params = new URLSearchParams();
+  params.set('tour', jornada.tourId || '');
+  params.set('tourNombre', jornada.tourNombre || '');
+  params.set('fecha', jornada.fecha || '');
+  params.set('guia', guiaNombre || '');
+  params.set('autor', cliente.name || '');
+  var url = 'https://gentedeparis.com/resena?' + params.toString();
+
+  var primerNombre = (cliente.name || '').split(' ')[0] || 'amigo';
+  var mensaje = '¡Hola ' + primerNombre + '! Soy ' + guiaNombre + ', tu guía en ' + (jornada.tourNombre || 'el tour') + '. Espero que hayan disfrutado mucho. Si te animás a dejarnos una reseña, sería un regalo enorme ✨\n\n' + url;
+
+  var photo = resenasModalState.photo;
+
+  try {
+    if (photo && navigator.canShare && navigator.canShare({ files: [photo] })) {
+      await navigator.share({ files: [photo], text: mensaje });
+      marcarCompartido(ci);
+      return;
+    }
+    if (navigator.share) {
+      await navigator.share({ text: mensaje });
+      marcarCompartido(ci);
+      return;
+    }
+    abrirWaMe(cliente.wa, mensaje);
+    marcarCompartido(ci);
+  } catch (err) {
+    if (err && err.name === 'AbortError') return;
+    abrirWaMe(cliente.wa, mensaje);
+    marcarCompartido(ci);
+  }
+}
+
+// Listeners para acciones del modal de reseñas (separado del dispatcher principal)
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  var action = btn.getAttribute('data-action');
+  if (action === 'cerrarresenasmodal') { cerrarResenasModal(); return; }
+  if (action === 'compartirresena') { var ci = parseInt(btn.getAttribute('data-ci')); compartirResenaCliente(ci); return; }
+  if (action === 'quitarfoto') { quitarFotoResena(); return; }
+});
+
+// Listener para upload de foto con compresión automática
+document.addEventListener('change', function(e) {
+  if (e.target.id !== 'fotoInput') return;
+  var file = e.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('Solo imágenes'); e.target.value = ''; return; }
+  if (file.size > 12 * 1024 * 1024) { showToast('Foto muy grande (máx 12MB)'); e.target.value = ''; return; }
+  document.getElementById('fotoInputText').textContent = '⏳ Procesando…';
+  comprimirImagen(file).then(function(compressed) {
+    resenasModalState.photo = compressed;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      document.getElementById('fotoPreview').innerHTML =
+        '<img src="' + ev.target.result + '" alt="Foto del grupo">' +
+        '<div class="foto-preview-info">' + Math.round(compressed.size / 1024) + ' KB · viajará con cada mensaje</div>' +
+        '<span class="foto-quitar" data-action="quitarfoto">Quitar foto</span>';
+      document.getElementById('fotoInputText').textContent = '✓ Foto cargada — cambiar';
+    };
+    reader.readAsDataURL(compressed);
+  }).catch(function(err) {
+    showToast('Error procesando foto: ' + err.message);
+    e.target.value = '';
+    document.getElementById('fotoInputText').textContent = 'Tomar / elegir foto';
+  });
+});
 
 document.getElementById('appFechaHoy').textContent = formatHoy();
 document.getElementById('pinInput').focus();
