@@ -883,11 +883,16 @@ function renderResenasClientes() {
   var list = document.getElementById('resenasClientesList');
   if (!jornada) { list.innerHTML = ''; return; }
   var clientes = jornada.clientes || [];
-  if (clientes.length === 0) {
-    list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px;font-size:.82rem;">No hay clientes en esta jornada</div>';
+  var presentesIdx = [];
+  for (var pi = 0; pi < clientes.length; pi++) {
+    if (presencia[jornada.id + '_' + pi]) presentesIdx.push(pi);
+  }
+  if (presentesIdx.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px;font-size:.82rem;">No hay clientes marcados como asistentes</div>';
     return;
   }
   list.innerHTML = clientes.map(function(c, ci) {
+    if (!presencia[jornada.id + '_' + ci]) return '';
     var hasWa = c.wa && String(c.wa).replace(/[^0-9]/g, '').length >= 7;
     var sent = !!resenasModalState.sentMap[ci];
     var statusHtml = sent ? '<div class="resena-cliente-status sent">✓ Enviado</div>' : '';
