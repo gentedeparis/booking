@@ -724,6 +724,16 @@ function enviarInforme(jornadaId, gi) {
   var clientes = j.clientes || [];
   var presentes = clientes.filter(function(c, ci) { return presencia[j.id+'_'+ci]; }).reduce(function(s,c){ return s+(parseInt(c.adults)||0)+(parseInt(c.minors)||0); }, 0);
   var totalPax = clientes.reduce(function(s,c) { return s+(parseInt(c.adults)||0)+(parseInt(c.minors)||0); }, 0);
+  // Preservar lista de clientes con marca de presencia para el histórico de ADMIN
+  var clientesConPresencia = clientes.map(function(c, ci) {
+    return {
+      name: c.name || '',
+      adults: parseInt(c.adults) || 0,
+      minors: parseInt(c.minors) || 0,
+      wa: c.wa || '',
+      present: !!presencia[j.id + '_' + ci]
+    };
+  });
   var entry = {
     id: 'dos_' + normalizeId(guiaNombre) + '_' + j.fecha + '_' + (j.tourId||'manual'),
     guia: guiaNombre,
@@ -736,7 +746,8 @@ function enviarInforme(jornadaId, gi) {
     creditos: 0,
     semana: (function(fechaStr){ var d=new Date(fechaStr+'T00:00:00'),dow=d.getDay(),diff=dow===0?-6:1-dow; var lun=new Date(d);lun.setDate(d.getDate()+diff); var dom=new Date(lun);dom.setDate(lun.getDate()+6); var fmt=function(x){return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');}; return fmt(lun)+'_'+fmt(dom); })(j.fecha),
     timestamp: new Date().toISOString(),
-    estadoPago: 'informe_pendiente'
+    estadoPago: 'informe_pendiente',
+    clientesJSON: JSON.stringify(clientesConPresencia)
   };
   apiCall({ action: 'saveDossierEntry', guia: guiaNombre, data: entry })
     .then(function() {
