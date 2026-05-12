@@ -1338,48 +1338,127 @@ function renderEstadisticas(data) {
   html += `</div></div></div><div class="stats-footnote">📌 Datos basados en reservas confirmadas, informes de guías y reseñas aprobadas en el período seleccionado.</div>`;
   container.innerHTML = html;
 }
+// Copiar informe en texto plano
+function copiarInformeEstadisticas() {
+  const container = document.getElementById('statsContainer');
+  if (!container) return;
+  
+  const kpis = container.querySelectorAll('.stats-kpi-card');
+  if (kpis.length < 4) {
+    showToast('Espera a que los datos terminen de cargar', 'warning');
+    return;
+  }
+  
+  function obtenerTexto(tarjeta, selector) {
+    const el = tarjeta.querySelector(selector);
+    return el ? el.innerText.trim() : '—';
+  }
+  
+  const ingresosCard = kpis[0];
+  const asistenciaCard = kpis[1];
+  const clientesCard = kpis[2];
+  const ratingCard = kpis[3];
+  
+  const ingresosValor = obtenerTexto(ingresosCard, '.stats-kpi-value');
+  const ingresosTrend = obtenerTexto(ingresosCard, '.stats-kpi-trend');
+  const ingresosSub = obtenerTexto(ingresosCard, '.stats-kpi-sub');
+  
+  const asistenciaValor = obtenerTexto(asistenciaCard, '.stats-kpi-value');
+  const asistenciaDetalle = obtenerTexto(asistenciaCard, '.stats-kpi-trend');
+  
+  const clientesValor = obtenerTexto(clientesCard, '.stats-kpi-value');
+  const clientesTrend = obtenerTexto(clientesCard, '.stats-kpi-trend');
+  const clientesSub = obtenerTexto(clientesCard, '.stats-kpi-sub');
+  
+  const ratingValor = obtenerTexto(ratingCard, '.stats-kpi-value');
+  const ratingDetalle = obtenerTexto(ratingCard, '.stats-kpi-trend');
+  
+  let topToursTexto = '';
+  const topToursList = container.querySelectorAll('.stats-top-list:first-of-type .stats-top-item');
+  topToursList.forEach((item, idx) => {
+    const nombre = item.querySelector('.stats-top-name')?.innerText || '—';
+    const porcentaje = item.querySelector('.stats-top-val')?.innerText || '—';
+    topToursTexto += `  ${idx+1}. ${nombre} — ${porcentaje} de reservas\n`;
+  });
+  
+  let topGuiasTexto = '';
+  const allTopLists = container.querySelectorAll('.stats-top-list');
+  if (allTopLists.length >= 2) {
+    const guiasList = allTopLists[1].querySelectorAll('.stats-top-item');
+    guiasList.forEach((item, idx) => {
+      const nombre = item.querySelector('.stats-top-name')?.innerText || '—';
+      const pax = item.querySelector('.stats-top-val')?.innerText || '—';
+      topGuiasTexto += `  ${idx+1}. ${nombre} — ${pax} pax atendidos\n`;
+    });
+  }
+  
+  let paisesTexto = '';
+  const paisesRows = container.querySelectorAll('.stats-country-row');
+  paisesRows.forEach((row, idx) => {
+    if (idx >= 5) return;
+    const nombre = row.querySelector('.stats-country-name')?.innerText || '—';
+    const cantidad = row.querySelector('.stats-country-val')?.innerText || '—';
+    paisesTexto += `  ${nombre}: ${cantidad} reservas\n`;
+  });
+  
+  let periodoActivo = '30 días';
+  const btnActivo = document.querySelector('#statsPeriodBar .stats-period-btn.active');
+  if (btnActivo) {
+    const txt = btnActivo.innerText.trim();
+    if (txt === 'Hoy') periodoActivo = 'Hoy';
+    else if (txt === 'Últimos 7 días') periodoActivo = 'últimos 7 días';
+    else if (txt === 'Últimos 30 días') periodoActivo = 'últimos 30 días';
+    else if (txt === 'Último trimestre') periodoActivo = 'último trimestre';
+    else if (txt === 'Este año') periodoActivo = 'este año';
+    else if (txt === 'Custom') periodoActivo = 'rango personalizado';
+  }
+  
+  const informe = `
 ===========================================
 INFORME ESTADÍSTICAS - GENTE DE PARÍS
-Período: últimos 30 días
-Fecha generación: 12/5/2025 15:30:00
+Período: ${periodoActivo}
+Fecha generación: ${new Date().toLocaleString()}
 ===========================================
 
 📊 RESUMEN ECONÓMICO
-• Ingresos totales: 8.420 €
-• Tendencia: ▲ +18% vs período anterior
-• Detalle: 421 pax · ø 20€/pax
+• Ingresos totales: ${ingresosValor}
+• Tendencia: ${ingresosTrend}
+• Detalle: ${ingresosSub}
 
 ✓ ASISTENCIA
-• Tasa de asistencia: 87.3 %
-• 368 asistieron · 53 no-show
+• Tasa de asistencia: ${asistenciaValor}
+• ${asistenciaDetalle}
 
 👥 CLIENTES
-• Clientes únicos: 312
-• Recurrentes: ▲ 7.7% recurrentes (24)
-• Reservas: 421 total
+• Clientes únicos: ${clientesValor}
+• Recurrentes: ${clientesTrend}
+• ${clientesSub}
 
 ⭐ RESEÑAS Y SATISFACCIÓN
-• Rating medio: 4.78 / 5
-• — 47 nuevas reseñas
+• Rating medio: ${ratingValor}
+• ${ratingDetalle}
 
 🎯 TOP TOURS POR RESERVAS
-  1. Le marais a la Bastilla — 38% de reservas
-  2. Panorámica de París — 22%
-  3. Luces de París — 16%
+${topToursTexto || '  No hay datos suficientes'}
 
 🎓 TOP GUÍAS (por PAX atendidos)
-  1. Sebastián — 132 pax atendidos
-  2. Camilo — 118 pax atendidos
-  3. Jordan — 86 pax atendidos
+${topGuiasTexto || '  No hay datos suficientes'}
 
 🌍 DISTRIBUCIÓN POR PAÍS (top 5)
-  🇦🇷 Argentina: 132 reservas
-  🇲🇽 México: 87 reservas
-  🇪🇸 España: 56 reservas
-  🇨🇱 Chile: 35 reservas
-  🇨🇴 Colombia: 28 reservas
+${paisesTexto || '  No hay datos suficientes'}
 
 ===========================================
+Nota: Estos datos reflejan el período seleccionado. 
+Para análisis más detallado, consultar el panel de ADMIN.
+===========================================
+  `;
+  
+  navigator.clipboard.writeText(informe).then(() => {
+    showToast('✅ Informe copiado al portapapeles');
+  }).catch(() => {
+    prompt('Copia manualmente este texto:', informe);
+  });
+}
 function initStatsPeriodSelector() {
   const bar = document.getElementById('statsPeriodBar');
   if (!bar) return;
