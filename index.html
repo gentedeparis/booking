@@ -285,6 +285,63 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
   .resena-header{flex-direction:column;align-items:flex-start;gap:6px;}
   .resena-actions{flex-wrap:wrap;}
 }
+/* ===== ESTADÍSTICAS ===== */
+.stats-period-bar{display:flex;gap:8px;margin:16px 0 24px;flex-wrap:wrap;}
+.stats-period-btn{background:var(--charcoal);border:1px solid var(--smoke);color:var(--light);padding:8px 16px;border-radius:8px;font-size:0.82rem;cursor:pointer;}
+.stats-period-btn:hover{border-color:var(--gold);color:var(--white);}
+.stats-period-btn.active{background:var(--gold);color:var(--noir);border-color:var(--gold);font-weight:600;}
+.stats-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:24px;}
+.stats-kpi-card{background:var(--charcoal);border:1px solid var(--graphite);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden;}
+.stats-kpi-card.gold::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold);}
+.stats-kpi-card.green::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--green);}
+.stats-kpi-card.terra::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--terra);}
+.stats-kpi-card.navy::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#7fa7d9;}
+.stats-kpi-label{font-size:0.7rem;text-transform:uppercase;color:var(--muted);margin-bottom:6px;font-weight:600;}
+.stats-kpi-value{font-family:'Playfair Display',serif;font-size:1.9rem;color:var(--white);line-height:1;margin-bottom:6px;}
+.stats-kpi-trend{font-size:0.74rem;display:flex;align-items:center;gap:4px;}
+.stats-kpi-trend.up{color:#5db97e;}
+.stats-kpi-trend.down{color:#e57373;}
+.stats-kpi-sub{font-size:0.72rem;color:var(--muted);margin-top:4px;}
+.stats-section-card{background:var(--charcoal);border:1px solid var(--graphite);border-radius:12px;padding:20px;margin-bottom:16px;}
+.stats-section-title{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--white);margin-bottom:14px;display:flex;justify-content:space-between;}
+.stats-two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:760px){.stats-two-col{grid-template-columns:1fr;}}
+.stats-bar-chart{display:flex;align-items:flex-end;gap:12px;height:200px;padding:10px 0 0;border-bottom:1px solid var(--graphite);}
+.stats-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%;}
+.stats-bar{width:100%;max-width:60px;background:linear-gradient(180deg,var(--gold-l),var(--gold));border-radius:4px 4px 0 0;position:relative;}
+.stats-bar.current{background:linear-gradient(180deg,var(--gold-l),var(--terra));}
+.stats-bar-val{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:0.7rem;color:var(--gold);font-weight:600;}
+.stats-bar-label{font-size:0.7rem;color:var(--muted);margin-top:6px;}
+.stats-top-list{display:flex;flex-direction:column;gap:6px;}
+.stats-top-item{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:9px 12px;background:var(--graphite);border-radius:8px;}
+.stats-top-rank{width:24px;height:24px;border-radius:50%;background:var(--smoke);color:var(--gold);font-size:0.78rem;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.stats-top-item:nth-child(1) .stats-top-rank{background:var(--gold);color:var(--noir);}
+.stats-top-name{font-size:0.86rem;color:var(--white);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.stats-top-val{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--gold);font-weight:600;}
+.stats-asistencia-wrap{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;}
+.stats-asistencia-big{font-family:'Playfair Display',serif;font-size:3rem;color:var(--green);font-weight:700;}
+.stats-asistencia-big-sub{font-size:0.72rem;color:var(--muted);margin-top:4px;}
+.stats-asistencia-row{display:grid;grid-template-columns:1fr 60px 50px;gap:10px;align-items:center;font-size:0.78rem;margin-bottom:6px;}
+.stats-asistencia-bar-wrap{height:6px;background:var(--graphite);border-radius:3px;}
+.stats-asistencia-bar{height:100%;background:var(--green);border-radius:3px;}
+.stats-stars-dist{display:flex;flex-direction:column;gap:5px;margin-top:10px;}
+.stats-stars-row{display:grid;grid-template-columns:50px 1fr 30px;gap:8px;align-items:center;font-size:0.74rem;}
+.stats-stars-bar-wrap{height:6px;background:var(--graphite);border-radius:3px;}
+.stats-stars-bar{height:100%;background:var(--gold);border-radius:3px;}
+.stats-clientes-grid{display:flex;align-items:center;gap:20px;}
+.stats-donut-wrap{position:relative;width:120px;height:120px;flex-shrink:0;}
+.stats-donut-svg{width:100%;height:100%;transform:rotate(-90deg);}
+.stats-donut-bg{stroke:var(--graphite);fill:none;stroke-width:14;}
+.stats-donut-fg{stroke:var(--gold);fill:none;stroke-width:14;transition:stroke-dashoffset 0.6s;}
+.stats-donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.stats-donut-pct{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--gold);font-weight:700;}
+.stats-clientes-detail{flex:1;}
+.stats-clientes-num{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--white);}
+.stats-country-list{display:flex;flex-direction:column;gap:8px;}
+.stats-country-row{display:grid;grid-template-columns:80px 1fr 60px;gap:10px;align-items:center;}
+.stats-country-bar-wrap{height:8px;background:var(--graphite);border-radius:4px;}
+.stats-country-bar{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l));border-radius:4px;}
+.stats-footnote{margin-top:24px;font-size:0.7rem;color:var(--muted);text-align:center;padding:16px;background:var(--charcoal);border-radius:8px;}
 </style>
 </head>
 <body>
@@ -307,6 +364,7 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
     <div class="nav-group-sep"></div>
     <div class="nav-item" onclick="nav('resenas')" data-sec="resenas"><span>⭐</span><span> Reseñas</span><span class="nav-badge nb-resenas" id="resenasNavBadge" style="display:none">0</span></div>
     <div class="nav-item" onclick="nav('codigos')" data-sec="codigos"><span>🏷</span><span> Códigos</span></div>
+    <div class="nav-item" onclick="nav('estadisticas')" data-sec="estadisticas"><span>📊</span><span> Estadísticas</span></div>
   </nav>
   <div class="topbar-right">
     <div class="sync-wrap"><div class="sync-dot" id="syncDot"></div><span id="syncText">Conectando...</span></div>
@@ -325,6 +383,7 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
   <div class="nav-item" onclick="navMobile('guias')" data-sec="guias"><span>👤</span><span> Guías</span></div>
   <div class="nav-item" onclick="navMobile('resenas')" data-sec="resenas"><span>⭐</span><span> Reseñas</span></div>
   <div class="nav-item" onclick="navMobile('codigos')" data-sec="codigos"><span>🏷</span><span> Códigos</span></div>
+  <div class="nav-item" onclick="navMobile('estadisticas')" data-sec="estadisticas"><span>📊</span><span> Estadísticas</span></div>
 </div>
 <div class="content">
   <div class="section active" id="sec-dash">
@@ -362,6 +421,27 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
       <button class="btn btn-gold" onclick="openCodigoModal()">+ Nuevo código</button>
     </div>
     <div id="codigosGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div>
+  </div>
+    <div class="section" id="sec-estadisticas">
+    <div class="sec-header">
+      <h1 class="sec-title">📊 Estadísticas</h1>
+      <button class="btn btn-ghost btn-sm" onclick="cargarEstadisticas()">↻ Actualizar</button>
+    </div>
+
+    <!-- Selector de período -->
+    <div class="stats-period-bar" id="statsPeriodBar">
+      <button class="stats-period-btn" data-period="today">Hoy</button>
+      <button class="stats-period-btn" data-period="7d">Últimos 7 días</button>
+      <button class="stats-period-btn active" data-period="30d">Últimos 30 días</button>
+      <button class="stats-period-btn" data-period="quarter">Último trimestre</button>
+      <button class="stats-period-btn" data-period="year">Este año</button>
+      <button class="stats-period-btn" data-period="custom">📅 Custom</button>
+    </div>
+
+    <!-- Contenedor dinámico de estadísticas -->
+    <div id="statsContainer">
+      <div class="empty-state"><div class="ei">⏳</div>Cargando estadísticas...</div>
+    </div>
   </div>
 </div>
 
@@ -561,7 +641,7 @@ function updateInformesNavBadge(){const b=document.getElementById('informesNavBa
 function populateTourSelect(){const sel=document.getElementById('bTourId');if(!sel)return;sel.innerHTML='<option value="all">🚫 Todos los tours</option>';tours.filter(t=>t.activo==='true'||t.activo===true).forEach(t=>sel.innerHTML+=`<option value="${t.id}">${escH(t.nombre)}</option>`);}
 async function cargarGuiasParaModales(){try{const r=await apiCall({action:'getGuiasData'});guiasData=Array.isArray(r)?r:[];const sc=document.getElementById('cambiarGuiaSelect'),sd=document.getElementById('duplicarJornadaGuia');const opts='<option value="">— Selecciona —</option>'+guiasData.filter(g=>g.activo==='true'||g.activo===true).map(g=>`<option value="${escH(g.nombre)}">${escH(g.nombre)}</option>`).join('');if(sc)sc.innerHTML=opts;if(sd)sd.innerHTML=opts;}catch(e){console.warn(e);}}
 async function cargarOperaciones(){const c=document.getElementById('operacionesContainer');if(!c)return;c.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando...</div>';try{const resRaw=await apiCall({action:'getReservas'});reservas=(Array.isArray(resRaw)?resRaw:[]).map(r=>({...r,fecha:normalizarFecha(r.fecha),horario:normalizarHorario(r.horario),tipo:'reserva'}));updateDashboard();let jorRaw=[];try{jorRaw=await apiCall({action:'getAllJornadas',includeCompleted:_mostrarHistorico?'true':''});}catch(e){console.warn('getAllJornadas no soportado:',e);jorRaw=[];}jornadasList=(Array.isArray(jorRaw)?jorRaw:[]).map(j=>{let cli=[];try{cli=JSON.parse(j.clientesJSON||'[]');}catch(e){}return{...j,fecha:normalizarFecha(j.fecha),horario:normalizarHorario(j.horario),clientes:cli,tipo:'jornada'};});_todasOperaciones=[...reservas,...jornadasList];_todasOperaciones.sort((a,b)=>a.fecha>b.fecha?-1:1);renderOperacionesUnificado();}catch(e){c.innerHTML=`<div class="empty-state"><div class="ei">⚠️</div>Error: ${escH(e.message)}</div>`;}}
-function renderOperacionesUnificado(){const cont=document.getElementById('operacionesContainer');if(!cont)return;const ff=document.getElementById('filtroOperacionesFecha')?.value||'';let data=_todasOperaciones.filter(op=>!ff||op.fecha===ff);if(!_mostrarHistorico)data=data.filter(op=>op.fecha>=hoy());const grupos=new Map();data.forEach(op=>{const key=op.fecha+'|'+(op.tourId||op.id)+'|'+op.horario;if(!grupos.has(key))grupos.set(key,{fecha:op.fecha,tourNombre:op.tourNombre||'—',horario:op.horario,reservas:[],jornadas:[]});if(op.tipo==='reserva')grupos.get(key).reservas.push(op);else grupos.get(key).jornadas.push(op);});const arr=Array.from(grupos.values()).sort((a,b)=>a.fecha>b.fecha?-1:1);if(!arr.length){cont.innerHTML='<div class="empty-state"><div class="ei">✅</div>No hay operaciones.</div>';return;}let html='';arr.forEach((g,idx)=>{html+=`<div class="listado-grupo"><div class="listado-acord-header" onclick="toggleGrupoOperaciones(${idx})"><div><div class="listado-grupo-title">🎯 ${escH(g.tourNombre)}</div><div class="listado-grupo-meta">📅 ${formatDate(g.fecha)} · 🕐 ${g.horario||'--'}</div></div><div class="listado-grupo-stats"><span class="badge b-pax">${(()=>{const tA=g.reservas.reduce((s,r)=>s+(parseInt(r.adultos)||0),0)+g.jornadas.reduce((s,j)=>s+(j.clientes||[]).reduce((x,c)=>x+(parseInt(c.adults)||0),0),0);const tM=g.reservas.reduce((s,r)=>s+(parseInt(r.menores)||0),0)+g.jornadas.reduce((s,j)=>s+(j.clientes||[]).reduce((x,c)=>x+(parseInt(c.minors)||0),0),0);const tot=tA+tM;return tot===0?'— sin PAX':'👤 '+tA+'A · 🧒 '+tM+'M = '+tot+' PAX';})()}</span><span class="badge b-muted">${g.reservas.length} res.</span>${g.jornadas.length?`<span class="badge" style="background:rgba(201,168,76,0.15);color:var(--gold);border:1px solid rgba(201,168,76,0.4);font-weight:600;">📋 ${g.jornadas.length} Jornada${g.jornadas.length>1?'s':''}</span>`:''}<span class="listado-acord-arrow">▼</span></div></div><div class="listado-acord-body" id="acord-body-${idx}"><div class="listado-grupo-body">`;g.reservas.forEach(r=>{const esNueva=String(r.vista)!=='si';html+=`<div class="lr-pax-row ${esNueva?'listado-pax-nueva':''}"><div><span class="lr-pax-name">${escH(r.nombre)}</span>${esNueva?'<span class="badge b-new">NUEVA</span>':''}</div><div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div><a href="https://wa.me/${(r.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="lr-wa">📱 ${escH(r.whatsapp)}</a><div class="lr-pax-actions"><button class="btn btn-ghost btn-sm" onclick="marcarVistaIndividual(this,'${r.id}')">👁</button><button class="btn btn-cancel-res btn-sm" onclick="cancelarReserva(this,'${r.id}')">✕</button><button class="btn btn-danger btn-sm" onclick="eliminarReserva(this,'${r.id}')">🗑</button></div></div>`;});if(g.reservas.length > 0){const tourIdGrupo=g.reservas[0].tourId||'';const fechaGrupo=g.fecha||'';const horarioGrupo=g.horario||'';html+=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08);text-align:right"><button class="btn btn-danger btn-sm" onclick="eliminarGrupoReservas(this,'${escH(fechaGrupo)}','${escH(tourIdGrupo)}','${escH(horarioGrupo)}')" style="font-size:.72rem">🗑 Eliminar todo el grupo (${g.reservas.length} res.)</button></div>`;}g.jornadas.forEach(j=>{html+=`<div class="acordeon-grupo" style="margin-top:8px;border:1px solid ${j.estado==='completada'?'rgba(39,174,96,.3)':'rgba(201,168,76,0.25)'};"><div class="acordeon-grupo-header" onclick="toggleClienteJornada('clientes-jornada-${j.id}')" style="background:${j.estado==='completada'?'rgba(39,174,96,.06)':'var(--navy)'};"><span><span style="color:${j.estado==='completada'?'#27ae60':'var(--gold)'};font-weight:700;letter-spacing:.04em;">📋 JORNADA</span> · Guía: ${escH(j.guia)}${j.estado==='completada'?` <span class="badge" style="background:rgba(39,174,96,.15);color:#27ae60;border:1px solid rgba(39,174,96,.4);font-weight:600;font-size:.65rem;margin-left:6px;">✓ COMPLETADA</span>`:''}</span><span class="acordeon-grupo-arrow">▼</span></div><div id="clientes-jornada-${j.id}" class="acordeon-grupo-body" style="display:none;padding:8px;">${(j.clientes||[]).map((c,ci)=>`<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;"><div><strong>${escH(c.name)}</strong><br>👥 ${c.adults||0}A ${c.minors||0}M · ${c.wa?`<a href="https://wa.me/${c.wa.replace(/[^0-9]/g,'')}" target="_blank" class="lr-wa" style="font-size:.85rem">📱 ${escH(c.wa)}</a>`:'Sin WhatsApp'}</div>${j.estado==='completada'?'':`<div class="cliente-actions"><button class="btn-cliente-edit" onclick="editarCliente('${j.id}',${ci},'${escH(c.name)}',${c.adults||0},${c.minors||0},'${escH(c.wa||'')}')">✏️</button><button class="btn-cliente-eliminar" onclick="eliminarClienteDeJornada(this,'${j.id}',${ci})">🗑</button></div>`}</div>`).join('')}${j.estado==='completada'?'<div style="text-align:center;padding:10px;font-style:italic;color:var(--muted);font-size:.75rem;border-top:1px solid rgba(255,255,255,.05);margin-top:8px;">📋 Jornada cerrada · Asistentes: '+(j.asistentes||0)+'/'+(j.paxTotal||0)+' · Informe registrado</div>':`<div class="jornada-buttons"><button class="btn-jornada" onclick="abrirModalAgregarCliente('${j.id}')">➕ Añadir cliente</button><button class="btn-jornada" onclick="abrirModalCambiarGuia('${j.id}','${escH(j.guia)}')">🔄 Cambiar guía</button><button class="btn-jornada" onclick="abrirModalDuplicarJornada('${j.id}','${j.fecha}','${escH(j.guia)}')">📋 Duplicar</button><button class="btn-jornada btn-jornada-danger" onclick="eliminarJornadaCompleta(this,'${j.id}')">🗑 Eliminar jornada</button></div>`}</div></div>`;});html+=`</div></div></div>`;});cont.innerHTML=html;}
+function renderOperacionesUnificado(){const cont=document.getElementById('operacionesContainer');if(!cont)return;const ff=document.getElementById('filtroOperacionesFecha')?.value||'';let data=_todasOperaciones.filter(op=>!ff||op.fecha===ff);if(!_mostrarHistorico)data=data.filter(op=>op.fecha>=hoy());const grupos=new Map();data.forEach(op=>{const key=op.fecha+'|'+(op.tourId||op.id)+'|'+op.horario;if(!grupos.has(key))grupos.set(key,{fecha:op.fecha,tourNombre:op.tourNombre||'—',horario:op.horario,reservas:[],jornadas:[]});if(op.tipo==='reserva')grupos.get(key).reservas.push(op);else grupos.get(key).jornadas.push(op);});const arr=Array.from(grupos.values()).sort((a,b)=>a.fecha>b.fecha?-1:1);if(!arr.length){cont.innerHTML='<div class="empty-state"><div class="ei">✅</div>No hay operaciones.</div>';return;}let html='';arr.forEach((g,idx)=>{html+=`<div class="listado-grupo"><div class="listado-acord-header" onclick="toggleGrupoOperaciones(${idx})"><div><div class="listado-grupo-title">🎯 ${escH(g.tourNombre)}</div><div class="listado-grupo-meta">📅 ${formatDate(g.fecha)} · 🕐 ${g.horario||'--'}</div></div><div class="listado-grupo-stats"><span class="badge b-pax">${(()=>{const tA=g.reservas.reduce((s,r)=>s+(parseInt(r.adultos)||0),0)+g.jornadas.reduce((s,j)=>s+(j.clientes||[]).reduce((x,c)=>x+(parseInt(c.adults)||0),0),0);const tM=g.reservas.reduce((s,r)=>s+(parseInt(r.menores)||0),0)+g.jornadas.reduce((s,j)=>s+(j.clientes||[]).reduce((x,c)=>x+(parseInt(c.minors)||0),0),0);const tot=tA+tM;return tot===0?'— sin PAX':'👤 '+tA+'A · 🧒 '+tM+'M = '+tot+' PAX';})()}</span><span class="badge b-muted">${g.reservas.length} res.</span>${g.jornadas.length?`<span class="badge" style="background:rgba(201,168,76,0.15);color:var(--gold);border:1px solid rgba(201,168,76,0.4);font-weight:600;">📋 ${g.jornadas.length} Jornada${g.jornadas.length>1?'s':''}</span>`:''}<span class="listado-acord-arrow">▼</span></div></div><div class="listado-acord-body" id="acord-body-${idx}"><div class="listado-grupo-body">`;g.reservas.forEach(r=>{const esNueva=String(r.vista)!=='si';html+=`<div class="lr-pax-row ${esNueva?'listado-pax-nueva':''}"><div><span class="lr-pax-name">${escH(r.nombre)}</span>${esNueva?'<span class="badge b-new">NUEVA</span>':''}</div><div class="lr-pax-meta">${r.adultos||0}A ${r.menores||0}M</div><a href="https://wa.me/${(r.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" class="lr-wa">📱 ${escH(r.whatsapp)}</a><div class="lr-pax-actions"><button class="btn btn-ghost btn-sm" onclick="marcarVistaIndividual(this,'${r.id}')">👁</button><button class="btn btn-cancel-res btn-sm" onclick="cancelarReserva(this,'${r.id}')">✕</button><button class="btn btn-danger btn-sm" onclick="eliminarReserva(this,'${r.id}')">🗑</button></div></div>`;});if(g.reservas.length > 0){const tourIdGrupo=g.reservas[0].tourId||'';const fechaGrupo=g.fecha||'';const horarioGrupo=g.horario||'';html+=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08);text-align:right"><button class="btn btn-danger btn-sm" onclick="eliminarGrupoReservas(this,'${escH(fechaGrupo)}','${escH(tourIdGrupo)}','${escH(horarioGrupo)}')" style="font-size:.72rem">🗑 Eliminar todo el grupo (${g.reservas.length} res.)</button></div>`;}g.jornadas.forEach(j=>{html+=`<div class="acordeon-grupo" style="margin-top:8px;border:1px solid ${j.estado==='completada'?'rgba(39,174,96,.3)':'rgba(201,168,76,0.25)'};"><div class="acordeon-grupo-header" onclick="toggleClienteJornada('clientes-jornada-${j.id}')" style="background:${j.estado==='completada'?'rgba(39,174,96,.06)':'var(--navy)'};"><span><span style="color:${j.estado==='completada'?'#27ae60':'var(--gold)'};font-weight:700;letter-spacing:.04em;">📋 JORNADA</span> · Guía: ${escH(j.guia)}${j.estado==='completada'?` <span class="badge" style="background:rgba(39,174,96,.15);color:#27ae60;border:1px solid rgba(39,174,96,.4);font-weight:600;font-size:.65rem;margin-left:6px;">✓ COMPLETADA</span>`:''}</span><span class="acordeon-grupo-arrow">▼</span></div><div id="clientes-jornada-${j.id}" class="acordeon-grupo-body" style="display:none;padding:8px;">${(j.clientes||[]).map((c,ci)=>` <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;${j.estado==='completada'&&c.present===false?'opacity:.4;':''}${j.estado==='completada'&&c.present===true?'background:rgba(39,174,96,.05);border-left:3px solid #27ae60;padding-left:8px;':''}"><div><strong style="${j.estado==='completada'&&c.present===false?'text-decoration:line-through;color:var(--muted);':''}">${escH(c.name)}</strong>${j.estado==='completada'?(c.present===true?' <span style="color:#27ae60;font-size:.72rem;font-weight:600;margin-left:6px;">✓ Asistió</span>':(c.present===false?' <span style="color:var(--muted);font-size:.72rem;margin-left:6px;">✕ No asistió</span>':'')):''}<br>👥 ${c.adults||0}A ${c.minors||0}M · ${c.wa?`<a href="https://wa.me/${c.wa.replace(/[^0-9]/g,'')}" target="_blank" class="lr-wa" style="font-size:.85rem">📱 ${escH(c.wa)}</a>`:'Sin WhatsApp'}</div>${j.estado==='completada'?'':`<div class="cliente-actions"><button class="btn-cliente-edit" onclick="editarCliente('${j.id}',${ci},'${escH(c.name)}',${c.adults||0},${c.minors||0},'${escH(c.wa||'')}')">✏️</button><button class="btn-cliente-eliminar" onclick="eliminarClienteDeJornada(this,'${j.id}',${ci})">🗑</button></div>`}</div>`).join('')}${j.estado==='completada'?'<div style="text-align:center;padding:10px;font-style:italic;color:var(--muted);font-size:.75rem;border-top:1px solid rgba(255,255,255,.05);margin-top:8px;">📋 Jornada cerrada · Asistentes: '+(j.asistentes||0)+'/'+(j.paxTotal||0)+' · Informe registrado</div>':`<div class="jornada-buttons"><button class="btn-jornada" onclick="abrirModalAgregarCliente('${j.id}')">➕ Añadir cliente</button><button class="btn-jornada" onclick="abrirModalCambiarGuia('${j.id}','${escH(j.guia)}')">🔄 Cambiar guía</button><button class="btn-jornada" onclick="abrirModalDuplicarJornada('${j.id}','${j.fecha}','${escH(j.guia)}')">📋 Duplicar</button><button class="btn-jornada btn-jornada-danger" onclick="eliminarJornadaCompleta(this,'${j.id}')">🗑 Eliminar jornada</button></div>`}</div></div>`;});html+=`</div></div></div>`;});cont.innerHTML=html;}
 function toggleGrupoOperaciones(idx){const b=document.getElementById(`acord-body-${idx}`);if(!b)return;const isOpen=b.classList.contains('open');document.querySelectorAll('.listado-acord-body').forEach(b=>b.classList.remove('open'));document.querySelectorAll('.listado-acord-arrow').forEach(a=>a.classList.remove('open'));if(!isOpen){b.classList.add('open');b.previousElementSibling.querySelector('.listado-acord-arrow')?.classList.add('open');}}
 function toggleClienteJornada(id){const el=document.getElementById(id);if(!el)return;const isOpen=el.style.display==='block';el.style.display=isOpen?'none':'block';const arr=el.previousElementSibling.querySelector('.acordeon-grupo-arrow');if(arr)arr.innerHTML=isOpen?'▼':'▲';}
 function toggleHistoricoOperaciones(){_mostrarHistorico=!_mostrarHistorico;document.getElementById('btnToggleHistorico').textContent=_mostrarHistorico?'📦 Ocultar histórico':'📦 Ver histórico';cargarOperaciones();}
@@ -1155,6 +1235,145 @@ async function deleteCodigo(id) {
   await apiCall({ action: 'deleteCodigo', id });
   loadCodigos();
 }
+// ============================================
+// ESTADÍSTICAS — carga y renderizado
+// ============================================
+let statsPeriodoActual = '30d';
+let statsCustomFrom = '', statsCustomTo = '';
+
+async function cargarEstadisticas() {
+  const container = document.getElementById('statsContainer');
+  if (!container) return;
+  container.innerHTML = '<div class="empty-state"><div class="ei">⏳</div>Cargando estadísticas...</div>';
+  try {
+    let params = { action: 'getEstadisticas', periodo: statsPeriodoActual };
+    if (statsPeriodoActual === 'custom' && statsCustomFrom && statsCustomTo) {
+      params.from = statsCustomFrom;
+      params.to = statsCustomTo;
+    }
+    const data = await apiCall(params);
+    renderEstadisticas(data);
+  } catch (e) {
+    container.innerHTML = `<div class="empty-state"><div class="ei">⚠️</div>Error: ${escH(e.message)}</div>`;
+  }
+}
+
+function renderEstadisticas(data) {
+  const container = document.getElementById('statsContainer');
+  if (!data || data.error) {
+    container.innerHTML = `<div class="empty-state"><div class="ei">⚠️</div>No se pudieron cargar los datos</div>`;
+    return;
+  }
+  const ingresos = data.ingresos || {};
+  const asistencia = data.asistencia || {};
+  const clientes = data.clientes || {};
+  const resenas = data.resenas || {};
+  const topTours = data.topTours || [];
+  const topGuias = data.topGuias || [];
+  const paises = data.paises || [];
+  const formatEuro = (val) => (val || 0).toFixed(2) + ' €';
+  const trendClass = ingresos.trendPct > 0 ? 'up' : (ingresos.trendPct < 0 ? 'down' : 'neutral');
+  const trendText = ingresos.trendPct ? (ingresos.trendPct > 0 ? `▲ +${ingresos.trendPct}%` : `▼ ${Math.abs(ingresos.trendPct)}%`) : '—';
+  let html = `<div class="stats-kpi-grid">
+    <div class="stats-kpi-card gold"><div class="stats-kpi-label">💰 Ingresos del período</div>
+    <div class="stats-kpi-value">${formatEuro(ingresos.total)}</div>
+    <div class="stats-kpi-trend ${trendClass}">${trendText} vs período anterior</div>
+    <div class="stats-kpi-sub">${ingresos.pax || 0} pax · ø ${(ingresos.avgPax || 0).toFixed(2)}€/pax</div></div>
+    <div class="stats-kpi-card green"><div class="stats-kpi-label">✓ Tasa de asistencia</div>
+    <div class="stats-kpi-value">${asistencia.rate || 0} %</div>
+    <div class="stats-kpi-trend neutral">${asistencia.asistieron || 0} asistieron · ${asistencia.noShow || 0} no-show</div>
+    <div class="stats-kpi-sub">Basado en informes de guías</div></div>
+    <div class="stats-kpi-card terra"><div class="stats-kpi-label">👥 Clientes únicos</div>
+    <div class="stats-kpi-value">${clientes.unicos || 0}</div>
+    <div class="stats-kpi-trend up">▲ ${clientes.pctRecurrentes || 0}% recurrentes (${clientes.recurrentes || 0})</div>
+    <div class="stats-kpi-sub">Reservas: ${clientes.totalReservas || 0} total</div></div>
+    <div class="stats-kpi-card navy"><div class="stats-kpi-label">⭐ Rating medio</div>
+    <div class="stats-kpi-value">${(resenas.avg || 0).toFixed(2)} / 5</div>
+    <div class="stats-kpi-trend neutral">— ${resenas.total || 0} nuevas reseñas</div>
+    <div class="stats-kpi-sub">Tasa conversión: ${resenas.conversionRate || 0}%</div></div>
+  </div>`;
+  const byMonth = ingresos.byMonth || {};
+  const monthsOrder = Object.keys(byMonth).sort();
+  const last6Months = monthsOrder.slice(-6);
+  const maxMonthVal = Math.max(...Object.values(byMonth), 1);
+  html += `<div class="stats-section-card"><div class="stats-section-title">📈 Ingresos mensuales (últimos 6 meses)</div>
+  <div class="stats-bar-chart">`;
+  for (let i = 0; i < last6Months.length; i++) {
+    const m = last6Months[i];
+    const val = byMonth[m] || 0;
+    const heightPercent = (val / maxMonthVal) * 100;
+    const isCurrent = (m === monthsOrder[monthsOrder.length-1]);
+    html += `<div class="stats-bar-col"><div class="stats-bar ${isCurrent ? 'current' : ''}" style="height: ${heightPercent}%"><span class="stats-bar-val">${Math.round(val)}€</span></div><span class="stats-bar-label">${m.substring(5)}</span></div>`;
+  }
+  html += `</div></div><div class="stats-two-col"><div class="stats-section-card"><div class="stats-section-title">🎯 Top tours por reservas</div><div class="stats-top-list">`;
+  topTours.forEach((t, idx) => {
+    const ratingStars = t.rating ? (t.rating >= 4.8 ? '★★★★★' : (t.rating >= 4.5 ? '★★★★⯨' : '★★★★')) : '—';
+    html += `<div class="stats-top-item"><div class="stats-top-rank">${idx+1}</div><div><div class="stats-top-name">${escH(t.name)}</div><div class="stats-top-meta">${ratingStars} ${t.rating ? t.rating.toFixed(1) : '—'} · ${t.count} reservas</div></div><div class="stats-top-val">${t.pctReservas || 0}%</div></div>`;
+  });
+  html += `</div></div><div class="stats-section-card"><div class="stats-section-title">🎓 Top guías</div><div class="stats-top-list">`;
+  topGuias.forEach((g, idx) => {
+    const ratingStars = g.rating ? (g.rating >= 4.8 ? '★★★★★' : (g.rating >= 4.5 ? '★★★★⯨' : '★★★★')) : '—';
+    html += `<div class="stats-top-item"><div class="stats-top-rank">${idx+1}</div><div><div class="stats-top-name">${escH(g.name)}</div><div class="stats-top-meta">${ratingStars} ${g.rating ? g.rating.toFixed(2) : '—'} · ${g.jornadas} jornadas</div></div><div class="stats-top-val">${g.pax || 0} pax</div></div>`;
+  });
+  html += `</div></div></div><div class="stats-two-col"><div class="stats-section-card"><div class="stats-section-title">✓ Tasa de asistencia por tour</div><div class="stats-asistencia-wrap"><div><div class="stats-asistencia-big">${asistencia.rate || 0}%</div><div class="stats-asistencia-big-sub">PROMEDIO</div></div><div class="stats-asistencia-breakdown">`;
+  (asistencia.porTour || []).slice(0,5).forEach(t => {
+    const rate = t.rate || 0;
+    const barColor = rate >= 85 ? 'var(--green)' : (rate >= 70 ? '#e8c97a' : '#e57373');
+    html += `<div class="stats-asistencia-row"><div>${escH(t.name)}</div><div class="stats-asistencia-bar-wrap"><div class="stats-asistencia-bar" style="width:${rate}%; background:${barColor};"></div></div><div style="color:${barColor};">${rate}%</div></div>`;
+  });
+  html += `</div></div></div><div class="stats-section-card"><div class="stats-section-title">⭐ Reseñas (último período)</div><div class="stats-stars-dist">`;
+  const starsDist = resenas.distribution || {1:0,2:0,3:0,4:0,5:0};
+  const totalStars = Object.values(starsDist).reduce((a,b)=>a+b,0);
+  for (let i = 5; i >= 1; i--) {
+    const count = starsDist[i] || 0;
+    const pct = totalStars > 0 ? (count / totalStars) * 100 : 0;
+    html += `<div class="stats-stars-row"><div>${i} ★</div><div class="stats-stars-bar-wrap"><div class="stats-stars-bar" style="width:${pct}%"></div></div><div>${count}</div></div>`;
+  }
+  html += `</div></div></div><div class="stats-two-col"><div class="stats-section-card"><div class="stats-section-title">👥 Composición de clientes</div><div class="stats-clientes-grid"><div class="stats-donut-wrap"><svg class="stats-donut-svg" viewBox="0 0 120 120"><circle cx="60" cy="60" r="48" class="stats-donut-bg"></circle><circle cx="60" cy="60" r="48" class="stats-donut-fg" stroke-dasharray="301.6" stroke-dashoffset="${301.6 * (1 - (clientes.pctRecurrentes||0)/100)}"></circle></svg><div class="stats-donut-center"><div class="stats-donut-pct">${clientes.pctRecurrentes || 0}%</div><div class="stats-donut-lbl">Recurrentes</div></div></div><div class="stats-clientes-detail"><div class="stats-clientes-num">${clientes.unicos || 0}</div><div>Clientes únicos en el período</div><div class="stats-clientes-num">${clientes.recurrentes || 0}</div><div>Recurrentes (2+ reservas)</div><div style="font-size:0.72rem;color:var(--muted);margin-top:8px;">💡 Top recurrente: ${clientes.topRecurrente ? escH(clientes.topRecurrente.name) + ' (' + clientes.topRecurrente.count + ' reservas)' : '—'}</div></div></div></div><div class="stats-section-card"><div class="stats-section-title">🌍 Distribución por país</div><div class="stats-country-list">`;
+  paises.forEach(p => {
+    const maxCount = paises[0]?.count || 1;
+    const widthPct = (p.count / maxCount) * 100;
+    html += `<div class="stats-country-row"><div>${p.flag} ${p.name}</div><div class="stats-country-bar-wrap"><div class="stats-country-bar" style="width:${widthPct}%"></div></div><div>${p.count}</div></div>`;
+  });
+  html += `</div></div></div><div class="stats-footnote">📌 Datos basados en reservas confirmadas, informes de guías y reseñas aprobadas en el período seleccionado.</div>`;
+  container.innerHTML = html;
+}
+
+function initStatsPeriodSelector() {
+  const bar = document.getElementById('statsPeriodBar');
+  if (!bar) return;
+  bar.querySelectorAll('.stats-period-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const period = btn.getAttribute('data-period');
+      if (period === 'custom') {
+        let from = prompt('Fecha inicio (YYYY-MM-DD):', statsCustomFrom || '');
+        let to = prompt('Fecha fin (YYYY-MM-DD):', statsCustomTo || '');
+        if (from && to) {
+          statsCustomFrom = from;
+          statsCustomTo = to;
+          statsPeriodoActual = 'custom';
+        } else return;
+      } else {
+        statsPeriodoActual = period;
+      }
+      bar.querySelectorAll('.stats-period-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      await cargarEstadisticas();
+    });
+  });
+}
+
+// Extender la función nav para que cargue estadísticas
+const originalNav = window.nav;
+window.nav = function(sec) {
+  originalNav(sec);
+  if (sec === 'estadisticas') cargarEstadisticas();
+};
+
+// Iniciar selector cuando se carga la página
+document.addEventListener('DOMContentLoaded', () => {
+  initStatsPeriodSelector();
+});
 </script>
 </body>
 </html>
