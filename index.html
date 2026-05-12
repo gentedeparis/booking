@@ -425,7 +425,7 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
     <div class="section" id="sec-estadisticas">
     <div class="sec-header">
       <h1 class="sec-title">📊 Estadísticas</h1>
-      <button class="btn btn-ghost btn-sm" onclick="cargarEstadisticas()">↻ Actualizar</button>
+      <button class="btn btn-gold btn-sm" onclick="copiarInformeEstadisticas()" style="margin-left:8px;">📋 Copiar informe para analista</button>
     </div>
 
     <!-- Selector de período -->
@@ -1338,7 +1338,48 @@ function renderEstadisticas(data) {
   html += `</div></div></div><div class="stats-footnote">📌 Datos basados en reservas confirmadas, informes de guías y reseñas aprobadas en el período seleccionado.</div>`;
   container.innerHTML = html;
 }
+===========================================
+INFORME ESTADÍSTICAS - GENTE DE PARÍS
+Período: últimos 30 días
+Fecha generación: 12/5/2025 15:30:00
+===========================================
 
+📊 RESUMEN ECONÓMICO
+• Ingresos totales: 8.420 €
+• Tendencia: ▲ +18% vs período anterior
+• Detalle: 421 pax · ø 20€/pax
+
+✓ ASISTENCIA
+• Tasa de asistencia: 87.3 %
+• 368 asistieron · 53 no-show
+
+👥 CLIENTES
+• Clientes únicos: 312
+• Recurrentes: ▲ 7.7% recurrentes (24)
+• Reservas: 421 total
+
+⭐ RESEÑAS Y SATISFACCIÓN
+• Rating medio: 4.78 / 5
+• — 47 nuevas reseñas
+
+🎯 TOP TOURS POR RESERVAS
+  1. Le marais a la Bastilla — 38% de reservas
+  2. Panorámica de París — 22%
+  3. Luces de París — 16%
+
+🎓 TOP GUÍAS (por PAX atendidos)
+  1. Sebastián — 132 pax atendidos
+  2. Camilo — 118 pax atendidos
+  3. Jordan — 86 pax atendidos
+
+🌍 DISTRIBUCIÓN POR PAÍS (top 5)
+  🇦🇷 Argentina: 132 reservas
+  🇲🇽 México: 87 reservas
+  🇪🇸 España: 56 reservas
+  🇨🇱 Chile: 35 reservas
+  🇨🇴 Colombia: 28 reservas
+
+===========================================
 function initStatsPeriodSelector() {
   const bar = document.getElementById('statsPeriodBar');
   if (!bar) return;
