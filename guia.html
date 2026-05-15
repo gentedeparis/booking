@@ -166,6 +166,7 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
 .acordeon-grupo-body{padding:4px 0;}
 @media(max-width:500px){.app-content{padding:12px;}.jornada-stats{flex-wrap:wrap;}.nuevo-cliente-voucher-form{grid-template-columns:1fr;}}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
 </head>
 <body>
 <div class="login-wrap" id="loginWrap">
@@ -500,6 +501,90 @@ function agregarClienteNuevoALista() {
   showToast('Cliente agregado a la lista ✓');
 }
 
+function escanearClienteOCR(gi) {
+  if (typeof Tesseract === 'undefined') {
+    showToast('OCR aún cargándose, espera 2-3s y vuelve a pulsar');
+    return;
+  }
+  var input = document.getElementById('scanFileInput');
+  if (!input) { showToast('Error: input de escaneo no encontrado'); return; }
+  input.value = '';
+  input.onchange = async function(ev) {
+    var file = ev.target.files && ev.target.files[0];
+    if (!file) return;
+    showToast('📄 Leyendo imagen... (1ª vez tarda ~15s por descarga de idioma)');
+    try {
+      var result = await Tesseract.recognize(file, 'spa', {
+        logger: function(m) {
+          if (m.status === 'recognizing text') {
+            var pct = Math.round(m.progress * 100);
+            if (pct === 50) showToast('OCR procesando 50%...');
+            if (pct === 90) showToast('OCR casi listo 90%...');
+          }
+        }
+      });
+      var texto = (result && result.data && result.data.text) || '';
+      var datos = parsearVoucherOCR(texto);
+      var nombreEl = document.getElementById('nc-nombre-' + gi);
+      var adEl = document.getElementById('nc-ad-' + gi);
+      var menEl = document.getElementById('nc-men-' + gi);
+      var waEl = document.getElementById('nc-wa-' + gi);
+      var rellenados = [];
+      if (datos.nombre && nombreEl) { nombreEl.value = datos.nombre; rellenados.push('nombre'); }
+      if (datos.adultos !== null && adEl) { adEl.value = datos.adultos; rellenados.push('adultos'); }
+      if (datos.menores !== null && menEl) { menEl.value = datos.menores; rellenados.push('menores'); }
+      if (datos.telefono && waEl) { waEl.value = datos.telefono; rellenados.push('WhatsApp'); }
+      if (rellenados.length === 0) {
+        showToast('⚠️ No se detectaron datos legibles. Revisa la imagen.');
+      } else {
+        showToast('✅ Datos extraídos (' + rellenados.join(', ') + '). REVISA antes de añadir.');
+      }
+    } catch (err) {
+      showToast('❌ Error al escanear: ' + ((err && err.message) ? err.message : String(err)));
+    }
+    input.value = '';
+  };
+  input.click();
+}
+
+function parsearVoucherOCR(text) {
+  var out = { nombre: null, adultos: null, menores: null, telefono: null };
+  if (!text) return out;
+  var pm = text.match(/(\d+)\s*adultos?\s*[,;y]?\s*(\d+)\s*(?:menores?|ni[ñn]os?)/i);
+  if (pm) {
+    out.adultos = parseInt(pm[1]);
+    out.menores = parseInt(pm[2]);
+  } else {
+    var ad = text.match(/(\d+)\s*adultos?/i) || text.match(/adultos?\s*[:\-]?\s*(\d+)/i);
+    var me = text.match(/(\d+)\s*(?:menores?|ni[ñn]os?)/i) || text.match(/(?:menores?|ni[ñn]os?)\s*[:\-]?\s*(\d+)/i);
+    if (ad) out.adultos = parseInt(ad[1]);
+    if (me) out.menores = parseInt(me[1]);
+  }
+  var nm = text.match(/Nombre\s*[:\-]?\s+([A-Za-zÁÉÍÓÚÑáéíóúñ][A-Za-zÁÉÍÓÚÑáéíóúñ\s'.\-]{2,60})/i);
+  if (nm && nm[1]) {
+    var candidato = nm[1].split(/\r|\n/)[0].trim().replace(/\s{2,}/g, ' ');
+    if (!/^(Gente|Tour|Voucher|Fecha|Horario|Encuentro|Participantes|Total|Referencia|Generado)/i.test(candidato)) {
+      out.nombre = candidato;
+    }
+  }
+  if (!out.nombre) {
+    var stop = /^(Gente|Tour|Voucher|Fecha|Horario|Encuentro|Participantes|Total|Referencia|Generado|Par[ií]s|Adulto|Menor|Ni[ñn]o|WhatsApp|Reserva|Cliente|Hola|Buenos|Buenas)/i;
+    var lista = text.match(/[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+){1,3}/g) || [];
+    for (var i = 0; i < lista.length; i++) {
+      if (!stop.test(lista[i])) { out.nombre = lista[i].trim(); break; }
+    }
+  }
+  var cands = text.match(/\+?\d[\d\s\-.()]{7,25}/g) || [];
+  for (var k = 0; k < cands.length; k++) {
+    var soloDig = cands[k].replace(/\D/g, '');
+    if (soloDig.length >= 8 && soloDig.length <= 15) {
+      out.telefono = cands[k].trim().replace(/\s+/g, ' ').replace(/[.\-()]/g, '');
+      break;
+    }
+  }
+  return out;
+}
+
 function actualizarListaClientesSeleccionados() {
   const container = document.getElementById('voucherClientesSeleccionados');
   if (!voucherClientesSeleccionados.length) {
@@ -821,6 +906,7 @@ function renderJornadas() {
     html += '<input type="number" class="walkin-input walkin-num" id="nc-ad-' + gi + '" placeholder="Ad." min="0" value="1">';
     html += '<input type="number" class="walkin-input walkin-num" id="nc-men-' + gi + '" placeholder="Men." min="0" value="0">';
     html += '<input type="text" class="walkin-input" id="nc-wa-' + gi + '" placeholder="WhatsApp" style="min-width:110px">';
+    html += '<button class="walkin-btn" data-action="scancliente" data-gi="' + gi + '" data-jid="' + escH(j.id) + '" title="Escanear voucher con cámara o galería" style="padding:8px 10px">📷</button>';
     html += '<button class="walkin-btn" data-action="addcliente" data-gi="' + gi + '" data-jid="' + escH(j.id) + '">+ Añadir</button>';
     html += '</div></div>';
     html += '<div class="autosave-indicator" id="autosave-' + gi + '"></div>';
@@ -856,6 +942,7 @@ document.addEventListener('click', function(e) {
   var gi = btn.getAttribute('data-gi');
   if (action === 'guardarclientesjornada') { var jid = btn.getAttribute('data-jid'); guardarClientesJornada(jid, gi); return; }
   if (action === 'enviarinforme') { var jid = btn.getAttribute('data-jid'); if (confirm('¿Enviar el informe de asistencia al administrador?')) { enviarInforme(jid, gi); } return; }
+  if (action === 'scancliente') { escanearClienteOCR(gi); return; }
   if (action === 'addcliente') { var jid = btn.getAttribute('data-jid'); var nombreEl = document.getElementById('nc-nombre-' + gi); var adEl = document.getElementById('nc-ad-' + gi); var menEl = document.getElementById('nc-men-' + gi); var waEl = document.getElementById('nc-wa-' + gi); var nombre = nombreEl ? nombreEl.value.trim() : ''; if (!nombre) { showToast('Escribe el nombre del cliente'); return; } var j = jornadasData.find(function(x) { return x.id === jid; }); if (!j) return; j.clientes.push({ name: nombre, adults: parseInt(adEl ? adEl.value : 1) || 1, minors: parseInt(menEl ? menEl.value : 0) || 0, wa: waEl ? waEl.value.trim() : '', present: false, walkin: false }); renderJornadas(); showToast('Cliente añadido — pulsa Guardar para confirmar'); return; }
   if (action === 'deletecliente') { var jid = btn.getAttribute('data-jid'); var ci = parseInt(btn.getAttribute('data-ci')); var j = jornadasData.find(function(x) { return x.id === jid; }); if (!j) return; j.clientes.splice(ci, 1); renderJornadas(); showToast('Cliente eliminado — pulsa Guardar para confirmar'); return; }
 });
@@ -962,5 +1049,6 @@ document.addEventListener('click', function(e) {
 document.getElementById('appFechaHoy').textContent = formatHoy();
 document.getElementById('pinInput').focus();
 </script>
+<input type="file" id="scanFileInput" accept="image/*" style="display:none">
 </body>
 </html>
