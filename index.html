@@ -1161,6 +1161,7 @@ function openCodigoModal(id) {
           <select id="cTipo">
             <option value="%" ${c?.tipo==='%'?'selected':''}>% Porcentaje</option>
             <option value="€" ${c?.tipo==='€'?'selected':''}>€ Euros fijos</option>
+            <option value="test" ${c?.tipo==='test'?'selected':''}>🧪 Test (bypassa Stripe, no cobra)</option>
           </select>
         </div>
         <div class="form-group"><label>Descuento *</label>
@@ -1194,12 +1195,16 @@ async function saveCodigo() {
   const id = document.getElementById('cId').value;
   const codigo = document.getElementById('cCodigo').value.trim().toUpperCase();
   const tipo = document.getElementById('cTipo').value;
-  const descuento = parseFloat(document.getElementById('cDescuento').value);
+  let descuento = parseFloat(document.getElementById('cDescuento').value);
   const usosMax = parseInt(document.getElementById('cUsosMax').value) || 0;
   const expira = document.getElementById('cExpira').value;
   const nota = document.getElementById('cNota').value.trim();
   if (!codigo) { alert('El código no puede estar vacío'); return; }
-  if (!descuento || descuento <= 0) { alert('El descuento debe ser mayor que 0'); return; }
+  if (tipo === 'test') {
+    descuento = 0;
+  } else if (!descuento || descuento <= 0) {
+    alert('El descuento debe ser mayor que 0'); return;
+  }
   const log = document.getElementById('codigoSaveLog');
   log.style.display = 'block'; log.textContent = 'Guardando...';
   const existing = codigos.find(c => c.id === id);
