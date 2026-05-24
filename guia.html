@@ -165,6 +165,32 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
 .acordeon-grupo-header{background:var(--navy);padding:8px 12px;font-size:0.8rem;font-weight:600;color:var(--gold);}
 .acordeon-grupo-body{padding:4px 0;}
 @media(max-width:500px){.app-content{padding:12px;}.jornada-stats{flex-wrap:wrap;}.nuevo-cliente-voucher-form{grid-template-columns:1fr;}}
+/* Menú derecho — drawer + modal */
+.btn-hamburger{background:transparent;border:1px solid rgba(255,255,255,0.15);color:var(--white);border-radius:8px;padding:6px 12px;font-size:1.15rem;cursor:pointer;line-height:1;}
+.btn-hamburger:hover{background:rgba(255,255,255,0.06);}
+.menu-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.55);opacity:0;pointer-events:none;transition:opacity 0.22s ease;z-index:1000;}
+.menu-backdrop.open{opacity:1;pointer-events:auto;}
+.menu-drawer{position:fixed;top:0;right:0;bottom:0;width:280px;max-width:80vw;background:var(--navy);transform:translateX(105%);transition:transform 0.25s ease;z-index:1001;display:flex;flex-direction:column;border-left:1px solid rgba(255,255,255,0.08);box-shadow:-2px 0 16px rgba(0,0,0,0.4);}
+.menu-drawer.open{transform:translateX(0);}
+.menu-drawer-header{padding:16px 18px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;}
+.menu-drawer-title{font-family:Georgia,serif;color:var(--gold);font-size:1.05rem;}
+.menu-drawer-close{background:transparent;border:none;color:var(--white);font-size:1.6rem;cursor:pointer;padding:0;width:32px;height:32px;line-height:1;}
+.menu-drawer-body{flex:1;overflow-y:auto;padding:8px 0;}
+.menu-drawer-item{display:flex;align-items:center;gap:12px;padding:14px 18px;color:var(--white);cursor:pointer;transition:background 0.15s;border:none;background:transparent;width:100%;text-align:left;font-size:0.92rem;font-family:inherit;}
+.menu-drawer-item:hover:not(:disabled){background:rgba(255,255,255,0.04);}
+.menu-drawer-item:disabled{opacity:0.45;cursor:not-allowed;}
+.menu-drawer-item .menu-icon{font-size:1.25rem;flex-shrink:0;}
+.menu-drawer-item .menu-label{flex:1;}
+.menu-drawer-item .menu-soon{font-size:0.6rem;color:var(--muted);background:rgba(255,255,255,0.05);padding:3px 6px;border-radius:4px;font-weight:600;letter-spacing:0.03em;}
+.menu-modal{display:none;position:fixed;inset:0;background:var(--bg);z-index:1100;flex-direction:column;}
+.menu-modal.open{display:flex;}
+.menu-modal-header{background:var(--navy);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.08);}
+.menu-modal-title{font-family:Georgia,serif;font-size:1.05rem;color:var(--white);}
+.menu-modal-close{background:transparent;border:1px solid rgba(255,255,255,0.15);color:var(--white);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:0.85rem;font-family:inherit;}
+.menu-modal-close:hover{background:rgba(255,255,255,0.06);}
+.menu-modal-body{flex:1;overflow-y:auto;padding:20px;}
+.menu-modal-pane{display:none;}
+.menu-modal-pane.active{display:block;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
 </head>
@@ -189,13 +215,13 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
     <div class="app-header-actions">
       <button class="btn-refresh-app" id="btnRefresh">↻ Actualizar</button>
       <button class="btn-logout" id="btnLogout">Salir</button>
+      <button class="btn-hamburger" id="btnMenuHamburger" data-action="toggle-drawer" aria-label="Abrir menú">☰</button>
     </div>
   </header>
   <div class="app-tabs">
     <div class="app-tab active" data-tab="jornadas">📋 Mis Jornadas</div>
     <div class="app-tab" data-tab="dossier">📁 Mi Dossier</div>
-    <div class="app-tab" data-tab="voucher">🎫 Generar Voucher</div>
-  </div>
+    </div>
   <div class="app-content">
     <div class="status-bar">
       <div class="status-dot" id="statusDot"></div>
@@ -208,15 +234,52 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
     <div class="tab-panel" id="panel-dossier">
       <div id="dossierContent"><div class="spinner-wrap"><div class="spinner"></div></div></div>
     </div>
-    <div class="tab-panel" id="panel-voucher">
-      <div style="margin-bottom:20px">
-        <h1 style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--white)">🎫 Generar Voucher de Reserva</h1>
-        <p style="color:var(--muted);font-size:0.85rem;margin-top:4px">Crea un voucher para que un cliente reserve un tour</p>
-      </div>
+  </div>
+</div>
+
+<!-- Menú derecho: drawer + modal -->
+<div class="menu-backdrop" id="menuBackdrop" data-action="close-drawer"></div>
+<aside class="menu-drawer" id="menuDrawer">
+  <div class="menu-drawer-header">
+    <span class="menu-drawer-title">Menú</span>
+    <button class="menu-drawer-close" data-action="close-drawer" aria-label="Cerrar">×</button>
+  </div>
+  <div class="menu-drawer-body">
+    <button class="menu-drawer-item" data-action="open-menu-item" data-target="voucher">
+      <span class="menu-icon">🎫</span>
+      <span class="menu-label">Generar Voucher</span>
+    </button>
+    <button class="menu-drawer-item" disabled>
+      <span class="menu-icon">📚</span>
+      <span class="menu-label">Recursos Tours</span>
+      <span class="menu-soon">PRÓXIMAMENTE</span>
+    </button>
+    <button class="menu-drawer-item" disabled>
+      <span class="menu-icon">📱</span>
+      <span class="menu-label">QRs útiles</span>
+      <span class="menu-soon">PRÓXIMAMENTE</span>
+    </button>
+    <button class="menu-drawer-item" disabled>
+      <span class="menu-icon">📣</span>
+      <span class="menu-label">Marketing</span>
+      <span class="menu-soon">PRÓXIMAMENTE</span>
+    </button>
+  </div>
+</aside>
+
+<div class="menu-modal" id="menuModal">
+  <div class="menu-modal-header">
+    <span class="menu-modal-title" id="menuModalTitle">—</span>
+    <button class="menu-modal-close" data-action="close-menu-modal">← Volver</button>
+  </div>
+  <div class="menu-modal-body">
+    <div class="menu-modal-pane" id="menuPane-voucher">
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:20px">Crea un voucher para que un cliente reserve un tour</p>
       <div id="voucherContainer"><div class="spinner-wrap"><div class="spinner"></div></div></div>
     </div>
   </div>
 </div>
+
 <div class="toast" id="toast"></div>
 <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
 
@@ -332,7 +395,6 @@ function loadAll() {
     setStatus('ok', 'Actualizado · ' + new Date().toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit'}));
     renderJornadas();
     renderDossier();
-    cargarToursActivos();
   }).catch(function(e) { setStatus('error', 'Error al cargar'); showJornadasError(e.message || 'Error de conexión'); document.getElementById('jornadasContent').innerHTML = ''; });
 }
 
@@ -936,10 +998,14 @@ document.addEventListener('click', function(e) {
   if (e.target.id === 'btnLogout') { if (confirm('¿Cerrar sesión?')) logout(); return; }
   if (e.target.id === 'btnRefresh') { loadAll(); return; }
   var tab = e.target.closest('.app-tab');
-  if (tab) { var tabName = tab.getAttribute('data-tab'); document.querySelectorAll('.app-tab').forEach(function(t) { t.classList.remove('active'); }); document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); }); tab.classList.add('active'); document.getElementById('panel-' + tabName).classList.add('active'); activeTab = tabName; if (tabName === 'voucher') cargarToursActivos(); return; }
+  if (tab) { var tabName = tab.getAttribute('data-tab'); document.querySelectorAll('.app-tab').forEach(function(t) { t.classList.remove('active'); }); document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); }); tab.classList.add('active'); document.getElementById('panel-' + tabName).classList.add('active'); activeTab = tabName; return; }
   var btn = e.target.closest('[data-action]');
   if (!btn) return;
   var action = btn.getAttribute('data-action');
+  if (action === 'toggle-drawer') { abrirDrawer(); return; }
+  if (action === 'close-drawer') { cerrarDrawer(); return; }
+  if (action === 'open-menu-item') { abrirMenuItem(btn.getAttribute('data-target')); return; }
+  if (action === 'close-menu-modal') { cerrarMenuModal(); return; }
   var gi = btn.getAttribute('data-gi');
   if (action === 'guardarclientesjornada') { var jid = btn.getAttribute('data-jid'); guardarClientesJornada(jid, gi); return; }
   if (action === 'enviarinforme') { var jid = btn.getAttribute('data-jid'); if (confirm('¿Enviar el informe de asistencia al administrador?')) { enviarInforme(jid, gi); } return; }
@@ -1083,6 +1149,25 @@ document.addEventListener('click', function(e) {
   if (action === 'compartirresena') { var ci = parseInt(btn.getAttribute('data-ci')); compartirResenaCliente(ci); return; }
   if (action === 'marcartodoslinks') { marcarTodosResenasLinks(); return; }
 });
+
+function abrirDrawer() { document.getElementById('menuDrawer').classList.add('open'); document.getElementById('menuBackdrop').classList.add('open'); }
+function cerrarDrawer() { document.getElementById('menuDrawer').classList.remove('open'); document.getElementById('menuBackdrop').classList.remove('open'); }
+function abrirMenuItem(target) {
+  cerrarDrawer();
+  if (!target) return;
+  document.querySelectorAll('.menu-modal-pane').forEach(function(p) { p.classList.remove('active'); });
+  var pane = document.getElementById('menuPane-' + target);
+  if (!pane) return;
+  pane.classList.add('active');
+  var titles = { voucher: '🎫 Generar Voucher de Reserva', recursos: '📚 Recursos Tours', qrs: '📱 QRs útiles', marketing: '📣 Marketing' };
+  document.getElementById('menuModalTitle').textContent = titles[target] || '';
+  document.getElementById('menuModal').classList.add('open');
+  if (target === 'voucher') cargarToursActivos();
+}
+function cerrarMenuModal() {
+  document.getElementById('menuModal').classList.remove('open');
+  document.querySelectorAll('.menu-modal-pane').forEach(function(p) { p.classList.remove('active'); });
+}
 
 document.getElementById('appFechaHoy').textContent = formatHoy();
 document.getElementById('pinInput').focus();
