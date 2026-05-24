@@ -227,6 +227,7 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
     <h2>💬 Pedir reseñas a tus clientes</h2>
     <p class="modal-sub" id="resenasModalSub">Solo un toque por cliente</p>
     <p class="modal-tip">💡 <strong>Tip:</strong> si querés enviar foto del grupo, después del mensaje adjuntala manualmente desde el chat de WhatsApp.</p>
+    <button id="btnMarcarTodosResenas" data-action="marcartodoslinks" style="display:none;background:transparent;color:var(--gold);border:1px dashed rgba(201,168,76,0.5);border-radius:8px;padding:8px 12px;font-size:.76rem;font-weight:500;cursor:pointer;width:100%;margin-bottom:10px;">✅ Marcar todos como enviados</button>
     <div class="resenas-clientes-list" id="resenasClientesList"></div>
     <button class="btn-cerrar-modal" data-action="cerrarresenasmodal">Cerrar</button>
   </div>
@@ -963,7 +964,9 @@ document.addEventListener('keydown', function(e) { if (e.key === 'Enter' && docu
 var resenasModalState = { jornada: null, sentMap: {} };
 
 function abrirResenasModal(jornada) {
-  resenasModalState = { jornada: jornada, sentMap: {} };
+  var initialSentMap = {};
+  (jornada.clientes || []).forEach(function(c, ci) { if (c.reviewLinkSent) initialSentMap[ci] = true; });
+  resenasModalState = { jornada: jornada, sentMap: initialSentMap };
   var fechaCorta = formatearFechaCortaResena(jornada.fecha);
   document.getElementById('resenasModalSub').textContent = (jornada.tourNombre || 'Tour') + ' · ' + fechaCorta;
   renderResenasClientes();
@@ -1003,6 +1006,37 @@ function renderResenasClientes() {
       '</div>' + btnHtml +
     '</div>';
   }).join('');
+  var btnAll = document.getElementById('btnMarcarTodosResenas');
+  if (btnAll) {
+    var pendientes = 0;
+    clientes.forEach(function(c, ci) {
+      if (!presencia[jornada.id + '_' + ci]) return;
+      var hasWa = c.wa && String(c.wa).replace(/[^0-9]/g, '').length >= 7;
+      if (hasWa && !resenasModalState.sentMap[ci]) pendientes++;
+    });
+    btnAll.style.display = pendientes > 0 ? 'block' : 'none';
+    btnAll.textContent = pendientes > 0 ? ('✅ Marcar todos como enviados (' + pendientes + ' pendiente' + (pendientes !== 1 ? 's' : '') + ')') : '✅ Todos marcados';
+  }
+}
+
+function marcarTodosResenasLinks() {
+  var jornada = resenasModalState.jornada;
+  if (!jornada || !Array.isArray(jornada.clientes)) return;
+  var pendientes = [];
+  jornada.clientes.forEach(function(c, ci) {
+    if (!presencia[jornada.id + '_' + ci]) return;
+    var hasWa = c.wa && String(c.wa).replace(/[^0-9]/g, '').length >= 7;
+    if (hasWa && !resenasModalState.sentMap[ci]) pendientes.push(ci);
+  });
+  if (pendientes.length === 0) return;
+  if (!confirm('¿Marcar ' + pendientes.length + ' cliente(s) como link enviado?')) return;
+  pendientes.forEach(function(ci) {
+    resenasModalState.sentMap[ci] = true;
+    if (jornada.clientes[ci]) jornada.clientes[ci].reviewLinkSent = true;
+  });
+  renderResenasClientes();
+  apiCall({ action: 'marcarReviewLink', jornadaId: jornada.id, clienteIdxs: JSON.stringify(pendientes), sent: true })
+    .catch(function(e) { console.warn('marcarReviewLink batch fallo:', e); });
 }
 
 function formatearFechaCortaResena(iso) {
@@ -1034,7 +1068,10 @@ function compartirResenaCliente(ci) {
   window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(mensaje), '_blank');
 
   resenasModalState.sentMap[ci] = true;
+  if (jornada.clientes && jornada.clientes[ci]) jornada.clientes[ci].reviewLinkSent = true;
   renderResenasClientes();
+  apiCall({ action: 'marcarReviewLink', jornadaId: jornada.id, clienteIdx: ci, sent: true })
+    .catch(function(e) { console.warn('marcarReviewLink fallo:', e); });
 }
 
 // Listeners para acciones del modal
@@ -1044,6 +1081,7 @@ document.addEventListener('click', function(e) {
   var action = btn.getAttribute('data-action');
   if (action === 'cerrarresenasmodal') { cerrarResenasModal(); return; }
   if (action === 'compartirresena') { var ci = parseInt(btn.getAttribute('data-ci')); compartirResenaCliente(ci); return; }
+  if (action === 'marcartodoslinks') { marcarTodosResenasLinks(); return; }
 });
 
 document.getElementById('appFechaHoy').textContent = formatHoy();
