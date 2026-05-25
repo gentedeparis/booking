@@ -1441,11 +1441,16 @@ window.loadQRs = loadQRs;
 // ============================================
 let marketing = [];
 
+let marketingGuiasList = [];
 async function loadMarketing() {
   document.getElementById('marketingGrid').innerHTML = '<div class="empty-state"><div class="ei">⏳</div>Cargando...</div>';
   try {
-    const res = await apiCall({ action: 'getMarketing' });
-    marketing = Array.isArray(res) ? res : [];
+    const [resMk, resGuias] = await Promise.all([
+      apiCall({ action: 'getMarketing' }),
+      apiCall({ action: 'getGuiasData' })
+    ]);
+    marketing = Array.isArray(resMk) ? resMk : [];
+    marketingGuiasList = (Array.isArray(resGuias) ? resGuias : []).filter(g => g.activo === 'true' || g.activo === true);
     renderMarketing();
   } catch(e) {
     document.getElementById('marketingGrid').innerHTML = '<div class="empty-state"><div class="ei">⚠️</div>Error al cargar</div>';
@@ -1481,9 +1486,18 @@ function renderMarketing() {
     const fIni = m.fecha_inicio ? String(m.fecha_inicio).slice(0,10) : '∞';
     const fFin = m.fecha_fin ? String(m.fecha_fin).slice(0,10) : '∞';
     const repLabel = { 'una_vez':'Una vez por guía', 'diaria':'1× al día', 'siempre':'Cada login' }[m.repeticion] || m.repeticion;
+    let guiasTargeted = '';
+    if (m.guias) {
+      try {
+        const parsed = typeof m.guias === 'string' ? JSON.parse(m.guias) : m.guias;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          guiasTargeted = parsed.length > 3 ? parsed.slice(0,2).join(', ') + ' +' + (parsed.length-2) : parsed.join(', ');
+        }
+      } catch(e) {}
+    }
     return `<tr>
       <td>${estadoBadge}</td>
-      <td><strong>${m.titulo}</strong></td>
+      <td><strong>${m.titulo}</strong>${guiasTargeted ? '<br><span style="font-size:.68rem;color:var(--gold);font-weight:500">👤 ' + guiasTargeted + '</span>' : ''}</td>
       <td style="color:var(--muted);font-size:.78rem;max-width:280px">${mensajeDisp}</td>
       <td style="font-size:.75rem">${fIni} → ${fFin}</td>
       <td style="font-size:.75rem">${repLabel}</td>
@@ -1502,6 +1516,13 @@ function openMarketingModal(id) {
   const m = id ? marketing.find(x => x.id === id) : null;
   const fIni = m?.fecha_inicio ? String(m.fecha_inicio).slice(0,10) : '';
   const fFin = m?.fecha_fin ? String(m.fecha_fin).slice(0,10) : '';
+  let guiasSeleccionados = [];
+  if (m?.guias) {
+    try {
+      const parsed = typeof m.guias === 'string' ? JSON.parse(m.guias) : m.guias;
+      if (Array.isArray(parsed)) guiasSeleccionados = parsed;
+    } catch(e) {}
+  }
   const html = `<div class="modal-overlay open" id="modalMarketing" style="display:flex" onclick="if(event.target===this)closeMarketingModal()">
     <div class="modal" style="max-width:520px">
       <div class="modal-title">${m ? 'Editar' : 'Nuevo'} popup<button class="modal-close" onclick="closeMarketingModal()">✕</button></div>
@@ -1532,6 +1553,13 @@ function openMarketingModal(id) {
           <input id="mPrioridad" type="number" value="${m?.prioridad||0}">
         </div>
       </div>
+      <div class="form-group">
+        <label>Visible para</label>
+        <div style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;padding:8px;max-height:160px;overflow-y:auto;">
+          ${marketingGuiasList.length ? marketingGuiasList.map(g => `<label style="display:flex;align-items:center;gap:8px;padding:4px 6px;cursor:pointer;font-size:.85rem;color:var(--white)"><input type="checkbox" class="mk-guia-cbx" value="${escH(g.nombre)}" ${guiasSeleccionados.indexOf(g.nombre)>-1?'checked':''}><span>${escH(g.nombre)}</span></label>`).join('') : '<div style="color:var(--muted);font-size:.8rem;padding:6px">(Sin guías activos)</div>'}
+        </div>
+        <div style="color:var(--muted);font-size:.72rem;margin-top:4px">💡 No marcar ninguno = visible para TODOS los guías</div>
+      </div>
       <div id="marketingSaveLog" style="display:none;color:var(--muted);font-size:.78rem;margin-top:8px"></div>
       <div class="modal-actions">
         <button class="btn-modal-cancel" onclick="closeMarketingModal()">Cancelar</button>
@@ -1552,6 +1580,8 @@ async function saveMarketing() {
   const fecha_fin = document.getElementById('mFin').value;
   const repeticion = document.getElementById('mRepeticion').value;
   const prioridad = parseInt(document.getElementById('mPrioridad').value) || 0;
+  const guiasMarcados = Array.from(document.querySelectorAll('.mk-guia-cbx:checked')).map(cb => cb.value);
+  const guias = guiasMarcados.length > 0 ? JSON.stringify(guiasMarcados) : '';
   if (!titulo) { alert('El título no puede estar vacío'); return; }
   if (!mensaje) { alert('El mensaje no puede estar vacío'); return; }
   if (fecha_inicio && fecha_fin && fecha_inicio > fecha_fin) {
@@ -1563,7 +1593,7 @@ async function saveMarketing() {
   const data = {
     id: id || '',
     titulo, mensaje, fecha_inicio, fecha_fin,
-    repeticion, prioridad,
+    repeticion, prioridad, guias,
     activo: existing ? existing.activo : 'true'
   };
   try {
