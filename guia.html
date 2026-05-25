@@ -208,6 +208,21 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
 .qr-fullscreen-title{color:var(--white);font-family:Georgia,serif;font-size:1.2rem;margin-bottom:16px;text-align:center;}
 .qr-fullscreen-hint{color:var(--muted);font-size:0.8rem;margin-top:16px;}
 @media(max-width:500px){.qr-card{flex-direction:column;}.qr-card-image{width:100%;max-width:200px;height:auto;aspect-ratio:1;margin:0 auto;}}
+/* Marketing popup intersticial + cards */
+.mk-popup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1300;align-items:center;justify-content:center;padding:20px;}
+.mk-popup-overlay.open{display:flex;}
+.mk-popup{background:var(--charcoal);border:1px solid var(--smoke);border-radius:14px;max-width:480px;width:100%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 12px 60px rgba(0,0,0,0.5);}
+.mk-popup-header{background:var(--navy);padding:18px 22px;border-radius:14px 14px 0 0;display:flex;align-items:flex-start;gap:12px;}
+.mk-popup-header-icon{font-size:1.8rem;flex-shrink:0;}
+.mk-popup-title{flex:1;font-family:Georgia,serif;color:var(--white);font-size:1.15rem;line-height:1.3;}
+.mk-popup-body{flex:1;padding:22px;color:var(--light);font-size:0.95rem;line-height:1.55;white-space:pre-wrap;overflow-y:auto;}
+.mk-popup-footer{padding:16px 22px;border-top:1px solid var(--smoke);}
+.mk-popup-btn{width:100%;background:var(--gold);color:var(--noir);border:none;border-radius:8px;padding:12px;font-size:0.95rem;font-weight:600;cursor:pointer;font-family:inherit;}
+.mk-popup-btn:hover{background:var(--gold-l);}
+.mk-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;margin-bottom:12px;}
+.mk-card-title{font-weight:600;color:var(--white);font-size:0.95rem;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.mk-card-msg{color:var(--light);font-size:0.85rem;line-height:1.5;white-space:pre-wrap;}
+.mk-card-meta{margin-top:10px;color:var(--muted);font-size:0.72rem;display:flex;gap:10px;flex-wrap:wrap;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js" defer></script>
@@ -276,10 +291,9 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
       <span class="menu-icon">📱</span>
       <span class="menu-label">QRs útiles</span>
     </button>
-    <button class="menu-drawer-item" disabled>
+    <button class="menu-drawer-item" data-action="open-menu-item" data-target="marketing">
       <span class="menu-icon">📣</span>
       <span class="menu-label">Marketing</span>
-      <span class="menu-soon">PRÓXIMAMENTE</span>
     </button>
   </div>
 </aside>
@@ -298,6 +312,10 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
       <p style="color:var(--muted);font-size:0.85rem;margin-bottom:20px">Códigos QR para compartir con tus clientes durante o al final del tour.</p>
       <div id="qrsGuiaContainer"><div class="spinner-wrap"><div class="spinner"></div></div></div>
     </div>
+    <div class="menu-modal-pane" id="menuPane-marketing">
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:20px">Avisos y acciones de marketing actualmente activas.</p>
+      <div id="marketingGuiaContainer"><div class="spinner-wrap"><div class="spinner"></div></div></div>
+    </div>
   </div>
 </div>
 
@@ -305,6 +323,19 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
   <div class="qr-fullscreen-title" id="qrFullscreenTitle">—</div>
   <div class="qr-fullscreen-image" id="qrFullscreenImage"></div>
   <div class="qr-fullscreen-hint">Toca cualquier punto para cerrar</div>
+</div>
+
+<div class="mk-popup-overlay" id="mkPopup">
+  <div class="mk-popup">
+    <div class="mk-popup-header">
+      <div class="mk-popup-header-icon">📣</div>
+      <div class="mk-popup-title" id="mkPopupTitle">—</div>
+    </div>
+    <div class="mk-popup-body" id="mkPopupBody"></div>
+    <div class="mk-popup-footer">
+      <button class="mk-popup-btn" data-action="cerrar-mk-popup">✓ Entendido</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -391,6 +422,7 @@ function enterApp() {
   document.getElementById('appFechaHoy').textContent = formatHoy(); 
   loadAll(); 
   startAutoRefresh(); 
+  setTimeout(cargarMarketingActivos, 800);
 }
 function logout() { guiaNombre = ''; jornadasData = []; dossierData = []; pagosData = []; presencia = {}; stopAutoRefresh(); document.getElementById('appWrap').classList.remove('visible'); document.getElementById('loginWrap').style.display = 'flex'; document.getElementById('pinInput').value = ''; document.getElementById('pinInput').classList.remove('error'); document.getElementById('loginError').textContent = ''; clearJornadasError(); }
 
@@ -1036,6 +1068,7 @@ document.addEventListener('click', function(e) {
   if (action === 'ampliar-qr') { ampliarQR(parseInt(btn.getAttribute('data-idx'))); return; }
   if (action === 'cerrar-ampliar-qr') { cerrarAmpliarQR(); return; }
   if (action === 'copiar-qr') { copiarEnlaceQR(parseInt(btn.getAttribute('data-idx'))); return; }
+  if (action === 'cerrar-mk-popup') { cerrarMarketingPopup(); return; }
   var gi = btn.getAttribute('data-gi');
   if (action === 'guardarclientesjornada') { var jid = btn.getAttribute('data-jid'); guardarClientesJornada(jid, gi); return; }
   if (action === 'enviarinforme') { var jid = btn.getAttribute('data-jid'); if (confirm('¿Enviar el informe de asistencia al administrador?')) { enviarInforme(jid, gi); } return; }
@@ -1194,6 +1227,7 @@ function abrirMenuItem(target) {
   document.getElementById('menuModal').classList.add('open');
   if (target === 'voucher') cargarToursActivos();
   if (target === 'qrs') cargarQRsGuia();
+  if (target === 'marketing') renderMarketingPane();
 }
 function cerrarMenuModal() {
   document.getElementById('menuModal').classList.remove('open');
@@ -1277,6 +1311,98 @@ function fallbackCopiarQR(text) {
   document.body.appendChild(ta); ta.select();
   try { document.execCommand('copy'); showToast('✓ Enlace copiado'); } catch(e) { showToast('No se pudo copiar'); }
   document.body.removeChild(ta);
+}
+
+// Marketing popups: intersticial al login + lista en menú
+let mkActivos = [];
+let mkQueue = [];
+
+async function cargarMarketingActivos() {
+  try {
+    var res = await apiCall({ action: 'getMarketingActivos' });
+    mkActivos = Array.isArray(res) ? res : [];
+    mkQueue = mkActivos.filter(function(m) { return !mkYaVisto(m); });
+    if (mkQueue.length) mostrarSiguienteMarketing();
+  } catch(e) {
+    console.warn('Error cargando marketing:', e);
+  }
+}
+
+function mkYaVisto(m) {
+  var rep = (m.repeticion || 'una_vez');
+  if (rep === 'siempre') return false;
+  var key = 'gdp_mk_visto_' + m.id;
+  if (rep === 'diaria') {
+    var today = new Date().toISOString().slice(0,10);
+    key += '_' + today;
+  }
+  try { return localStorage.getItem(key) === '1'; } catch(e) { return false; }
+}
+
+function mkMarcarVisto(m) {
+  var rep = (m.repeticion || 'una_vez');
+  if (rep === 'siempre') return;
+  var key = 'gdp_mk_visto_' + m.id;
+  if (rep === 'diaria') {
+    var today = new Date().toISOString().slice(0,10);
+    key += '_' + today;
+  }
+  try { localStorage.setItem(key, '1'); } catch(e) {}
+}
+
+function mostrarSiguienteMarketing() {
+  if (!mkQueue.length) return;
+  var m = mkQueue[0];
+  document.getElementById('mkPopupTitle').textContent = m.titulo || '';
+  document.getElementById('mkPopupBody').textContent = m.mensaje || '';
+  document.getElementById('mkPopup').classList.add('open');
+}
+
+function cerrarMarketingPopup() {
+  if (!mkQueue.length) {
+    document.getElementById('mkPopup').classList.remove('open');
+    return;
+  }
+  var m = mkQueue.shift();
+  mkMarcarVisto(m);
+  document.getElementById('mkPopup').classList.remove('open');
+  if (mkQueue.length) setTimeout(mostrarSiguienteMarketing, 250);
+}
+
+function renderMarketingPane() {
+  var container = document.getElementById('marketingGuiaContainer');
+  if (!container) return;
+  if (mkActivos.length) { renderMarketingPaneCards(); return; }
+  container.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div></div>';
+  apiCall({ action: 'getMarketingActivos' }).then(function(res) {
+    mkActivos = Array.isArray(res) ? res : [];
+    renderMarketingPaneCards();
+  }).catch(function(e) {
+    container.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px">⚠️ Error al cargar</div>';
+  });
+}
+
+function renderMarketingPaneCards() {
+  var container = document.getElementById('marketingGuiaContainer');
+  if (!container) return;
+  if (!mkActivos.length) {
+    container.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px 20px"><div style="font-size:2.5rem;margin-bottom:10px">📣</div><div>Sin avisos activos.</div></div>';
+    return;
+  }
+  container.innerHTML = mkActivos.map(function(m) {
+    var meta = [];
+    if (m.fecha_inicio || m.fecha_fin) {
+      var fIni = m.fecha_inicio ? String(m.fecha_inicio).slice(0,10) : '∞';
+      var fFin = m.fecha_fin ? String(m.fecha_fin).slice(0,10) : '∞';
+      meta.push('🗓 ' + fIni + ' → ' + fFin);
+    }
+    if (m.prioridad && parseInt(m.prioridad) > 0) meta.push('⭐ Prioridad ' + m.prioridad);
+    return '<div class="mk-card">' +
+      '<div class="mk-card-title">📣 ' + escH(m.titulo || '') + '</div>' +
+      '<div class="mk-card-msg">' + escH(m.mensaje || '') + '</div>' +
+      (meta.length ? '<div class="mk-card-meta">' + meta.join(' · ') + '</div>' : '') +
+      '</div>';
+  }).join('');
 }
 
 document.getElementById('appFechaHoy').textContent = formatHoy();
