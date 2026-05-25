@@ -363,6 +363,7 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
     <div class="nav-group-sep"></div>
     <div class="nav-item" onclick="nav('resenas')" data-sec="resenas"><span>⭐</span><span> Reseñas</span><span class="nav-badge nb-resenas" id="resenasNavBadge" style="display:none">0</span></div>
     <div class="nav-item" onclick="nav('codigos')" data-sec="codigos"><span>🏷</span><span> Códigos</span></div>
+    <div class="nav-item" onclick="nav('qrs')" data-sec="qrs"><span>📱</span><span> QRs</span></div>
     <div class="nav-item" onclick="nav('estadisticas')" data-sec="estadisticas"><span>📊</span><span> Estadísticas</span></div>
   </nav>
   <div class="topbar-right">
@@ -381,6 +382,7 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
   <div class="nav-item" onclick="navMobile('guias')" data-sec="guias"><span>👤</span><span> Guías</span></div>
   <div class="nav-item" onclick="navMobile('resenas')" data-sec="resenas"><span>⭐</span><span> Reseñas</span></div>
   <div class="nav-item" onclick="navMobile('codigos')" data-sec="codigos"><span>🏷</span><span> Códigos</span></div>
+  <div class="nav-item" onclick="navMobile('qrs')" data-sec="qrs"><span>📱</span><span> QRs</span></div>
   <div class="nav-item" onclick="navMobile('estadisticas')" data-sec="estadisticas"><span>📊</span><span> Estadísticas</span></div>
 </div>
 <div class="content">
@@ -418,6 +420,13 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
       <button class="btn btn-gold" onclick="openCodigoModal()">+ Nuevo código</button>
     </div>
     <div id="codigosGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div>
+  </div>
+  <div class="section" id="sec-qrs">
+    <div class="sec-header">
+      <h1 class="sec-title">QRs útiles</h1>
+      <button class="btn btn-gold" onclick="openQRModal()">+ Nuevo QR</button>
+    </div>
+    <div id="qrsGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div>
   </div>
     <div class="section" id="sec-estadisticas">
     <div class="sec-header">
@@ -633,7 +642,7 @@ async function withLoadingButton(btn, busyText, fn){
   finally { btn.disabled = originalDisabled; btn.innerHTML = originalHtml; }
 }
 
-function nav(sec){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));document.getElementById('sec-'+sec).classList.add('active');document.querySelector('[data-sec="'+sec+'"]')?.classList.add('active');if(sec==='operaciones')cargarOperaciones();if(sec==='dash')updateDashboard();if(sec==='dossier')initDossier();if(sec==='guias')initGuias();if(sec==='informes')initInformes();if(sec==='tours')loadTours();if(sec==='bloqueos')loadBloqueos();if(sec==='resenas')cargarResenas();if(sec==='codigos')loadCodigos();}
+function nav(sec){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));document.getElementById('sec-'+sec).classList.add('active');document.querySelector('[data-sec="'+sec+'"]')?.classList.add('active');if(sec==='operaciones')cargarOperaciones();if(sec==='dash')updateDashboard();if(sec==='dossier')initDossier();if(sec==='guias')initGuias();if(sec==='informes')initInformes();if(sec==='tours')loadTours();if(sec==='bloqueos')loadBloqueos();if(sec==='resenas')cargarResenas();if(sec==='codigos')loadCodigos();if(sec==='qrs')loadQRs();}
 function updateInformesNavBadge(){const b=document.getElementById('informesNavBadge'),bm=document.getElementById('informesNavBadgeMobile');const c=informesPendientes.length;if(b){b.textContent=c;b.style.display=c>0?'inline-flex':'none';}if(bm){bm.textContent=c;bm.style.display=c>0?'inline-flex':'none';}}
 function populateTourSelect(){const sel=document.getElementById('bTourId');if(!sel)return;sel.innerHTML='<option value="all">🚫 Todos los tours</option>';tours.filter(t=>t.activo==='true'||t.activo===true).forEach(t=>sel.innerHTML+=`<option value="${t.id}">${escH(t.nombre)}</option>`);}
 async function cargarGuiasParaModales(){try{const r=await apiCall({action:'getGuiasData'});guiasData=Array.isArray(r)?r:[];const sc=document.getElementById('cambiarGuiaSelect'),sd=document.getElementById('duplicarJornadaGuia');const opts='<option value="">— Selecciona —</option>'+guiasData.filter(g=>g.activo==='true'||g.activo===true).map(g=>`<option value="${escH(g.nombre)}">${escH(g.nombre)}</option>`).join('');if(sc)sc.innerHTML=opts;if(sd)sd.innerHTML=opts;}catch(e){console.warn(e);}}
@@ -1290,6 +1299,126 @@ async function deleteCodigo(id) {
   await apiCall({ action: 'deleteCodigo', id });
   loadCodigos();
 }
+
+// ============================================
+// QRs útiles — gestión admin
+// ============================================
+let qrs = [];
+
+async function loadQRs() {
+  document.getElementById('qrsGrid').innerHTML = '<div class="empty-state"><div class="ei">⏳</div>Cargando...</div>';
+  try {
+    const res = await apiCall({ action: 'getQRs' });
+    qrs = Array.isArray(res) ? res : [];
+    renderQRs();
+  } catch(e) {
+    document.getElementById('qrsGrid').innerHTML = '<div class="empty-state"><div class="ei">⚠️</div>Error al cargar</div>';
+  }
+}
+
+function renderQRs() {
+  const grid = document.getElementById('qrsGrid');
+  if (!qrs.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="ei">📱</div>No hay QRs. Crea el primero para que tus guías lo vean.</div>';
+    return;
+  }
+  grid.innerHTML = `<div class="table-wrap"><table><thead><tr>
+    <th>Orden</th><th>Título</th><th>Descripción</th><th>URL</th><th>Estado</th><th></th>
+  </tr></thead><tbody>
+  ${qrs.map(q => {
+    const activo = q.activo === 'true';
+    return `<tr>
+      <td>${q.orden || 0}</td>
+      <td><strong>${q.titulo}</strong></td>
+      <td style="color:var(--muted);font-size:.78rem;max-width:280px">${q.descripcion || ''}</td>
+      <td style="font-size:.75rem"><a href="${q.url}" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:none">${q.url.length>40?q.url.substr(0,40)+'…':q.url}</a></td>
+      <td>${activo ? '<span class="b-green">Activo</span>' : '<span class="b-red">Inactivo</span>'}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="editQR('${q.id}')">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleQR('${q.id}','${activo}')">${activo?'⏸':'▶'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="deleteQR('${q.id}')">🗑</button>
+      </td>
+    </tr>`;
+  }).join('')}
+  </tbody></table></div>`;
+}
+
+function openQRModal(id) {
+  const q = id ? qrs.find(x => x.id === id) : null;
+  const html = `<div class="modal-overlay open" id="modalQR" style="display:flex" onclick="if(event.target===this)closeQRModal()">
+    <div class="modal" style="max-width:480px">
+      <div class="modal-title">${q ? 'Editar' : 'Nuevo'} QR<button class="modal-close" onclick="closeQRModal()">✕</button></div>
+      <input type="hidden" id="qId" value="${q?.id||''}">
+      <div class="form-group"><label>Título *</label>
+        <input id="qTitulo" value="${q?.titulo||''}" placeholder="ej: Mapa restaurantes París">
+      </div>
+      <div class="form-group"><label>Descripción</label>
+        <input id="qDescripcion" value="${q?.descripcion||''}" placeholder="Mapa interactivo de los mejores restaurantes">
+      </div>
+      <div class="form-group"><label>URL *</label>
+        <input id="qUrl" value="${q?.url||''}" placeholder="https://...">
+      </div>
+      <div class="form-group"><label>Orden (menor = más arriba)</label>
+        <input id="qOrden" type="number" value="${q?.orden||0}" placeholder="0">
+      </div>
+      <div id="qrSaveLog" style="display:none;color:var(--muted);font-size:.78rem;margin-top:8px"></div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeQRModal()">Cancelar</button>
+        <button class="btn-modal" onclick="saveQR()">Guardar</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function closeQRModal() { document.getElementById('modalQR')?.remove(); }
+
+async function saveQR() {
+  const id = document.getElementById('qId').value;
+  const titulo = document.getElementById('qTitulo').value.trim();
+  const descripcion = document.getElementById('qDescripcion').value.trim();
+  const url = document.getElementById('qUrl').value.trim();
+  const orden = parseInt(document.getElementById('qOrden').value) || 0;
+  if (!titulo) { alert('El título no puede estar vacío'); return; }
+  if (!url) { alert('La URL no puede estar vacía'); return; }
+  if (!/^https?:\/\//i.test(url)) { alert('La URL debe empezar con http:// o https://'); return; }
+  const log = document.getElementById('qrSaveLog');
+  log.style.display = 'block'; log.textContent = 'Guardando...';
+  const existing = qrs.find(q => q.id === id);
+  const data = {
+    id: id || '',
+    titulo, descripcion, url, orden,
+    activo: existing ? existing.activo : 'true'
+  };
+  try {
+    await apiCall({ action: 'saveQR', data });
+    closeQRModal();
+    loadQRs();
+  } catch(e) { log.textContent = 'Error: ' + e.message; }
+}
+
+function editQR(id) { openQRModal(id); }
+
+async function toggleQR(id, currentActivo) {
+  const q = qrs.find(x => x.id === id);
+  if (!q) return;
+  await apiCall({ action: 'saveQR', data: { ...q, activo: currentActivo === 'true' ? 'false' : 'true' } });
+  loadQRs();
+}
+
+async function deleteQR(id) {
+  if (!confirm('¿Eliminar este QR? Esta acción es irreversible.')) return;
+  await apiCall({ action: 'deleteQR', id });
+  loadQRs();
+}
+
+window.openQRModal = openQRModal;
+window.closeQRModal = closeQRModal;
+window.saveQR = saveQR;
+window.editQR = editQR;
+window.toggleQR = toggleQR;
+window.deleteQR = deleteQR;
+window.loadQRs = loadQRs;
 // ============================================
 // ESTADÍSTICAS — carga y renderizado
 // ============================================
