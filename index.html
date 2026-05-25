@@ -364,6 +364,7 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
     <div class="nav-item" onclick="nav('resenas')" data-sec="resenas"><span>⭐</span><span> Reseñas</span><span class="nav-badge nb-resenas" id="resenasNavBadge" style="display:none">0</span></div>
     <div class="nav-item" onclick="nav('codigos')" data-sec="codigos"><span>🏷</span><span> Códigos</span></div>
     <div class="nav-item" onclick="nav('qrs')" data-sec="qrs"><span>📱</span><span> QRs</span></div>
+    <div class="nav-item" onclick="nav('marketing')" data-sec="marketing"><span>📣</span><span> Marketing</span></div>
     <div class="nav-item" onclick="nav('estadisticas')" data-sec="estadisticas"><span>📊</span><span> Estadísticas</span></div>
   </nav>
   <div class="topbar-right">
@@ -383,6 +384,7 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
   <div class="nav-item" onclick="navMobile('resenas')" data-sec="resenas"><span>⭐</span><span> Reseñas</span></div>
   <div class="nav-item" onclick="navMobile('codigos')" data-sec="codigos"><span>🏷</span><span> Códigos</span></div>
   <div class="nav-item" onclick="navMobile('qrs')" data-sec="qrs"><span>📱</span><span> QRs</span></div>
+  <div class="nav-item" onclick="navMobile('marketing')" data-sec="marketing"><span>📣</span><span> Marketing</span></div>
   <div class="nav-item" onclick="navMobile('estadisticas')" data-sec="estadisticas"><span>📊</span><span> Estadísticas</span></div>
 </div>
 <div class="content">
@@ -427,6 +429,20 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
       <button class="btn btn-gold" onclick="openQRModal()">+ Nuevo QR</button>
     </div>
     <div id="qrsGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div>
+  </div>
+  <div class="section" id="sec-marketing">
+    <div class="sec-header">
+      <h1 class="sec-title">Marketing</h1>
+      <button class="btn btn-gold" onclick="openMarketingModal()">+ Nuevo popup</button>
+    </div>
+    <div id="marketingGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div>
+  </div>
+  <div class="section" id="sec-marketing">
+    <div class="sec-header">
+      <h1 class="sec-title">Marketing</h1>
+      <button class="btn btn-gold" onclick="openMarketingModal()">+ Nuevo popup</button>
+    </div>
+    <div id="marketingGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div>
   </div>
     <div class="section" id="sec-estadisticas">
     <div class="sec-header">
@@ -642,7 +658,7 @@ async function withLoadingButton(btn, busyText, fn){
   finally { btn.disabled = originalDisabled; btn.innerHTML = originalHtml; }
 }
 
-function nav(sec){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));document.getElementById('sec-'+sec).classList.add('active');document.querySelector('[data-sec="'+sec+'"]')?.classList.add('active');if(sec==='operaciones')cargarOperaciones();if(sec==='dash')updateDashboard();if(sec==='dossier')initDossier();if(sec==='guias')initGuias();if(sec==='informes')initInformes();if(sec==='tours')loadTours();if(sec==='bloqueos')loadBloqueos();if(sec==='resenas')cargarResenas();if(sec==='codigos')loadCodigos();if(sec==='qrs')loadQRs();}
+function nav(sec){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));document.getElementById('sec-'+sec).classList.add('active');document.querySelector('[data-sec="'+sec+'"]')?.classList.add('active');if(sec==='operaciones')cargarOperaciones();if(sec==='dash')updateDashboard();if(sec==='dossier')initDossier();if(sec==='guias')initGuias();if(sec==='informes')initInformes();if(sec==='tours')loadTours();if(sec==='bloqueos')loadBloqueos();if(sec==='resenas')cargarResenas();if(sec==='codigos')loadCodigos();if(sec==='qrs')loadQRs();if(sec==='marketing')loadMarketing();}
 function updateInformesNavBadge(){const b=document.getElementById('informesNavBadge'),bm=document.getElementById('informesNavBadgeMobile');const c=informesPendientes.length;if(b){b.textContent=c;b.style.display=c>0?'inline-flex':'none';}if(bm){bm.textContent=c;bm.style.display=c>0?'inline-flex':'none';}}
 function populateTourSelect(){const sel=document.getElementById('bTourId');if(!sel)return;sel.innerHTML='<option value="all">🚫 Todos los tours</option>';tours.filter(t=>t.activo==='true'||t.activo===true).forEach(t=>sel.innerHTML+=`<option value="${t.id}">${escH(t.nombre)}</option>`);}
 async function cargarGuiasParaModales(){try{const r=await apiCall({action:'getGuiasData'});guiasData=Array.isArray(r)?r:[];const sc=document.getElementById('cambiarGuiaSelect'),sd=document.getElementById('duplicarJornadaGuia');const opts='<option value="">— Selecciona —</option>'+guiasData.filter(g=>g.activo==='true'||g.activo===true).map(g=>`<option value="${escH(g.nombre)}">${escH(g.nombre)}</option>`).join('');if(sc)sc.innerHTML=opts;if(sd)sd.innerHTML=opts;}catch(e){console.warn(e);}}
@@ -1419,6 +1435,166 @@ window.editQR = editQR;
 window.toggleQR = toggleQR;
 window.deleteQR = deleteQR;
 window.loadQRs = loadQRs;
+
+// ============================================
+// Marketing popups — gestión admin
+// ============================================
+let marketing = [];
+
+async function loadMarketing() {
+  document.getElementById('marketingGrid').innerHTML = '<div class="empty-state"><div class="ei">⏳</div>Cargando...</div>';
+  try {
+    const res = await apiCall({ action: 'getMarketing' });
+    marketing = Array.isArray(res) ? res : [];
+    renderMarketing();
+  } catch(e) {
+    document.getElementById('marketingGrid').innerHTML = '<div class="empty-state"><div class="ei">⚠️</div>Error al cargar</div>';
+  }
+}
+
+function renderMarketing() {
+  const grid = document.getElementById('marketingGrid');
+  if (!marketing.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="ei">📣</div>No hay popups. Crea el primero para enviar avisos a tus guías.</div>';
+    return;
+  }
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  grid.innerHTML = `<div class="table-wrap"><table><thead><tr>
+    <th>Estado</th><th>Título</th><th>Mensaje</th><th>Rango</th><th>Repetición</th><th>Prio</th><th></th>
+  </tr></thead><tbody>
+  ${marketing.map(m => {
+    const activo = m.activo === 'true';
+    let estadoBadge = '';
+    if (!activo) {
+      estadoBadge = '<span class="b-red">Inactivo</span>';
+    } else {
+      const ini = m.fecha_inicio ? new Date(m.fecha_inicio) : null;
+      const fin = m.fecha_fin ? new Date(m.fecha_fin) : null;
+      if (ini && !isNaN(ini.getTime())) ini.setHours(0,0,0,0);
+      if (fin && !isNaN(fin.getTime())) fin.setHours(23,59,59,999);
+      if (fin && !isNaN(fin.getTime()) && hoy > fin) estadoBadge = '<span class="b-orange">Caducado</span>';
+      else if (ini && !isNaN(ini.getTime()) && hoy < ini) estadoBadge = '<span class="b-blue">Programado</span>';
+      else estadoBadge = '<span class="b-green">Activo</span>';
+    }
+    const mensajeCorto = (m.mensaje || '').replace(/\n+/g, ' ');
+    const mensajeDisp = mensajeCorto.length > 80 ? mensajeCorto.substr(0,80) + '…' : mensajeCorto;
+    const fIni = m.fecha_inicio ? String(m.fecha_inicio).slice(0,10) : '∞';
+    const fFin = m.fecha_fin ? String(m.fecha_fin).slice(0,10) : '∞';
+    const repLabel = { 'una_vez':'Una vez por guía', 'diaria':'1× al día', 'siempre':'Cada login' }[m.repeticion] || m.repeticion;
+    return `<tr>
+      <td>${estadoBadge}</td>
+      <td><strong>${m.titulo}</strong></td>
+      <td style="color:var(--muted);font-size:.78rem;max-width:280px">${mensajeDisp}</td>
+      <td style="font-size:.75rem">${fIni} → ${fFin}</td>
+      <td style="font-size:.75rem">${repLabel}</td>
+      <td>${m.prioridad || 0}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="editMarketing('${m.id}')">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleMarketing('${m.id}','${activo}')">${activo?'⏸':'▶'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="deleteMarketing('${m.id}')">🗑</button>
+      </td>
+    </tr>`;
+  }).join('')}
+  </tbody></table></div>`;
+}
+
+function openMarketingModal(id) {
+  const m = id ? marketing.find(x => x.id === id) : null;
+  const fIni = m?.fecha_inicio ? String(m.fecha_inicio).slice(0,10) : '';
+  const fFin = m?.fecha_fin ? String(m.fecha_fin).slice(0,10) : '';
+  const html = `<div class="modal-overlay open" id="modalMarketing" style="display:flex" onclick="if(event.target===this)closeMarketingModal()">
+    <div class="modal" style="max-width:520px">
+      <div class="modal-title">${m ? 'Editar' : 'Nuevo'} popup<button class="modal-close" onclick="closeMarketingModal()">✕</button></div>
+      <input type="hidden" id="mId" value="${m?.id||''}">
+      <div class="form-group"><label>Título *</label>
+        <input id="mTitulo" value="${m?.titulo||''}" placeholder="ej: 📸 Esta semana — fotos del grupo">
+      </div>
+      <div class="form-group"><label>Mensaje * (saltos de línea permitidos)</label>
+        <textarea id="mMensaje" rows="5" placeholder="Aviso a los guías..." style="resize:vertical;font-family:inherit;width:100%;background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);padding:8px;font-size:.85rem">${m?.mensaje||''}</textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Fecha inicio</label>
+          <input id="mInicio" type="date" value="${fIni}">
+        </div>
+        <div class="form-group"><label>Fecha fin</label>
+          <input id="mFin" type="date" value="${fFin}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Repetición</label>
+          <select id="mRepeticion">
+            <option value="una_vez" ${(!m||m.repeticion==='una_vez')?'selected':''}>Una vez por guía</option>
+            <option value="diaria" ${m?.repeticion==='diaria'?'selected':''}>1× al día</option>
+            <option value="siempre" ${m?.repeticion==='siempre'?'selected':''}>Cada login</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Prioridad (menor = arriba)</label>
+          <input id="mPrioridad" type="number" value="${m?.prioridad||0}">
+        </div>
+      </div>
+      <div id="marketingSaveLog" style="display:none;color:var(--muted);font-size:.78rem;margin-top:8px"></div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeMarketingModal()">Cancelar</button>
+        <button class="btn-modal" onclick="saveMarketing()">Guardar</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function closeMarketingModal() { document.getElementById('modalMarketing')?.remove(); }
+
+async function saveMarketing() {
+  const id = document.getElementById('mId').value;
+  const titulo = document.getElementById('mTitulo').value.trim();
+  const mensaje = document.getElementById('mMensaje').value.trim();
+  const fecha_inicio = document.getElementById('mInicio').value;
+  const fecha_fin = document.getElementById('mFin').value;
+  const repeticion = document.getElementById('mRepeticion').value;
+  const prioridad = parseInt(document.getElementById('mPrioridad').value) || 0;
+  if (!titulo) { alert('El título no puede estar vacío'); return; }
+  if (!mensaje) { alert('El mensaje no puede estar vacío'); return; }
+  if (fecha_inicio && fecha_fin && fecha_inicio > fecha_fin) {
+    alert('La fecha inicio no puede ser posterior a la fecha fin'); return;
+  }
+  const log = document.getElementById('marketingSaveLog');
+  log.style.display = 'block'; log.textContent = 'Guardando...';
+  const existing = marketing.find(m => m.id === id);
+  const data = {
+    id: id || '',
+    titulo, mensaje, fecha_inicio, fecha_fin,
+    repeticion, prioridad,
+    activo: existing ? existing.activo : 'true'
+  };
+  try {
+    await apiCall({ action: 'saveMarketing', data });
+    closeMarketingModal();
+    loadMarketing();
+  } catch(e) { log.textContent = 'Error: ' + e.message; }
+}
+
+function editMarketing(id) { openMarketingModal(id); }
+
+async function toggleMarketing(id, currentActivo) {
+  const m = marketing.find(x => x.id === id);
+  if (!m) return;
+  await apiCall({ action: 'saveMarketing', data: { ...m, activo: currentActivo === 'true' ? 'false' : 'true' } });
+  loadMarketing();
+}
+
+async function deleteMarketing(id) {
+  if (!confirm('¿Eliminar este popup? Esta acción es irreversible.')) return;
+  await apiCall({ action: 'deleteMarketing', id });
+  loadMarketing();
+}
+
+window.openMarketingModal = openMarketingModal;
+window.closeMarketingModal = closeMarketingModal;
+window.saveMarketing = saveMarketing;
+window.editMarketing = editMarketing;
+window.toggleMarketing = toggleMarketing;
+window.deleteMarketing = deleteMarketing;
+window.loadMarketing = loadMarketing;
 // ============================================
 // ESTADÍSTICAS — carga y renderizado
 // ============================================
