@@ -1319,7 +1319,7 @@ let mkQueue = [];
 
 async function cargarMarketingActivos() {
   try {
-    var res = await apiCall({ action: 'getMarketingActivos' });
+    var res = await apiCall({ action: 'getMarketingActivos', guia: guiaNombre });
     mkActivos = Array.isArray(res) ? res : [];
     mkQueue = mkActivos.filter(function(m) { return !mkYaVisto(m); });
     if (mkQueue.length) mostrarSiguienteMarketing();
@@ -1374,7 +1374,7 @@ function renderMarketingPane() {
   if (!container) return;
   if (mkActivos.length) { renderMarketingPaneCards(); return; }
   container.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div></div>';
-  apiCall({ action: 'getMarketingActivos' }).then(function(res) {
+  apiCall({ action: 'getMarketingActivos', guia: guiaNombre }).then(function(res) {
     mkActivos = Array.isArray(res) ? res : [];
     renderMarketingPaneCards();
   }).catch(function(e) {
