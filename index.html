@@ -365,6 +365,7 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
     <div class="nav-item" onclick="nav('codigos')" data-sec="codigos"><span>🏷</span><span> Códigos</span></div>
     <div class="nav-item" onclick="nav('qrs')" data-sec="qrs"><span>📱</span><span> QRs</span></div>
     <div class="nav-item" onclick="nav('marketing')" data-sec="marketing"><span>📣</span><span> Marketing</span></div>
+    <div class="nav-item" onclick="nav('recursos')" data-sec="recursos"><span>📚</span><span> Recursos</span></div>
     <div class="nav-item" onclick="nav('estadisticas')" data-sec="estadisticas"><span>📊</span><span> Estadísticas</span></div>
   </nav>
   <div class="topbar-right">
@@ -385,6 +386,7 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
   <div class="nav-item" onclick="navMobile('codigos')" data-sec="codigos"><span>🏷</span><span> Códigos</span></div>
   <div class="nav-item" onclick="navMobile('qrs')" data-sec="qrs"><span>📱</span><span> QRs</span></div>
   <div class="nav-item" onclick="navMobile('marketing')" data-sec="marketing"><span>📣</span><span> Marketing</span></div>
+  <div class="nav-item" onclick="navMobile('recursos')" data-sec="recursos"><span>📚</span><span> Recursos</span></div>
   <div class="nav-item" onclick="navMobile('estadisticas')" data-sec="estadisticas"><span>📊</span><span> Estadísticas</span></div>
 </div>
 <div class="content">
@@ -436,6 +438,13 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
       <button class="btn btn-gold" onclick="openMarketingModal()">+ Nuevo popup</button>
     </div>
     <div id="marketingGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div>
+  </div>
+  <div class="section" id="sec-recursos">
+    <div class="sec-header">
+      <h1 class="sec-title">Recursos Tours</h1>
+      <button class="btn btn-gold" onclick="openRecursoModal()">+ Nuevo recurso</button>
+    </div>
+    <div id="recursosGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div>
   </div>
   <div class="section" id="sec-marketing">
     <div class="sec-header">
@@ -658,7 +667,7 @@ async function withLoadingButton(btn, busyText, fn){
   finally { btn.disabled = originalDisabled; btn.innerHTML = originalHtml; }
 }
 
-function nav(sec){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));document.getElementById('sec-'+sec).classList.add('active');document.querySelector('[data-sec="'+sec+'"]')?.classList.add('active');if(sec==='operaciones')cargarOperaciones();if(sec==='dash')updateDashboard();if(sec==='dossier')initDossier();if(sec==='guias')initGuias();if(sec==='informes')initInformes();if(sec==='tours')loadTours();if(sec==='bloqueos')loadBloqueos();if(sec==='resenas')cargarResenas();if(sec==='codigos')loadCodigos();if(sec==='qrs')loadQRs();if(sec==='marketing')loadMarketing();}
+function nav(sec){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));document.getElementById('sec-'+sec).classList.add('active');document.querySelector('[data-sec="'+sec+'"]')?.classList.add('active');if(sec==='operaciones')cargarOperaciones();if(sec==='dash')updateDashboard();if(sec==='dossier')initDossier();if(sec==='guias')initGuias();if(sec==='informes')initInformes();if(sec==='tours')loadTours();if(sec==='bloqueos')loadBloqueos();if(sec==='resenas')cargarResenas();if(sec==='codigos')loadCodigos();if(sec==='qrs')loadQRs();if(sec==='marketing')loadMarketing();if(sec==='recursos')loadRecursos();}
 function updateInformesNavBadge(){const b=document.getElementById('informesNavBadge'),bm=document.getElementById('informesNavBadgeMobile');const c=informesPendientes.length;if(b){b.textContent=c;b.style.display=c>0?'inline-flex':'none';}if(bm){bm.textContent=c;bm.style.display=c>0?'inline-flex':'none';}}
 function populateTourSelect(){const sel=document.getElementById('bTourId');if(!sel)return;sel.innerHTML='<option value="all">🚫 Todos los tours</option>';tours.filter(t=>t.activo==='true'||t.activo===true).forEach(t=>sel.innerHTML+=`<option value="${t.id}">${escH(t.nombre)}</option>`);}
 async function cargarGuiasParaModales(){try{const r=await apiCall({action:'getGuiasData'});guiasData=Array.isArray(r)?r:[];const sc=document.getElementById('cambiarGuiaSelect'),sd=document.getElementById('duplicarJornadaGuia');const opts='<option value="">— Selecciona —</option>'+guiasData.filter(g=>g.activo==='true'||g.activo===true).map(g=>`<option value="${escH(g.nombre)}">${escH(g.nombre)}</option>`).join('');if(sc)sc.innerHTML=opts;if(sd)sd.innerHTML=opts;}catch(e){console.warn(e);}}
@@ -1625,6 +1634,169 @@ window.editMarketing = editMarketing;
 window.toggleMarketing = toggleMarketing;
 window.deleteMarketing = deleteMarketing;
 window.loadMarketing = loadMarketing;
+
+// ============================================
+// Recursos Tours — gestión admin
+// ============================================
+let recursos = [];
+let recursosGuiasList = [];
+
+async function loadRecursos() {
+  document.getElementById('recursosGrid').innerHTML = '<div class="empty-state"><div class="ei">⏳</div>Cargando...</div>';
+  try {
+    const [resRec, resGuias] = await Promise.all([
+      apiCall({ action: 'getRecursos' }),
+      apiCall({ action: 'getGuiasData' })
+    ]);
+    recursos = Array.isArray(resRec) ? resRec : [];
+    recursosGuiasList = (Array.isArray(resGuias) ? resGuias : []).filter(g => g.activo === 'true' || g.activo === true);
+    renderRecursos();
+  } catch(e) {
+    document.getElementById('recursosGrid').innerHTML = '<div class="empty-state"><div class="ei">⚠️</div>Error al cargar</div>';
+  }
+}
+
+function renderRecursos() {
+  const grid = document.getElementById('recursosGrid');
+  if (!recursos.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="ei">📚</div>No hay recursos. Crea el primero para compartir con tus guías.</div>';
+    return;
+  }
+  grid.innerHTML = `<div class="table-wrap"><table><thead><tr>
+    <th>Tipo</th><th>Título</th><th>URL</th><th>Estado</th><th>Orden</th><th></th>
+  </tr></thead><tbody>
+  ${recursos.map(r => {
+    const activo = r.activo === 'true';
+    const tipoIcon = r.tipo === 'video' ? '🎥' : '🖼';
+    const tipoLabel = r.tipo === 'video' ? 'Video' : 'Imagen';
+    let guiasTargeted = '';
+    if (r.guias) {
+      try {
+        const parsed = typeof r.guias === 'string' ? JSON.parse(r.guias) : r.guias;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          guiasTargeted = parsed.length > 3 ? parsed.slice(0,2).join(', ') + ' +' + (parsed.length-2) : parsed.join(', ');
+        }
+      } catch(e) {}
+    }
+    const urlCorto = (r.url || '').length > 45 ? r.url.substr(0,45) + '…' : r.url;
+    return `<tr>
+      <td>${tipoIcon} <span style="color:var(--muted);font-size:.72rem">${tipoLabel}</span></td>
+      <td><strong>${r.titulo}</strong>${r.descripcion ? '<br><span style="font-size:.72rem;color:var(--muted)">' + r.descripcion + '</span>' : ''}${guiasTargeted ? '<br><span style="font-size:.68rem;color:var(--gold);font-weight:500">👤 ' + guiasTargeted + '</span>' : ''}</td>
+      <td style="font-size:.75rem"><a href="${r.url}" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:none">${urlCorto}</a></td>
+      <td>${activo ? '<span class="b-green">Activo</span>' : '<span class="b-red">Inactivo</span>'}</td>
+      <td>${r.orden || 0}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="editRecurso('${r.id}')">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleRecurso('${r.id}','${activo}')">${activo?'⏸':'▶'}</button>
+        <button class="btn btn-ghost btn-sm" onclick="deleteRecurso('${r.id}')">🗑</button>
+      </td>
+    </tr>`;
+  }).join('')}
+  </tbody></table></div>`;
+}
+
+function openRecursoModal(id) {
+  const r = id ? recursos.find(x => x.id === id) : null;
+  let guiasSeleccionados = [];
+  if (r?.guias) {
+    try {
+      const parsed = typeof r.guias === 'string' ? JSON.parse(r.guias) : r.guias;
+      if (Array.isArray(parsed)) guiasSeleccionados = parsed;
+    } catch(e) {}
+  }
+  const html = `<div class="modal-overlay open" id="modalRecurso" style="display:flex" onclick="if(event.target===this)closeRecursoModal()">
+    <div class="modal" style="max-width:520px">
+      <div class="modal-title">${r ? 'Editar' : 'Nuevo'} recurso<button class="modal-close" onclick="closeRecursoModal()">✕</button></div>
+      <input type="hidden" id="rId" value="${r?.id||''}">
+      <div class="form-group"><label>Título *</label>
+        <input id="rTitulo" value="${r?.titulo||''}" placeholder="ej: Mapa ruta Marais">
+      </div>
+      <div class="form-group"><label>Descripción</label>
+        <input id="rDescripcion" value="${r?.descripcion||''}" placeholder="Breve contexto del recurso">
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Tipo *</label>
+          <select id="rTipo">
+            <option value="image" ${(!r||r.tipo==='image')?'selected':''}>🖼 Imagen</option>
+            <option value="video" ${r?.tipo==='video'?'selected':''}>🎥 Video</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Orden (menor = arriba)</label>
+          <input id="rOrden" type="number" value="${r?.orden||0}">
+        </div>
+      </div>
+      <div class="form-group"><label>URL *</label>
+        <input id="rUrl" value="${r?.url||''}" placeholder="https://... (imagen .jpg/.png o link YouTube/Vimeo)">
+        <div style="color:var(--muted);font-size:.72rem;margin-top:4px">💡 Imágenes: link directo (.jpg/.png) o de Imgur/Drive público. Videos: link de YouTube, Vimeo o .mp4 directo.</div>
+      </div>
+      <div class="form-group">
+        <label>Visible para</label>
+        <div style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;padding:8px;max-height:160px;overflow-y:auto;">
+          ${recursosGuiasList.length ? recursosGuiasList.map(g => `<label style="display:flex;align-items:center;gap:8px;padding:4px 6px;cursor:pointer;font-size:.85rem;color:var(--white)"><input type="checkbox" class="rec-guia-cbx" value="${escH(g.nombre)}" ${guiasSeleccionados.indexOf(g.nombre)>-1?'checked':''}><span>${escH(g.nombre)}</span></label>`).join('') : '<div style="color:var(--muted);font-size:.8rem;padding:6px">(Sin guías activos)</div>'}
+        </div>
+        <div style="color:var(--muted);font-size:.72rem;margin-top:4px">💡 No marcar ninguno = visible para TODOS los guías</div>
+      </div>
+      <div id="recursoSaveLog" style="display:none;color:var(--muted);font-size:.78rem;margin-top:8px"></div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="closeRecursoModal()">Cancelar</button>
+        <button class="btn-modal" onclick="saveRecurso()">Guardar</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function closeRecursoModal() { document.getElementById('modalRecurso')?.remove(); }
+
+async function saveRecurso() {
+  const id = document.getElementById('rId').value;
+  const titulo = document.getElementById('rTitulo').value.trim();
+  const descripcion = document.getElementById('rDescripcion').value.trim();
+  const tipo = document.getElementById('rTipo').value;
+  const url = document.getElementById('rUrl').value.trim();
+  const orden = parseInt(document.getElementById('rOrden').value) || 0;
+  const guiasMarcados = Array.from(document.querySelectorAll('.rec-guia-cbx:checked')).map(cb => cb.value);
+  const guias = guiasMarcados.length > 0 ? JSON.stringify(guiasMarcados) : '';
+  if (!titulo) { alert('El título no puede estar vacío'); return; }
+  if (!url) { alert('La URL no puede estar vacía'); return; }
+  if (!/^https?:\/\//i.test(url)) { alert('La URL debe empezar con http:// o https://'); return; }
+  const log = document.getElementById('recursoSaveLog');
+  log.style.display = 'block'; log.textContent = 'Guardando...';
+  const existing = recursos.find(r => r.id === id);
+  const data = {
+    id: id || '',
+    titulo, descripcion, tipo, url, orden, guias,
+    activo: existing ? existing.activo : 'true'
+  };
+  try {
+    await apiCall({ action: 'saveRecurso', data });
+    closeRecursoModal();
+    loadRecursos();
+  } catch(e) { log.textContent = 'Error: ' + e.message; }
+}
+
+function editRecurso(id) { openRecursoModal(id); }
+
+async function toggleRecurso(id, currentActivo) {
+  const r = recursos.find(x => x.id === id);
+  if (!r) return;
+  await apiCall({ action: 'saveRecurso', data: { ...r, activo: currentActivo === 'true' ? 'false' : 'true' } });
+  loadRecursos();
+}
+
+async function deleteRecurso(id) {
+  if (!confirm('¿Eliminar este recurso? Esta acción es irreversible.')) return;
+  await apiCall({ action: 'deleteRecurso', id });
+  loadRecursos();
+}
+
+window.openRecursoModal = openRecursoModal;
+window.closeRecursoModal = closeRecursoModal;
+window.saveRecurso = saveRecurso;
+window.editRecurso = editRecurso;
+window.toggleRecurso = toggleRecurso;
+window.deleteRecurso = deleteRecurso;
+window.loadRecursos = loadRecursos;
 // ============================================
 // ESTADÍSTICAS — carga y renderizado
 // ============================================
