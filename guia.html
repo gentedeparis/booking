@@ -1077,7 +1077,124 @@ function renderJornadas() {
 
 function updateStatPresentes(gi) { var el = document.getElementById('stat-pres-' + gi); if (!el) return; var presentes = 0; document.querySelectorAll('[data-action="presencia"][data-gi="' + gi + '"]:checked').forEach(function(chk) { var pkey = chk.getAttribute('data-pkey'); var sep = pkey.lastIndexOf('_'); var jid = pkey.substring(0, sep); var ci = pkey.substring(sep + 1); var ad = document.getElementById('ca-' + jid + '-' + ci); var men = document.getElementById('cm-' + jid + '-' + ci); presentes += (parseInt(ad ? ad.value : 0) || 0) + (parseInt(men ? men.value : 0) || 0); }); var totalClientes = 0; document.querySelectorAll('[data-action="presencia"][data-gi="' + gi + '"]').forEach(function(chk) { var pkey = chk.getAttribute('data-pkey'); var sep = pkey.lastIndexOf('_'); var jid = pkey.substring(0, sep); var ci = pkey.substring(sep + 1); var ad = document.getElementById('ca-' + jid + '-' + ci); var men = document.getElementById('cm-' + jid + '-' + ci); totalClientes += (parseInt(ad ? ad.value : 0) || 0) + (parseInt(men ? men.value : 0) || 0); }); el.innerHTML = 'Presentes: <span>' + presentes + '/' + totalClientes + '</span>'; }
 
-function renderDossier() { var el = document.getElementById('dossierContent'); if (!dossierData.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><div>Sin registros aún.</div></div>'; return; } var byMonth = {}; var mesMap = {}; dossierData.forEach(function(e) { if (!e.fecha) return; var fn = normalizarFecha(e.fecha); if (!fn) return; var p = fn.split('-'); var mkey = p[0] + '-' + p[1]; if (!byMonth[mkey]) byMonth[mkey] = []; byMonth[mkey].push(e); if (!mesMap[mkey]) { var lastDay = new Date(parseInt(p[0]), parseInt(p[1]), 0).getDate(); mesMap[mkey] = { inicio: p[0]+'-'+p[1]+'-01', fin: p[0]+'-'+p[1]+'-'+String(lastDay).padStart(2,'0'), total: 0, pagado: 0 }; } mesMap[mkey].total += parseFloat(e.creditos) || 0; if (e.estadoPago === 'pagado') mesMap[mkey].pagado += parseFloat(e.creditos) || 0; }); var monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']; var monthsShort = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']; var nowM = new Date(); var mesActualGuia = nowM.getFullYear() + '-' + String(nowM.getMonth()+1).padStart(2,'0'); var html = ''; html += '<div style="margin-bottom:24px;">'; var totalGlobal = Object.keys(mesMap).reduce(function(s,k){return s+mesMap[k].total;},0); var pagadoGlobal = Object.keys(mesMap).reduce(function(s,k){return s+mesMap[k].pagado;},0); var pendienteGlobal = totalGlobal - pagadoGlobal; html += '<div style="font-family:Georgia,serif;font-size:1rem;color:var(--white);margin-bottom:12px;">📅 Score mensual</div>'; html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">'; html += '<div style="background:var(--graphite);border:1px solid var(--smoke);border-radius:8px;padding:12px;text-align:center"><div style="font-family:Georgia,serif;font-size:1.3rem;color:var(--white)">' + (totalGlobal % 1 === 0 ? totalGlobal : totalGlobal.toFixed(2)) + ' cr.</div><div style="font-size:.66rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em">Total</div></div>'; html += '<div style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:12px;text-align:center"><div style="font-family:Georgia,serif;font-size:1.3rem;color:var(--gold)">' + (pendienteGlobal % 1 === 0 ? pendienteGlobal : pendienteGlobal.toFixed(2)) + ' cr.</div><div style="font-size:.66rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em">⏳ Pendiente</div></div>'; html += '<div style="background:rgba(39,174,96,.06);border:1px solid rgba(39,174,96,.3);border-radius:8px;padding:12px;text-align:center"><div style="font-family:Georgia,serif;font-size:1.3rem;color:var(--green)">' + (pagadoGlobal % 1 === 0 ? pagadoGlobal : pagadoGlobal.toFixed(2)) + ' cr.</div><div style="font-size:.66rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.08em">✅ Cobrado</div></div>'; html += '</div>'; Object.keys(mesMap).sort().reverse().forEach(function(mkey) { var sm = mesMap[mkey]; var pend = sm.total - sm.pagado; var todo = (pend === 0 && sm.total > 0); var p = mkey.split('-'); var nm = monthNames[parseInt(p[1])-1] + ' ' + p[0]; html += '<div class="dossier-mes' + (todo ? ' pagado' : '') + '">'; html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;">'; html += '<div><div class="dossier-mes-title">' + nm + '</div>'; html += '<div class="dossier-mes-range">' + formatDate(sm.inicio) + ' → ' + formatDate(sm.fin) + '</div></div>'; html += '<div style="text-align:right;">'; html += '<div class="dossier-mes-cred" style="color:' + (todo ? 'var(--green)' : 'var(--gold)') + '">' + sm.total + ' cr.</div>'; if (todo) { html += '<div class="dossier-mes-estado" style="color:var(--green);">✅ Todo cobrado</div>'; } else { html += '<div class="dossier-mes-estado" style="color:var(--gold);">⏳ ' + pend + ' pend.</div>'; if (sm.pagado > 0) html += '<div class="dossier-mes-estado" style="color:var(--green);">✅ ' + sm.pagado + ' cob.</div>'; } html += '</div></div></div>'; }); html += '</div>'; html += '<div style="font-family:Georgia,serif;font-size:1rem;color:var(--white);margin-bottom:14px;">📋 Historial de tours</div>'; Object.keys(byMonth).sort().reverse().forEach(function(mkey) { var p = mkey.split('-'); var nm = (monthsShort[parseInt(p[1])-1]||'').toUpperCase() + ' ' + p[0]; var isCurr = (mkey === mesActualGuia); var acId = 'gm-' + mkey.replace('-','_'); html += '<div class="dossier-sep" onclick="toggleGuiaMes(\'' + acId + '\')">'; html += '<span>/////// ' + nm + ' ///////</span>'; html += '<span id="garr-' + acId + '">' + (isCurr ? '▲' : '▼') + '</span></div>'; html += '<div id="' + acId + '" style="display:' + (isCurr ? 'block' : 'none') + '">'; byMonth[mkey].sort(function(a,b) { return a.fecha > b.fecha ? -1 : 1; }).forEach(function(e) { var ep = e.estadoPago || 'pendiente'; var ip = (ep === 'pagado'); html += '<div class="dossier-entry">'; html += '<div><div class="dossier-entry-tour">' + escH(e.tourNombre||'—') + '</div>'; html += '<div class="dossier-entry-fecha">' + formatDateDDMMYYYY(normalizarFecha(e.fecha)) + (e.horario ? ' · ' + e.horario : '') + '</div>'; html += '<div class="dossier-entry-fecha" style="margin-top:3px;">PAX: ' + (e.paxTotal||0) + ' · Asist: ' + (e.asistentes||0) + '</div></div>'; html += '<div><div class="dossier-entry-cred" style="color:' + (ip ? 'var(--green)' : 'var(--gold)') + '">' + (e.creditos||0) + '</div>'; html += '<div class="dossier-entry-estado" style="color:' + (ip ? 'var(--green)' : 'var(--gold)') + '">' + (ip ? '✅' : '⏳') + '</div></div>'; html += '</div>'; }); html += '</div>'; }); el.innerHTML = html; }
+function renderDossier() {
+  var el = document.getElementById('dossierContent');
+  if (!dossierData.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><div>Sin registros aún.</div></div>';
+    return;
+  }
+
+  var now = new Date();
+  var currentMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  var monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var monthsShort = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  function isTerminal(ep) { return ep === 'anulado' || ep === 'desierto'; }
+
+  // === KPIs: mes actual + pendiente cobro ===
+  var mesActual = 0, pendienteCobro = 0;
+  dossierData.forEach(function(e) {
+    var cr = parseFloat(e.creditos) || 0;
+    var ep = e.estadoPago || 'pendiente';
+    if (isTerminal(ep)) return;
+    if (e.fecha && String(e.fecha).indexOf(currentMonth) === 0 && ep !== 'informe_pendiente') mesActual += cr;
+    if (ep === 'pendiente') pendienteCobro += cr;
+  });
+  var currentMonthLabel = monthNames[now.getMonth()] + ' ' + now.getFullYear();
+
+  var html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">' +
+    '<div style="background:linear-gradient(135deg,var(--charcoal),var(--graphite));border:1px solid var(--gold);border-radius:12px;padding:16px 14px;">' +
+      '<div style="font-size:.62rem;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;">' + currentMonthLabel + '</div>' +
+      '<div style="font-family:Georgia,serif;font-size:1.7rem;color:var(--gold);line-height:1.1;margin-top:4px;">' + mesActual + '<span style="font-size:.85rem;color:rgba(201,168,76,0.7);margin-left:4px;">cr.</span></div>' +
+      '<div style="font-size:.62rem;color:var(--muted);margin-top:4px;">Generados este mes</div>' +
+    '</div>' +
+    '<div style="background:linear-gradient(135deg,var(--charcoal),var(--graphite));border:1px solid rgba(201,168,76,0.35);border-radius:12px;padding:16px 14px;">' +
+      '<div style="font-size:.62rem;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;">Pendiente cobro</div>' +
+      '<div style="font-family:Georgia,serif;font-size:1.7rem;color:var(--white);line-height:1.1;margin-top:4px;">' + pendienteCobro + '<span style="font-size:.85rem;color:var(--muted);margin-left:4px;">cr.</span></div>' +
+      '<div style="font-size:.62rem;color:var(--muted);margin-top:4px;">Te debemos en total</div>' +
+    '</div>' +
+  '</div>';
+
+  // === Resumen mensual y agrupación por mes ===
+  var byMonth = {}, mesMap = {};
+  dossierData.forEach(function(e) {
+    if (!e.fecha) return;
+    var fn = normalizarFecha(e.fecha);
+    if (!fn) return;
+    var p = fn.split('-');
+    var mkey = p[0] + '-' + p[1];
+    if (!byMonth[mkey]) byMonth[mkey] = [];
+    byMonth[mkey].push(e);
+    if (!mesMap[mkey]) {
+      var lastDay = new Date(parseInt(p[0]), parseInt(p[1]), 0).getDate();
+      mesMap[mkey] = { inicio: p[0]+'-'+p[1]+'-01', fin: p[0]+'-'+p[1]+'-'+String(lastDay).padStart(2,'0'), total: 0, pagado: 0 };
+    }
+    var ep = e.estadoPago || 'pendiente';
+    if (!isTerminal(ep) && ep !== 'informe_pendiente') {
+      mesMap[mkey].total += parseFloat(e.creditos) || 0;
+      if (ep === 'pagado') mesMap[mkey].pagado += parseFloat(e.creditos) || 0;
+    }
+  });
+
+  // Cards mensuales (mismo estilo dossier-mes)
+  Object.keys(mesMap).sort().reverse().forEach(function(mkey) {
+    var sm = mesMap[mkey];
+    var pend = sm.total - sm.pagado;
+    var todo = (pend === 0 && sm.total > 0);
+    var p = mkey.split('-');
+    var nm = monthNames[parseInt(p[1])-1] + ' ' + p[0];
+    html += '<div class="dossier-mes' + (todo ? ' pagado' : '') + '">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;">';
+    html += '<div><div class="dossier-mes-title">' + nm + '</div>';
+    html += '<div class="dossier-mes-range">' + formatDate(sm.inicio) + ' → ' + formatDate(sm.fin) + '</div></div>';
+    html += '<div style="text-align:right;">';
+    html += '<div class="dossier-mes-cred" style="color:' + (todo ? 'var(--green)' : 'var(--gold)') + '">' + sm.total + ' cr.</div>';
+    if (todo) {
+      html += '<div class="dossier-mes-estado" style="color:var(--green);">✅ Todo cobrado</div>';
+    } else {
+      html += '<div class="dossier-mes-estado" style="color:var(--gold);">⏳ ' + pend + ' pend.</div>';
+      if (sm.pagado > 0) html += '<div class="dossier-mes-estado" style="color:var(--green);">✅ ' + sm.pagado + ' cob.</div>';
+    }
+    html += '</div></div></div>';
+  });
+
+  // === Historial accordion con entries ===
+  html += '<div style="font-family:Georgia,serif;font-size:1rem;color:var(--white);margin-bottom:14px;margin-top:20px;">📋 Historial de tours</div>';
+
+  Object.keys(byMonth).sort().reverse().forEach(function(mkey) {
+    var p = mkey.split('-');
+    var nm = (monthsShort[parseInt(p[1])-1] || '').toUpperCase() + ' ' + p[0];
+    var isCurr = (mkey === currentMonth);
+    var acId = 'gm-' + mkey.replace('-','_');
+    html += '<div class="dossier-sep" onclick="toggleGuiaMes(\'' + acId + '\')">';
+    html += '<span>/////// ' + nm + ' ///////</span>';
+    html += '<span id="garr-' + acId + '">' + (isCurr ? '▲' : '▼') + '</span></div>';
+    html += '<div id="' + acId + '" style="display:' + (isCurr ? 'block' : 'none') + '">';
+    byMonth[mkey].sort(function(a,b) { return a.fecha > b.fecha ? -1 : 1; }).forEach(function(e) {
+      var ep = e.estadoPago || 'pendiente';
+      var ip = (ep === 'pagado');
+      var esinf = (ep === 'informe_pendiente');
+      var esAnul = (ep === 'anulado');
+      var esDes = (ep === 'desierto');
+      var esTerminal = esAnul || esDes;
+      var credColor = ip ? 'var(--green)' : esinf ? '#a78bfa' : esTerminal ? 'var(--muted)' : 'var(--gold)';
+      var rowOpacity = esTerminal ? 'opacity:0.55;' : '';
+      var estadoLabel = ip ? '✅ Pagado' : esinf ? '📥 Informe' : esAnul ? '❌ Anulado' : esDes ? '🚫 Desierto' : '⏳ Pendiente';
+      var badgeExtra = esAnul ? '<span style="background:rgba(192,57,43,.18);color:#e07b7b;margin-left:6px;font-size:.6rem;padding:2px 6px;border-radius:4px;font-weight:600;">❌ ANULADO</span>' :
+                       esDes ? '<span style="background:rgba(196,98,45,.2);color:#e09a4a;margin-left:6px;font-size:.6rem;padding:2px 6px;border-radius:4px;font-weight:600;">🚫 DESIERTO</span>' :
+                       esinf ? '<span style="background:rgba(167,139,250,.2);color:#a78bfa;margin-left:6px;font-size:.6rem;padding:2px 6px;border-radius:4px;font-weight:600;">📥 INFORME</span>' : '';
+      html += '<div class="dossier-entry" style="' + rowOpacity + '">';
+      html += '<div><div class="dossier-entry-tour">' + escH(e.tourNombre||'—') + badgeExtra + '</div>';
+      html += '<div class="dossier-entry-fecha">' + formatDateDDMMYYYY(normalizarFecha(e.fecha)) + (e.horario ? ' · ' + e.horario : '') + '</div>';
+      html += '<div class="dossier-entry-fecha" style="margin-top:3px;">PAX: ' + (e.paxTotal||0) + ' · Asist: ' + (e.asistentes||0) + '</div></div>';
+      html += '<div><div class="dossier-entry-cred" style="color:' + credColor + '">' + (e.creditos||0) + '</div>';
+      html += '<div class="dossier-entry-estado" style="color:' + credColor + ';white-space:nowrap;">' + estadoLabel + '</div></div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+
+  el.innerHTML = html;
+}
 
 function toggleGuiaMes(id){ var body=document.getElementById(id); if(!body) return; var arr=document.getElementById('garr-'+id); var isOpen=body.style.display!=='none'; body.style.display=isOpen?'none':'block'; if(arr) arr.innerHTML=isOpen?'▼':'▲'; }
 
