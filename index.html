@@ -1679,7 +1679,7 @@ function renderMarketing() {
     }
     return `<tr>
       <td>${estadoBadge}</td>
-      <td><strong>${m.titulo}</strong>${guiasTargeted ? '<br><span style="font-size:.68rem;color:var(--gold);font-weight:500">👤 ' + guiasTargeted + '</span>' : ''}</td>
+      <td><strong>${m.titulo}</strong>${m.mediaUrl ? ' <span title="Con multimedia" style="font-size:.7rem">🎬</span>' : ''}${guiasTargeted ? '<br><span style="font-size:.68rem;color:var(--gold);font-weight:500">👤 ' + guiasTargeted + '</span>' : ''}</td>
       <td style="color:var(--muted);font-size:.78rem;max-width:280px">${mensajeDisp}</td>
       <td style="font-size:.75rem">${fIni} → ${fFin}</td>
       <td style="font-size:.75rem">${repLabel}</td>
@@ -1714,6 +1714,10 @@ function openMarketingModal(id) {
       </div>
       <div class="form-group"><label>Mensaje * (saltos de línea permitidos)</label>
         <textarea id="mMensaje" rows="5" placeholder="Aviso a los guías..." style="resize:vertical;font-family:inherit;width:100%;background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);padding:8px;font-size:.85rem">${m?.mensaje||''}</textarea>
+      </div>
+      <div class="form-group"><label>🎬 URL multimedia — opcional</label>
+        <input id="mMediaUrl" value="${m?.mediaUrl||''}" placeholder="https://... GIF, MP4, YouTube, Vimeo o Drive">
+        <div style="color:var(--muted);font-size:.72rem;margin-top:4px">Se reproduce sola en el popup del guía. Acepta YouTube, Vimeo, enlace directo .mp4/.webm, .gif o imagen. Para tutoriales de pantalla lo más fiable es YouTube (vídeo "no listado").</div>
       </div>
       <div class="form-row">
         <div class="form-group"><label>Fecha inicio</label>
@@ -1762,6 +1766,7 @@ async function saveMarketing() {
   const fecha_fin = document.getElementById('mFin').value;
   const repeticion = document.getElementById('mRepeticion').value;
   const prioridad = parseInt(document.getElementById('mPrioridad').value) || 0;
+  const mediaUrl = (document.getElementById('mMediaUrl')?.value || '').trim();
   const guiasMarcados = Array.from(document.querySelectorAll('.mk-guia-cbx:checked')).map(cb => cb.value);
   const guias = guiasMarcados.length > 0 ? JSON.stringify(guiasMarcados) : '';
   if (!titulo) { alert('El título no puede estar vacío'); return; }
@@ -1775,7 +1780,7 @@ async function saveMarketing() {
   const data = {
     id: id || '',
     titulo, mensaje, fecha_inicio, fecha_fin,
-    repeticion, prioridad, guias,
+    repeticion, prioridad, guias, mediaUrl,
     activo: existing ? existing.activo : 'true'
   };
   try {
