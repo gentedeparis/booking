@@ -360,6 +360,7 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
       <div class="mk-popup-header-icon">📣</div>
       <div class="mk-popup-title" id="mkPopupTitle">—</div>
     </div>
+    <div id="mkPopupMedia" style="display:none;margin-bottom:14px;"></div>
     <div class="mk-popup-body" id="mkPopupBody"></div>
     <div class="mk-popup-footer">
       <button class="mk-popup-btn" data-action="cerrar-mk-popup">✓ Entendido</button>
@@ -1503,10 +1504,37 @@ function mostrarSiguienteMarketing() {
   var m = mkQueue[0];
   document.getElementById('mkPopupTitle').textContent = m.titulo || '';
   document.getElementById('mkPopupBody').textContent = m.mensaje || '';
+  var mediaEl = document.getElementById('mkPopupMedia');
+  if (mediaEl) {
+    var url = (m.mediaUrl || '').trim();
+    if (url) {
+      mediaEl.innerHTML = buildMarketingMedia(url);
+      mediaEl.style.display = 'block';
+    } else {
+      mediaEl.innerHTML = '';
+      mediaEl.style.display = 'none';
+    }
+  }
   document.getElementById('mkPopup').classList.add('open');
 }
 
+function buildMarketingMedia(url) {
+  var info = parseVideoUrl(url);
+  if (info.type === 'youtube') {
+    return '<iframe src="https://www.youtube.com/embed/' + info.id + '?autoplay=1&mute=1&loop=1&playlist=' + info.id + '&controls=0&modestbranding=1&rel=0" allow="autoplay; encrypted-media" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:10px;display:block;border:0;"></iframe>';
+  }
+  if (info.type === 'vimeo') {
+    return '<iframe src="https://player.vimeo.com/video/' + info.id + '?autoplay=1&muted=1&loop=1&background=1" allow="autoplay; fullscreen" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:10px;display:block;border:0;"></iframe>';
+  }
+  if (info.type === 'direct') {
+    return '<video src="' + escH(info.url) + '" autoplay muted loop playsinline style="width:100%;border-radius:10px;display:block;"></video>';
+  }
+  return '<img src="' + escH(normalizeImageUrl(url)) + '" alt="" style="width:100%;border-radius:10px;display:block;">';
+}
+
 function cerrarMarketingPopup() {
+  var me = document.getElementById('mkPopupMedia');
+  if (me) { me.innerHTML = ''; me.style.display = 'none'; }
   if (!mkQueue.length) {
     document.getElementById('mkPopup').classList.remove('open');
     return;
