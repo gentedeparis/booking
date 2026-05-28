@@ -1521,7 +1521,9 @@ function mostrarSiguienteMarketing() {
 function buildMarketingMedia(url) {
   var info = parseVideoUrl(url);
   if (info.type === 'youtube') {
-    return '<iframe src="https://www.youtube.com/embed/' + info.id + '?autoplay=1&mute=1&loop=1&playlist=' + info.id + '&controls=0&modestbranding=1&rel=0" allow="autoplay; encrypted-media" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:10px;display:block;border:0;"></iframe>';
+    var esShort = /\/shorts\//.test(url);
+    var arStyle = esShort ? 'aspect-ratio:9/16;max-width:260px;margin:0 auto;' : 'aspect-ratio:16/9;';
+    return '<iframe src="https://www.youtube.com/embed/' + info.id + '?autoplay=1&mute=1&loop=1&playlist=' + info.id + '&controls=0&modestbranding=1&rel=0" allow="autoplay; encrypted-media" allowfullscreen style="width:100%;' + arStyle + 'border-radius:10px;display:block;border:0;"></iframe>';
   }
   if (info.type === 'vimeo') {
     return '<iframe src="https://player.vimeo.com/video/' + info.id + '?autoplay=1&muted=1&loop=1&background=1" allow="autoplay; fullscreen" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:10px;display:block;border:0;"></iframe>';
@@ -1655,7 +1657,7 @@ function cerrarRecFullscreen() {
 
 function parseVideoUrl(url) {
   var s = String(url || '');
-  var ytMatch = s.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  var ytMatch = s.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
   if (ytMatch) return { type: 'youtube', id: ytMatch[1] };
   var vimeoMatch = s.match(/vimeo\.com\/(\d+)/);
   if (vimeoMatch) return { type: 'vimeo', id: vimeoMatch[1] };
