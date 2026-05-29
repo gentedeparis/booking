@@ -567,7 +567,10 @@ function renderResenasAprobadas(){
     const tour=tours.find(t=>t.id===tourKey||t.nombre===tourKey);
     const tourNombre=tour?tour.nombre:tourKey;
     html+=`<div class="resenas-tour-group">
-      <div class="resenas-tour-group-title">🎯 ${escH(tourNombre)} (${byTour[tourKey].length})</div>`;
+      <div class="resenas-tour-group-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <span>🎯 ${escH(tourNombre)} (${byTour[tourKey].length})</span>
+        ${tour?`<button class="btn btn-ghost btn-sm" onclick="copiarLinkResena(${JSON.stringify(tour).replace(/"/g,'&quot;')})">🔗 Copiar link formulario</button>`:''}
+      </div>`;
     byTour[tourKey].forEach(r=>{
       const fechaFormateada=r.fecha?formatDate(r.fecha):'—';
       html+=`<div class="resena-card" data-id="${r.id}">
