@@ -747,8 +747,54 @@ async function withLoadingButton(btn, busyText, fn){
   try { return await fn(); }
   finally { btn.disabled = originalDisabled; btn.innerHTML = originalHtml; }
 }
-
-function nav(sec){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));document.getElementById('sec-'+sec).classList.add('active');document.querySelector('[data-sec="'+sec+'"]')?.classList.add('active');if(sec==='operaciones')cargarOperaciones();if(sec==='dash')updateDashboard();if(sec==='dossier')initDossier();if(sec==='guias')initGuias();if(sec==='informes')initInformes();if(sec==='tours')loadTours();if(sec==='bloqueos')loadBloqueos();if(sec==='resenas')cargarResenas();if(sec==='codigos')loadCodigos();if(sec==='qrs')loadQRs();if(sec==='marketing')loadMarketing();if(sec==='recursos')loadRecursos();}
+// ─── DESPLEGABLE MARKETING ───
+function toggleNavGroup(event){
+  if(event) event.stopPropagation();
+  const g = document.getElementById('navGroupMarketing');
+  if(g) g.classList.toggle('open');
+}
+// Cerrar el desplegable al hacer clic fuera
+document.addEventListener('click', function(e){
+  const g = document.getElementById('navGroupMarketing');
+  if(g && !g.contains(e.target)) g.classList.remove('open');
+});
+function nav(sec){
+  // Cerrar desplegable Marketing al cambiar de sección
+  const navGroup = document.getElementById('navGroupMarketing');
+  if(navGroup) navGroup.classList.remove('open');
+  
+  // Reset de secciones y nav-items
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.nav-group-trigger').forEach(t=>t.classList.remove('has-active'));
+  
+  // Activar la sección
+  const target = document.getElementById('sec-'+sec);
+  if(target) target.classList.add('active');
+  document.querySelectorAll('[data-sec="'+sec+'"]').forEach(n=>n.classList.add('active'));
+  
+  // Si la sección está dentro del desplegable, marcar también el trigger
+  const inGroup = ['academia','marketing','recursos','codigos','qrs'];
+  if(inGroup.indexOf(sec) > -1){
+    const trigger = document.querySelector('#navGroupMarketing .nav-group-trigger');
+    if(trigger) trigger.classList.add('has-active');
+  }
+  
+  // Cargar datos según la sección
+  if(sec==='operaciones')cargarOperaciones();
+  if(sec==='dash')updateDashboard();
+  if(sec==='dossier')initDossier();
+  if(sec==='guias')initGuias();
+  if(sec==='informes')initInformes();
+  if(sec==='tours')loadTours();
+  if(sec==='bloqueos')loadBloqueos();
+  if(sec==='resenas')cargarResenas();
+  if(sec==='codigos')loadCodigos();
+  if(sec==='qrs')loadQRs();
+  if(sec==='marketing')loadMarketing();
+  if(sec==='recursos')loadRecursos();
+  if(sec==='academia')loadAcademia();
+}
 function updateInformesNavBadge(){const b=document.getElementById('informesNavBadge'),bm=document.getElementById('informesNavBadgeMobile');const c=informesPendientes.length;if(b){b.textContent=c;b.style.display=c>0?'inline-flex':'none';}if(bm){bm.textContent=c;bm.style.display=c>0?'inline-flex':'none';}}
 function populateTourSelect(){const sel=document.getElementById('bTourId');if(!sel)return;sel.innerHTML='<option value="all">🚫 Todos los tours</option>';tours.filter(t=>t.activo==='true'||t.activo===true).forEach(t=>sel.innerHTML+=`<option value="${t.id}">${escH(t.nombre)}</option>`);}
 async function cargarGuiasParaModales(){try{const r=await apiCall({action:'getGuiasData'});guiasData=Array.isArray(r)?r:[];const sc=document.getElementById('cambiarGuiaSelect'),sd=document.getElementById('duplicarJornadaGuia');const opts='<option value="">— Selecciona —</option>'+guiasData.filter(g=>g.activo==='true'||g.activo===true).map(g=>`<option value="${escH(g.nombre)}">${escH(g.nombre)}</option>`).join('');if(sc)sc.innerHTML=opts;if(sd)sd.innerHTML=opts;}catch(e){console.warn(e);}}
