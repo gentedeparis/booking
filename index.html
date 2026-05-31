@@ -793,7 +793,7 @@ function nav(sec){
   if(sec==='qrs')loadQRs();
   if(sec==='marketing')loadMarketing();
   if(sec==='recursos')loadRecursos();
-  if(sec==='academia')loadAcademia();
+  if(sec==='academia' && typeof loadAcademia==='function')loadAcademia();
 }
 function updateInformesNavBadge(){const b=document.getElementById('informesNavBadge'),bm=document.getElementById('informesNavBadgeMobile');const c=informesPendientes.length;if(b){b.textContent=c;b.style.display=c>0?'inline-flex':'none';}if(bm){bm.textContent=c;bm.style.display=c>0?'inline-flex':'none';}}
 function populateTourSelect(){const sel=document.getElementById('bTourId');if(!sel)return;sel.innerHTML='<option value="all">🚫 Todos los tours</option>';tours.filter(t=>t.activo==='true'||t.activo===true).forEach(t=>sel.innerHTML+=`<option value="${t.id}">${escH(t.nombre)}</option>`);}
