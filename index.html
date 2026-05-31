@@ -45,70 +45,6 @@ body{background:var(--noir);color:var(--white);font-family:'DM Sans',sans-serif;
 @keyframes pulse-badge{0%,100%{opacity:1}50%{opacity:.5}}
 .nav-item.disabled{opacity:.4;cursor:default;pointer-events:none;}
 .nav-group-sep{width:1px;height:20px;background:var(--graphite);margin:0 6px;flex-shrink:0;}
-/* ─── DESPLEGABLE MARKETING ─── */
-.nav-group{position:relative;display:flex;align-items:center;}
-.nav-group-trigger{display:flex;align-items:center;gap:7px;padding:18px 14px;color:var(--muted);font-size:.8rem;cursor:pointer;border-bottom:2px solid transparent;transition:all .18s;user-select:none;white-space:nowrap;}
-.nav-group-trigger:hover{color:var(--light);background:rgba(255,255,255,.02);}
-.nav-group-trigger.has-active{color:var(--gold);border-bottom-color:var(--gold);}
-.nav-group-arrow{font-size:.55rem;opacity:.6;margin-left:4px;transition:transform .25s;}
-.nav-group.open .nav-group-arrow{transform:rotate(180deg);}
-.nav-group-menu{display:none;position:absolute;top:100%;left:0;background:var(--charcoal);border:1px solid var(--graphite);border-radius:0 0 10px 10px;min-width:220px;box-shadow:0 12px 28px rgba(0,0,0,.5);z-index:150;overflow:hidden;}
-.nav-group.open .nav-group-menu{display:block;animation:dropIn .2s ease;}
-@keyframes dropIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
-.nav-group-menu .nav-item{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.04);width:100%;}
-.nav-group-menu .nav-item:last-child{border-bottom:none;}
-.nav-group-menu .nav-item:hover{background:rgba(201,168,76,.07);color:var(--light);}
-.nav-group-menu .nav-item.active{background:rgba(201,168,76,.12);color:var(--gold);border-bottom-color:transparent;}
-.nb-academia{background:rgba(201,168,76,.25);color:var(--gold);animation:pulse-badge 2s ease-in-out infinite;}
-
-/* ─── SECCIÓN ACADEMIA — LEADS CICERONE PRO ─── */
-.acad-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
-.acad-stat{background:var(--charcoal);border:1px solid var(--graphite);border-radius:10px;padding:14px;text-align:center;cursor:pointer;transition:all .2s;}
-.acad-stat:hover{border-color:var(--gold);transform:translateY(-2px);}
-.acad-stat.active{border-color:var(--gold);background:rgba(201,168,76,.06);}
-.acad-stat-value{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--gold);line-height:1;}
-.acad-stat-label{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:6px;}
-.acad-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
-.acad-search{flex:1;min-width:220px;background:var(--graphite);border:1px solid var(--smoke);border-radius:8px;color:var(--white);font-size:.85rem;padding:9px 14px;outline:none;}
-.acad-search:focus{border-color:var(--gold);}
-.acad-lead{background:var(--charcoal);border:1px solid var(--graphite);border-left:3px solid var(--smoke);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;transition:all .2s;}
-.acad-lead.estado-nuevo{border-left-color:var(--gold);}
-.acad-lead.estado-contactado{border-left-color:var(--blue);}
-.acad-lead.estado-interesado{border-left-color:#a78bfa;}
-.acad-lead.estado-ganado{border-left-color:var(--green);background:rgba(39,174,96,.04);}
-.acad-lead.estado-perdido{border-left-color:var(--smoke);opacity:.65;}
-.acad-lead:hover{transform:translateX(2px);}
-.acad-lead-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--terra));display:flex;align-items:center;justify-content:center;color:var(--noir);font-weight:700;font-size:.95rem;flex-shrink:0;}
-.acad-lead-info{display:flex;flex-direction:column;gap:3px;min-width:0;}
-.acad-lead-name{font-size:.95rem;font-weight:500;color:var(--white);display:flex;align-items:center;gap:8px;}
-.acad-lead-meta{font-size:.75rem;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;}
-.acad-lead-meta a{color:var(--light);text-decoration:none;}
-.acad-lead-meta a:hover{color:var(--gold);}
-.acad-lead-meta-item{display:inline-flex;align-items:center;gap:4px;}
-.acad-lead-msg{font-size:.78rem;color:var(--light);font-style:italic;margin-top:4px;line-height:1.5;}
-.acad-lead-msg-empty{color:var(--muted);font-style:italic;}
-.acad-badge-plan{display:inline-block;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:10px;font-weight:600;}
-.acad-badge-plan-esencial{background:rgba(255,255,255,.06);color:var(--light);}
-.acad-badge-plan-profesional{background:rgba(201,168,76,.18);color:var(--gold);}
-.acad-badge-plan-elite{background:rgba(139,92,246,.18);color:#a78bfa;}
-.acad-badge-plan-earlybird{background:rgba(39,174,96,.18);color:var(--green);}
-.acad-lead-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
-.acad-action{background:transparent;border:1px solid var(--graphite);color:var(--muted);border-radius:6px;padding:6px 9px;font-size:.78rem;cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;gap:4px;}
-.acad-action:hover{border-color:var(--gold);color:var(--gold);}
-.acad-action.wa{border-color:rgba(37,211,102,.4);color:#25D366;}
-.acad-action.wa:hover{background:rgba(37,211,102,.1);}
-.acad-action.danger:hover{border-color:var(--red);color:var(--red);background:rgba(192,57,43,.08);}
-.acad-estado-select{background:var(--graphite);border:1px solid var(--smoke);color:var(--white);border-radius:6px;padding:5px 8px;font-size:.75rem;cursor:pointer;outline:none;font-family:'DM Sans',sans-serif;}
-.acad-estado-select:focus{border-color:var(--gold);}
-.acad-empty{padding:40px 20px;text-align:center;color:var(--muted);}
-.acad-empty-icon{font-size:2.5rem;margin-bottom:10px;opacity:.4;}
-@media(max-width:768px){
-  .acad-stats{grid-template-columns:repeat(2,1fr);}
-  .acad-lead{grid-template-columns:1fr;gap:10px;}
-  .acad-lead-avatar{display:none;}
-  .acad-lead-actions{justify-content:flex-start;}
-  .nav-group-menu{position:fixed;left:0;right:0;border-radius:0;}
-}
 .topbar-right{display:flex;align-items:center;gap:10px;padding:10px 0;margin-left:auto;}
 .content{padding:20px;max-width:1400px;width:100%;margin:0 auto;}
 .section{display:none;animation:secIn .2s ease;}
@@ -426,23 +362,10 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
     <div class="nav-item" onclick="nav('guias')" data-sec="guias"><span>👤</span><span> Guías</span></div>
     <div class="nav-group-sep"></div>
     <div class="nav-item" onclick="nav('resenas')" data-sec="resenas"><span>⭐</span><span> Reseñas</span><span class="nav-badge nb-resenas" id="resenasNavBadge" style="display:none">0</span></div>
-
-    <!-- ▼ DESPLEGABLE MARKETING ─ agrupa Academia, Popups, Recursos, Códigos, QRs -->
-    <div class="nav-group" id="navGroupMarketing">
-      <div class="nav-group-trigger" onclick="toggleNavGroup(event)">
-        <span>📣</span><span> Marketing</span>
-        <span class="nav-badge nb-academia" id="academiaNavBadge" style="display:none">0</span>
-        <span class="nav-group-arrow">▼</span>
-      </div>
-      <div class="nav-group-menu">
-        <div class="nav-item" onclick="nav('academia')" data-sec="academia"><span>🎓</span><span> Academia</span><span class="nav-badge nb-academia" id="academiaNavBadgeDrop" style="display:none;margin-left:auto">0</span></div>
-        <div class="nav-item" onclick="nav('marketing')" data-sec="marketing"><span>📣</span><span> Popups</span></div>
-        <div class="nav-item" onclick="nav('recursos')" data-sec="recursos"><span>📚</span><span> Recursos</span></div>
-        <div class="nav-item" onclick="nav('codigos')" data-sec="codigos"><span>🏷</span><span> Códigos</span></div>
-        <div class="nav-item" onclick="nav('qrs')" data-sec="qrs"><span>📱</span><span> QRs</span></div>
-      </div>
-    </div>
-
+    <div class="nav-item" onclick="nav('codigos')" data-sec="codigos"><span>🏷</span><span> Códigos</span></div>
+    <div class="nav-item" onclick="nav('qrs')" data-sec="qrs"><span>📱</span><span> QRs</span></div>
+    <div class="nav-item" onclick="nav('marketing')" data-sec="marketing"><span>📣</span><span> Marketing</span></div>
+    <div class="nav-item" onclick="nav('recursos')" data-sec="recursos"><span>📚</span><span> Recursos</span></div>
     <div class="nav-item" onclick="nav('estadisticas')" data-sec="estadisticas"><span>📊</span><span> Estadísticas</span></div>
   </nav>
   <div class="topbar-right">
@@ -460,13 +383,12 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
   <div class="nav-item" onclick="navMobile('dossier')" data-sec="dossier"><span>📁</span><span> Dossier</span></div>
   <div class="nav-item" onclick="navMobile('guias')" data-sec="guias"><span>👤</span><span> Guías</span></div>
   <div class="nav-item" onclick="navMobile('resenas')" data-sec="resenas"><span>⭐</span><span> Reseñas</span></div>
-  <div style="padding:6px 20px;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);background:rgba(201,168,76,.05);border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05);">📣 Marketing</div>
-  <div class="nav-item" onclick="navMobile('academia')" data-sec="academia"><span>🎓</span><span> Academia</span><span class="nav-badge nb-academia" id="academiaNavBadgeMobile" style="display:none">0</span></div>
-  <div class="nav-item" onclick="navMobile('marketing')" data-sec="marketing"><span>📣</span><span> Popups</span></div>
-  <div class="nav-item" onclick="navMobile('recursos')" data-sec="recursos"><span>📚</span><span> Recursos</span></div>
   <div class="nav-item" onclick="navMobile('codigos')" data-sec="codigos"><span>🏷</span><span> Códigos</span></div>
   <div class="nav-item" onclick="navMobile('qrs')" data-sec="qrs"><span>📱</span><span> QRs</span></div>
+  <div class="nav-item" onclick="navMobile('marketing')" data-sec="marketing"><span>📣</span><span> Marketing</span></div>
+  <div class="nav-item" onclick="navMobile('recursos')" data-sec="recursos"><span>📚</span><span> Recursos</span></div>
   <div class="nav-item" onclick="navMobile('estadisticas')" data-sec="estadisticas"><span>📊</span><span> Estadísticas</span></div>
+</div>
 <div class="content">
   <div class="section active" id="sec-dash">
     <div class="stats-row">
@@ -645,10 +567,7 @@ function renderResenasAprobadas(){
     const tour=tours.find(t=>t.id===tourKey||t.nombre===tourKey);
     const tourNombre=tour?tour.nombre:tourKey;
     html+=`<div class="resenas-tour-group">
-      <div class="resenas-tour-group-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-        <span>🎯 ${escH(tourNombre)} (${byTour[tourKey].length})</span>
-        ${tour?`<button class="btn btn-ghost btn-sm" onclick="copiarLinkResena(${JSON.stringify(tour).replace(/"/g,'&quot;')})">🔗 Copiar link formulario</button>`:''}
-      </div>`;
+      <div class="resenas-tour-group-title">🎯 ${escH(tourNombre)} (${byTour[tourKey].length})</div>`;
     byTour[tourKey].forEach(r=>{
       const fechaFormateada=r.fecha?formatDate(r.fecha):'—';
       html+=`<div class="resena-card" data-id="${r.id}">
@@ -747,54 +666,8 @@ async function withLoadingButton(btn, busyText, fn){
   try { return await fn(); }
   finally { btn.disabled = originalDisabled; btn.innerHTML = originalHtml; }
 }
-// ─── DESPLEGABLE MARKETING ───
-function toggleNavGroup(event){
-  if(event) event.stopPropagation();
-  const g = document.getElementById('navGroupMarketing');
-  if(g) g.classList.toggle('open');
-}
-// Cerrar el desplegable al hacer clic fuera
-document.addEventListener('click', function(e){
-  const g = document.getElementById('navGroupMarketing');
-  if(g && !g.contains(e.target)) g.classList.remove('open');
-});
-function nav(sec){
-  // Cerrar desplegable Marketing al cambiar de sección
-  const navGroup = document.getElementById('navGroupMarketing');
-  if(navGroup) navGroup.classList.remove('open');
-  
-  // Reset de secciones y nav-items
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));
-  document.querySelectorAll('.nav-group-trigger').forEach(t=>t.classList.remove('has-active'));
-  
-  // Activar la sección
-  const target = document.getElementById('sec-'+sec);
-  if(target) target.classList.add('active');
-  document.querySelectorAll('[data-sec="'+sec+'"]').forEach(n=>n.classList.add('active'));
-  
-  // Si la sección está dentro del desplegable, marcar también el trigger
-  const inGroup = ['academia','marketing','recursos','codigos','qrs'];
-  if(inGroup.indexOf(sec) > -1){
-    const trigger = document.querySelector('#navGroupMarketing .nav-group-trigger');
-    if(trigger) trigger.classList.add('has-active');
-  }
-  
-  // Cargar datos según la sección
-  if(sec==='operaciones')cargarOperaciones();
-  if(sec==='dash')updateDashboard();
-  if(sec==='dossier')initDossier();
-  if(sec==='guias')initGuias();
-  if(sec==='informes')initInformes();
-  if(sec==='tours')loadTours();
-  if(sec==='bloqueos')loadBloqueos();
-  if(sec==='resenas')cargarResenas();
-  if(sec==='codigos')loadCodigos();
-  if(sec==='qrs')loadQRs();
-  if(sec==='marketing')loadMarketing();
-  if(sec==='recursos')loadRecursos();
-  if(sec==='academia' && typeof loadAcademia==='function')loadAcademia();
-}
+
+function nav(sec){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));document.getElementById('sec-'+sec).classList.add('active');document.querySelector('[data-sec="'+sec+'"]')?.classList.add('active');if(sec==='operaciones')cargarOperaciones();if(sec==='dash')updateDashboard();if(sec==='dossier')initDossier();if(sec==='guias')initGuias();if(sec==='informes')initInformes();if(sec==='tours')loadTours();if(sec==='bloqueos')loadBloqueos();if(sec==='resenas')cargarResenas();if(sec==='codigos')loadCodigos();if(sec==='qrs')loadQRs();if(sec==='marketing')loadMarketing();if(sec==='recursos')loadRecursos();}
 function updateInformesNavBadge(){const b=document.getElementById('informesNavBadge'),bm=document.getElementById('informesNavBadgeMobile');const c=informesPendientes.length;if(b){b.textContent=c;b.style.display=c>0?'inline-flex':'none';}if(bm){bm.textContent=c;bm.style.display=c>0?'inline-flex':'none';}}
 function populateTourSelect(){const sel=document.getElementById('bTourId');if(!sel)return;sel.innerHTML='<option value="all">🚫 Todos los tours</option>';tours.filter(t=>t.activo==='true'||t.activo===true).forEach(t=>sel.innerHTML+=`<option value="${t.id}">${escH(t.nombre)}</option>`);}
 async function cargarGuiasParaModales(){try{const r=await apiCall({action:'getGuiasData'});guiasData=Array.isArray(r)?r:[];const sc=document.getElementById('cambiarGuiaSelect'),sd=document.getElementById('duplicarJornadaGuia');const opts='<option value="">— Selecciona —</option>'+guiasData.filter(g=>g.activo==='true'||g.activo===true).map(g=>`<option value="${escH(g.nombre)}">${escH(g.nombre)}</option>`).join('');if(sc)sc.innerHTML=opts;if(sd)sd.innerHTML=opts;}catch(e){console.warn(e);}}
