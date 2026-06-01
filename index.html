@@ -342,6 +342,56 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
 .stats-country-bar-wrap{height:8px;background:var(--graphite);border-radius:4px;}
 .stats-country-bar{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l));border-radius:4px;}
 .stats-footnote{margin-top:24px;font-size:0.7rem;color:var(--muted);text-align:center;padding:16px;background:var(--charcoal);border-radius:8px;}
+/* ═══════════════════════════════════════════════════════════════
+   ACADEMIA · Cicerone Pro · Gestión de leads
+═══════════════════════════════════════════════════════════════ */
+.acad-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
+.acad-stat{background:var(--charcoal);border:1px solid var(--graphite);border-radius:10px;padding:14px;text-align:center;cursor:pointer;transition:all .2s;}
+.acad-stat:hover{border-color:var(--gold);transform:translateY(-2px);}
+.acad-stat.active{border-color:var(--gold);background:rgba(201,168,76,.06);}
+.acad-stat-value{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--gold);line-height:1;}
+.acad-stat-label{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:6px;}
+.acad-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.acad-search{flex:1;min-width:220px;background:var(--graphite);border:1px solid var(--smoke);border-radius:8px;color:var(--white);font-size:.85rem;padding:9px 14px;outline:none;}
+.acad-search:focus{border-color:var(--gold);}
+.acad-lead{background:var(--charcoal);border:1px solid var(--graphite);border-left:3px solid var(--smoke);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;transition:all .2s;}
+.acad-lead.estado-nuevo{border-left-color:var(--gold);}
+.acad-lead.estado-contactado{border-left-color:var(--blue);}
+.acad-lead.estado-interesado{border-left-color:#a78bfa;}
+.acad-lead.estado-ganado{border-left-color:var(--green);background:rgba(39,174,96,.04);}
+.acad-lead.estado-perdido{border-left-color:var(--smoke);opacity:.65;}
+.acad-lead:hover{transform:translateX(2px);}
+.acad-lead-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--terra));display:flex;align-items:center;justify-content:center;color:var(--noir);font-weight:700;font-size:.95rem;flex-shrink:0;}
+.acad-lead-info{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.acad-lead-name{font-size:.95rem;font-weight:500;color:var(--white);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.acad-lead-meta{font-size:.75rem;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;}
+.acad-lead-meta a{color:var(--light);text-decoration:none;}
+.acad-lead-meta a:hover{color:var(--gold);}
+.acad-lead-meta-item{display:inline-flex;align-items:center;gap:4px;}
+.acad-lead-msg{font-size:.78rem;color:var(--light);font-style:italic;margin-top:4px;line-height:1.5;}
+.acad-lead-msg-empty{color:var(--muted);}
+.acad-badge-plan{display:inline-block;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:10px;font-weight:600;}
+.acad-badge-plan-esencial{background:rgba(255,255,255,.06);color:var(--light);}
+.acad-badge-plan-profesional{background:rgba(201,168,76,.18);color:var(--gold);}
+.acad-badge-plan-elite{background:rgba(139,92,246,.18);color:#a78bfa;}
+.acad-badge-plan-earlybird{background:rgba(39,174,96,.18);color:var(--green);}
+.acad-lead-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+.acad-action{background:transparent;border:1px solid var(--graphite);color:var(--muted);border-radius:6px;padding:6px 9px;font-size:.78rem;cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;gap:4px;}
+.acad-action:hover{border-color:var(--gold);color:var(--gold);}
+.acad-action.wa{border-color:rgba(37,211,102,.4);color:#25D366;}
+.acad-action.wa:hover{background:rgba(37,211,102,.1);}
+.acad-action.danger:hover{border-color:var(--red);color:var(--red);background:rgba(192,57,43,.08);}
+.acad-estado-select{background:var(--graphite);border:1px solid var(--smoke);color:var(--white);border-radius:6px;padding:5px 8px;font-size:.75rem;cursor:pointer;outline:none;font-family:inherit;}
+.acad-estado-select:focus{border-color:var(--gold);}
+.acad-empty{padding:40px 20px;text-align:center;color:var(--muted);}
+.acad-empty-icon{font-size:2.5rem;margin-bottom:10px;opacity:.4;}
+.nb-academia{background:rgba(201,168,76,.25);color:var(--gold);}
+@media(max-width:768px){
+  .acad-stats{grid-template-columns:repeat(2,1fr);}
+  .acad-lead{grid-template-columns:1fr;gap:10px;}
+  .acad-lead-avatar{display:none;}
+  .acad-lead-actions{justify-content:flex-start;}
+}
 </style>
 </head>
 <body>
@@ -367,6 +417,7 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
     <div class="nav-item" onclick="nav('marketing')" data-sec="marketing"><span>📣</span><span> Marketing</span></div>
     <div class="nav-item" onclick="nav('recursos')" data-sec="recursos"><span>📚</span><span> Recursos</span></div>
     <div class="nav-item" onclick="nav('estadisticas')" data-sec="estadisticas"><span>📊</span><span> Estadísticas</span></div>
+    <div class="nav-item" onclick="nav('academia')" data-sec="academia"><span>🎓</span><span> Academia</span><span class="nav-badge nb-academia" id="academiaNavBadge" style="display:none">0</span></div>
   </nav>
   <div class="topbar-right">
     <div class="sync-wrap"><div class="sync-dot" id="syncDot"></div><span id="syncText">Conectando...</span></div>
@@ -388,6 +439,7 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
   <div class="nav-item" onclick="navMobile('marketing')" data-sec="marketing"><span>📣</span><span> Marketing</span></div>
   <div class="nav-item" onclick="navMobile('recursos')" data-sec="recursos"><span>📚</span><span> Recursos</span></div>
   <div class="nav-item" onclick="navMobile('estadisticas')" data-sec="estadisticas"><span>📊</span><span> Estadísticas</span></div>
+  <div class="nav-item" onclick="navMobile('academia')" data-sec="academia"><span>🎓</span><span> Academia</span><span class="nav-badge nb-academia" id="academiaNavBadgeMobile" style="display:none">0</span></div>
 </div>
 <div class="content">
   <div class="section active" id="sec-dash">
@@ -453,7 +505,73 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
     </div>
     <div id="marketingGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div>
   </div>
-    <div class="section" id="sec-estadisticas">
+  <!-- ╔══════════════════════════════════════════════════════════╗ -->
+  <!-- ║  ACADEMIA · Cicerone Pro / GDP Academia · Leads          ║ -->
+  <!-- ╚══════════════════════════════════════════════════════════╝ -->
+  <div class="section" id="sec-academia">
+    <div class="sec-header">
+      <h1 class="sec-title">🎓 Academia · Cicerone Pro</h1>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="loadAcademia()">↻ Refrescar</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportarAcademiaCSV()">⬇ CSV</button>
+      </div>
+    </div>
+
+    <!-- Stats / Filtros por estado -->
+    <div class="acad-stats" id="acadStats">
+      <div class="acad-stat active" data-filtro="todos" onclick="filtrarAcademia('todos')">
+        <div class="acad-stat-value" id="acadStatTodos">0</div>
+        <div class="acad-stat-label">Total</div>
+      </div>
+      <div class="acad-stat" data-filtro="nuevo" onclick="filtrarAcademia('nuevo')">
+        <div class="acad-stat-value" id="acadStatNuevo" style="color:var(--gold)">0</div>
+        <div class="acad-stat-label">Nuevos</div>
+      </div>
+      <div class="acad-stat" data-filtro="contactado" onclick="filtrarAcademia('contactado')">
+        <div class="acad-stat-value" id="acadStatContactado" style="color:var(--blue)">0</div>
+        <div class="acad-stat-label">Contactados</div>
+      </div>
+      <div class="acad-stat" data-filtro="interesado" onclick="filtrarAcademia('interesado')">
+        <div class="acad-stat-value" id="acadStatInteresado" style="color:#a78bfa">0</div>
+        <div class="acad-stat-label">Interesados</div>
+      </div>
+      <div class="acad-stat" data-filtro="ganado" onclick="filtrarAcademia('ganado')">
+        <div class="acad-stat-value" id="acadStatGanado" style="color:var(--green)">0</div>
+        <div class="acad-stat-label">Ganados</div>
+      </div>
+    </div>
+
+    <!-- Toolbar: buscador -->
+    <div class="acad-toolbar">
+      <input type="text" class="acad-search" id="acadSearch" placeholder="🔍 Buscar por nombre, email o plan..." oninput="renderAcademia()">
+    </div>
+
+    <!-- Lista de leads -->
+    <div id="acadLeadsContainer">
+      <div class="empty-state"><div class="ei">⏳</div>Cargando...</div>
+    </div>
+  </div>
+
+  <!-- Modal de notas internas del lead -->
+  <div id="acadNotasModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-title">📝 Notas internas <button class="modal-close" onclick="cerrarModal('acadNotasModal')">✕</button></div>
+      <input type="hidden" id="acadNotasLeadId">
+      <div class="form-group">
+        <label>Lead</label>
+        <div id="acadNotasLeadInfo" style="color:var(--light);font-size:.85rem;padding:8px 0;"></div>
+      </div>
+      <div class="form-group">
+        <label>Notas privadas (solo tú las ves)</label>
+        <textarea id="acadNotasTexto" placeholder="Apunta seguimientos, observaciones, próximo paso..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-cancel" onclick="cerrarModal('acadNotasModal')">Cancelar</button>
+        <button class="btn-modal" onclick="guardarNotasLead()">Guardar notas</button>
+      </div>
+    </div>
+  </div>  
+  <div class="section" id="sec-estadisticas">
     <div class="sec-header">
       <h1 class="sec-title">📊 Estadísticas</h1>
       <button class="btn btn-gold btn-sm" onclick="copiarInformeEstadisticas()" style="margin-left:8px;">📋 Copiar informe para analista</button>
@@ -2234,6 +2352,244 @@ window.nav = function(sec) {
 document.addEventListener('DOMContentLoaded', () => {
   initStatsPeriodSelector();
 });
+// ╔══════════════════════════════════════════════════════════╗
+// ║         ACADEMIA · Cicerone Pro — Gestión de leads        ║
+// ╚══════════════════════════════════════════════════════════╝
+let leadsAcademia = [];
+let filtroAcademiaActual = 'todos';
+
+async function loadAcademia(){
+  const c = document.getElementById('acadLeadsContainer');
+  if(!c) return;
+  c.innerHTML = '<div class="empty-state"><div class="ei">⏳</div>Cargando leads...</div>';
+  try {
+    const r = await apiCall({action:'getLeadsAcademia'});
+    leadsAcademia = Array.isArray(r) ? r : [];
+    actualizarStatsAcademia();
+    actualizarBadgeAcademia();
+    renderAcademia();
+  } catch(e){
+    c.innerHTML = '<div class="acad-empty"><div class="acad-empty-icon">⚠️</div>Error: ' + escH(e.message) + '</div>';
+  }
+}
+
+function actualizarStatsAcademia(){
+  const total = leadsAcademia.length;
+  const por = function(estado){ return leadsAcademia.filter(function(l){ return (l.estado||'nuevo') === estado; }).length; };
+  document.getElementById('acadStatTodos').textContent = total;
+  document.getElementById('acadStatNuevo').textContent = por('nuevo');
+  document.getElementById('acadStatContactado').textContent = por('contactado');
+  document.getElementById('acadStatInteresado').textContent = por('interesado');
+  document.getElementById('acadStatGanado').textContent = por('ganado');
+}
+
+function actualizarBadgeAcademia(){
+  const nuevos = leadsAcademia.filter(function(l){ return (l.estado||'nuevo') === 'nuevo'; }).length;
+  ['academiaNavBadge','academiaNavBadgeMobile'].forEach(function(id){
+    const b = document.getElementById(id);
+    if(b){ b.textContent = nuevos; b.style.display = nuevos > 0 ? 'inline-flex' : 'none'; }
+  });
+}
+
+function filtrarAcademia(estado){
+  filtroAcademiaActual = estado;
+  document.querySelectorAll('#acadStats .acad-stat').forEach(function(s){ s.classList.remove('active'); });
+  const activo = document.querySelector('#acadStats [data-filtro="'+estado+'"]');
+  if(activo) activo.classList.add('active');
+  renderAcademia();
+}
+
+function renderAcademia(){
+  const c = document.getElementById('acadLeadsContainer');
+  if(!c) return;
+  const q = (document.getElementById('acadSearch') ? document.getElementById('acadSearch').value : '').toLowerCase().trim();
+  let data = leadsAcademia.slice();
+  if(filtroAcademiaActual !== 'todos'){
+    data = data.filter(function(l){ return (l.estado||'nuevo') === filtroAcademiaActual; });
+  }
+  if(q){
+    data = data.filter(function(l){
+      return String(l.nombre||'').toLowerCase().includes(q) ||
+             String(l.email||'').toLowerCase().includes(q) ||
+             String(l.plan||'').toLowerCase().includes(q) ||
+             String(l.mensaje||'').toLowerCase().includes(q);
+    });
+  }
+  if(!data.length){
+    c.innerHTML = '<div class="acad-empty"><div class="acad-empty-icon">📭</div>Sin leads en esta vista.<br><span style="font-size:.8rem;opacity:.7">' + (q ? 'Prueba sin filtro o cambia la búsqueda.' : 'Cuando alguien rellene el formulario de Cicerone Pro, aparecerá aquí.') + '</span></div>';
+    return;
+  }
+  let html = '';
+  data.forEach(function(lead){
+    const estado = lead.estado || 'nuevo';
+    const inicial = (String(lead.nombre||'?').trim().charAt(0) || '?').toUpperCase();
+    const plan = String(lead.plan||'').toLowerCase();
+    let planClass = 'acad-badge-plan-esencial';
+    if(plan.indexOf('profesional') > -1) planClass = 'acad-badge-plan-profesional';
+    else if(plan.indexOf('élite') > -1 || plan.indexOf('elite') > -1) planClass = 'acad-badge-plan-elite';
+    else if(plan.indexOf('early') > -1) planClass = 'acad-badge-plan-earlybird';
+    const fechaCorta = lead.fecha || (lead.timestamp ? String(lead.timestamp).substring(0,10) : '');
+    html += '<div class="acad-lead estado-' + estado + '">' +
+      '<div class="acad-lead-avatar">' + escH(inicial) + '</div>' +
+      '<div class="acad-lead-info">' +
+        '<div class="acad-lead-name">' + escH(lead.nombre||'(sin nombre)') +
+          (lead.plan ? '<span class="acad-badge-plan ' + planClass + '">' + escH(lead.plan) + '</span>' : '') +
+        '</div>' +
+        '<div class="acad-lead-meta">' +
+          (lead.email ? '<span class="acad-lead-meta-item">✉ <a href="mailto:' + escH(lead.email) + '">' + escH(lead.email) + '</a></span>' : '') +
+          (lead.whatsapp ? '<span class="acad-lead-meta-item">📱 ' + escH(lead.whatsapp) + '</span>' : '') +
+          '<span class="acad-lead-meta-item">📅 ' + escH(fechaCorta) + '</span>' +
+          (lead.origen ? '<span class="acad-lead-meta-item" style="opacity:.65">via ' + escH(lead.origen) + '</span>' : '') +
+        '</div>' +
+        (lead.mensaje ? '<div class="acad-lead-msg">"' + escH(lead.mensaje) + '"</div>' : '<div class="acad-lead-msg acad-lead-msg-empty">(sin mensaje)</div>') +
+        (lead.notas ? '<div class="acad-lead-msg" style="background:rgba(201,168,76,.06);padding:6px 10px;border-radius:6px;border-left:2px solid var(--gold);margin-top:6px;font-style:normal">📝 ' + escH(lead.notas) + '</div>' : '') +
+      '</div>' +
+      '<div class="acad-lead-actions">' +
+        '<select class="acad-estado-select" onchange="cambiarEstadoLead(\'' + escH(lead.id) + '\', this.value)">' +
+          '<option value="nuevo"' + (estado==='nuevo'?' selected':'') + '>🟡 Nuevo</option>' +
+          '<option value="contactado"' + (estado==='contactado'?' selected':'') + '>🔵 Contactado</option>' +
+          '<option value="interesado"' + (estado==='interesado'?' selected':'') + '>🟣 Interesado</option>' +
+          '<option value="ganado"' + (estado==='ganado'?' selected':'') + '>🟢 Ganado</option>' +
+          '<option value="perdido"' + (estado==='perdido'?' selected':'') + '>⚪ Perdido</option>' +
+        '</select>' +
+        (lead.whatsapp ? '<button class="acad-action wa" onclick="abrirWhatsAppLead(\'' + escH(lead.id) + '\')" title="Abrir WhatsApp">💬 WA</button>' : '') +
+        '<button class="acad-action" onclick="editarNotasLead(\'' + escH(lead.id) + '\')" title="Notas internas">📝</button>' +
+        '<button class="acad-action danger" onclick="eliminarLead(\'' + escH(lead.id) + '\')" title="Eliminar">🗑</button>' +
+      '</div>' +
+    '</div>';
+  });
+  c.innerHTML = html;
+}
+
+async function cambiarEstadoLead(id, nuevoEstado){
+  showLoading();
+  try {
+    await apiCall({action:'updateLeadAcademia', id:id, estado:nuevoEstado});
+    const lead = leadsAcademia.find(function(l){ return String(l.id) === String(id); });
+    if(lead) lead.estado = nuevoEstado;
+    actualizarStatsAcademia();
+    actualizarBadgeAcademia();
+    renderAcademia();
+    showToast('Estado actualizado');
+  } catch(e){
+    showToast('Error: ' + e.message, 'error');
+  }
+  hideLoading();
+}
+
+function abrirWhatsAppLead(id){
+  const lead = leadsAcademia.find(function(l){ return String(l.id) === String(id); });
+  if(!lead || !lead.whatsapp){ showToast('Sin WhatsApp', 'error'); return; }
+  const wa = String(lead.whatsapp).replace(/[^0-9]/g, '');
+  const nombre = String(lead.nombre||'').split(' ')[0] || '';
+  const mensaje = 'Hola ' + nombre + ', soy Eduardo de Gente de París. Vi que dejaste tus datos para Cicerone Pro. ¿Qué dudas tienes?';
+  const url = 'https://wa.me/' + wa + '?text=' + encodeURIComponent(mensaje);
+  window.open(url, '_blank');
+  if((lead.estado||'nuevo') === 'nuevo'){
+    cambiarEstadoLead(id, 'contactado');
+  }
+}
+
+function editarNotasLead(id){
+  const lead = leadsAcademia.find(function(l){ return String(l.id) === String(id); });
+  if(!lead) return;
+  document.getElementById('acadNotasLeadId').value = id;
+  document.getElementById('acadNotasLeadInfo').innerHTML = '<strong>' + escH(lead.nombre||'') + '</strong> · ' + escH(lead.email||'') + (lead.plan ? ' · ' + escH(lead.plan) : '');
+  document.getElementById('acadNotasTexto').value = lead.notas || '';
+  document.getElementById('acadNotasModal').classList.add('open');
+}
+
+async function guardarNotasLead(){
+  const id = document.getElementById('acadNotasLeadId').value;
+  const notas = document.getElementById('acadNotasTexto').value;
+  showLoading();
+  try {
+    await apiCall({action:'updateLeadAcademia', id:id, notas:notas});
+    const lead = leadsAcademia.find(function(l){ return String(l.id) === String(id); });
+    if(lead) lead.notas = notas;
+    cerrarModal('acadNotasModal');
+    renderAcademia();
+    showToast('Notas guardadas');
+  } catch(e){
+    showToast('Error: ' + e.message, 'error');
+  }
+  hideLoading();
+}
+
+async function eliminarLead(id){
+  if(!confirm('¿Eliminar este lead permanentemente?')) return;
+  showLoading();
+  try {
+    await apiCall({action:'deleteLeadAcademia', id:id});
+    leadsAcademia = leadsAcademia.filter(function(l){ return String(l.id) !== String(id); });
+    actualizarStatsAcademia();
+    actualizarBadgeAcademia();
+    renderAcademia();
+    showToast('Lead eliminado');
+  } catch(e){
+    showToast('Error: ' + e.message, 'error');
+  }
+  hideLoading();
+}
+
+function exportarAcademiaCSV(){
+  if(!leadsAcademia.length){ showToast('No hay leads para exportar', 'error'); return; }
+  const headers = ['Fecha','Nombre','Email','WhatsApp','Plan','Mensaje','Origen','Estado','Notas'];
+  const rows = leadsAcademia.map(function(l){ return [
+    l.fecha||'', l.nombre||'', l.email||'', l.whatsapp||'',
+    l.plan||'', l.mensaje||'', l.origen||'', l.estado||'nuevo', l.notas||''
+  ]; });
+  const csv = [headers].concat(rows).map(function(r){
+    return r.map(function(c){ return '"' + String(c).replace(/"/g,'""') + '"'; }).join(',');
+  }).join('\n');
+  const blob = new Blob(['\ufeff' + csv], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'leads_cicerone_pro_' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Cargar leads en background al arrancar (para mostrar el badge)
+document.addEventListener('DOMContentLoaded', function(){
+  setTimeout(function(){
+    if(typeof apiCall === 'function'){
+      apiCall({action:'getLeadsAcademia'}).then(function(r){
+        leadsAcademia = Array.isArray(r) ? r : [];
+        actualizarBadgeAcademia();
+      }).catch(function(){});
+    }
+  }, 1500);
+});
+
+// Hook al nav() existente para cargar Academia cuando se entra en la pestaña
+(function(){
+  const _origNav = window.nav;
+  if(typeof _origNav === 'function'){
+    window.nav = function(sec){
+      _origNav(sec);
+      if(sec === 'academia') loadAcademia();
+    };
+  }
+  const _origNavMobile = window.navMobile;
+  if(typeof _origNavMobile === 'function'){
+    window.navMobile = function(sec){
+      _origNavMobile(sec);
+      if(sec === 'academia') loadAcademia();
+    };
+  }
+})();
+
+window.loadAcademia = loadAcademia;
+window.filtrarAcademia = filtrarAcademia;
+window.renderAcademia = renderAcademia;
+window.cambiarEstadoLead = cambiarEstadoLead;
+window.abrirWhatsAppLead = abrirWhatsAppLead;
+window.editarNotasLead = editarNotasLead;
+window.guardarNotasLead = guardarNotasLead;
+window.eliminarLead = eliminarLead;
+window.exportarAcademiaCSV = exportarAcademiaCSV;
 </script>
 </body>
 </html>
