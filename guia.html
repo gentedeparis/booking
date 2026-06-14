@@ -919,10 +919,15 @@ function guardarClientesJornada(jornadaId, gi, isAuto) {
     var menEl  = document.getElementById('cm-' + jornadaId + '-' + ci);
     var waEl   = document.getElementById('cw-' + jornadaId + '-' + ci);
     if (!nameEl) return;
+    var prev = j.clientes[ci] || {};
+    var nuevosAdultos = parseInt(adEl ? adEl.value : 0) || 0;
+    var nuevosMenores = parseInt(menEl ? menEl.value : 0) || 0;
     clientes.push({
-      name:   nameEl.value.trim() || (j.clientes[ci] ? j.clientes[ci].name : '—'),
-      adults: parseInt(adEl ? adEl.value : 0) || 0,
-      minors: parseInt(menEl ? menEl.value : 0) || 0,
+      name:   nameEl.value.trim() || (prev.name || '—'),
+      adults: nuevosAdultos,
+      minors: nuevosMenores,
+      origAdults: (prev.origAdults !== undefined) ? prev.origAdults : nuevosAdultos,
+      origMinors: (prev.origMinors !== undefined) ? prev.origMinors : nuevosMenores,
       wa:     waEl ? waEl.value.trim() : '',
       present: !!presencia[jornadaId + '_' + ci],
       walkin: false
@@ -963,10 +968,14 @@ function enviarInforme(jornadaId, gi) {
   var totalPax = clientes.reduce(function(s,c) { return s+(parseInt(c.adults)||0)+(parseInt(c.minors)||0); }, 0);
   // Preservar lista de clientes con marca de presencia para el histórico de ADMIN
   var clientesConPresencia = clientes.map(function(c, ci) {
+    var ad = parseInt(c.adults) || 0;
+    var me = parseInt(c.minors) || 0;
     return {
       name: c.name || '',
-      adults: parseInt(c.adults) || 0,
-      minors: parseInt(c.minors) || 0,
+      adults: ad,
+      minors: me,
+      origAdults: (c.origAdults !== undefined) ? (parseInt(c.origAdults) || 0) : ad,
+      origMinors: (c.origMinors !== undefined) ? (parseInt(c.origMinors) || 0) : me,
       wa: c.wa || '',
       present: !!presencia[j.id + '_' + ci]
     };
@@ -1221,7 +1230,7 @@ document.addEventListener('click', function(e) {
   if (action === 'guardarclientesjornada') { var jid = btn.getAttribute('data-jid'); guardarClientesJornada(jid, gi); return; }
   if (action === 'enviarinforme') { var jid = btn.getAttribute('data-jid'); if (confirm('¿Enviar el informe de asistencia al administrador?')) { enviarInforme(jid, gi); } return; }
   if (action === 'scancliente') { escanearClienteOCR(gi); return; }
-  if (action === 'addcliente') { var jid = btn.getAttribute('data-jid'); var nombreEl = document.getElementById('nc-nombre-' + gi); var adEl = document.getElementById('nc-ad-' + gi); var menEl = document.getElementById('nc-men-' + gi); var waEl = document.getElementById('nc-wa-' + gi); var nombre = nombreEl ? nombreEl.value.trim() : ''; if (!nombre) { showToast('Escribe el nombre del cliente'); return; } var j = jornadasData.find(function(x) { return x.id === jid; }); if (!j) return; j.clientes.push({ name: nombre, adults: parseInt(adEl ? adEl.value : 1) || 1, minors: parseInt(menEl ? menEl.value : 0) || 0, wa: waEl ? waEl.value.trim() : '', present: false, walkin: false }); renderJornadas(); if (saveTimers[jid]) clearTimeout(saveTimers[jid]); guardarClientesJornada(jid, gi, true); showToast('Cliente añadido ✓ guardado'); return; }
+  if (action === 'addcliente') { var jid = btn.getAttribute('data-jid'); var nombreEl = document.getElementById('nc-nombre-' + gi); var adEl = document.getElementById('nc-ad-' + gi); var menEl = document.getElementById('nc-men-' + gi); var waEl = document.getElementById('nc-wa-' + gi); var nombre = nombreEl ? nombreEl.value.trim() : ''; if (!nombre) { showToast('Escribe el nombre del cliente'); return; } var j = jornadasData.find(function(x) { return x.id === jid; }); if (!j) return; var waAd = parseInt(adEl ? adEl.value : 1) || 1; var waMen = parseInt(menEl ? menEl.value : 0) || 0; j.clientes.push({ name: nombre, adults: waAd, minors: waMen, origAdults: waAd, origMinors: waMen, wa: waEl ? waEl.value.trim() : '', present: false, walkin: false }); renderJornadas(); if (saveTimers[jid]) clearTimeout(saveTimers[jid]); guardarClientesJornada(jid, gi, true); showToast('Cliente añadido ✓ guardado'); return; }
   if (action === 'deletecliente') { var jid = btn.getAttribute('data-jid'); var ci = parseInt(btn.getAttribute('data-ci')); var j = jornadasData.find(function(x) { return x.id === jid; }); if (!j) return; j.clientes.splice(ci, 1); renderJornadas(); if (saveTimers[jid]) clearTimeout(saveTimers[jid]); guardarClientesJornada(jid, gi, true); showToast('Cliente eliminado ✓'); return; }
 });
 
