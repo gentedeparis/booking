@@ -1173,6 +1173,7 @@ function renderInformes(){
       const asistFromClientes=tieneClientes?e.clientes.filter(c=>c.present).reduce((s,c)=>s+(parseInt(c.adults)||0)+(parseInt(c.minors)||0),0):null;
       const asistShow=asistFromClientes!==null?asistFromClientes:(parseInt(e.asistentes)||0);
       const paxShow=tieneClientes?e.clientes.reduce((s,c)=>s+(parseInt(c.adults)||0)+(parseInt(c.minors)||0),0):(parseInt(e.paxTotal)||0);
+      const origTotal=tieneClientes?e.clientes.reduce((s,c)=>s+(parseInt(c.origAdults!==undefined?c.origAdults:c.adults)||0)+(parseInt(c.origMinors!==undefined?c.origMinors:c.minors)||0),0):paxShow;
       const totalAd=tieneClientes?e.clientes.reduce((s,c)=>s+(parseInt(c.adults)||0),0):0;
       const totalMen=tieneClientes?e.clientes.reduce((s,c)=>s+(parseInt(c.minors)||0),0):0;
       html+=`<div class="informe-card" id="ic-${escH(e.id)}" style="align-items:flex-start">
@@ -1183,7 +1184,7 @@ function renderInformes(){
             <span class="badge b-informe">⏳ Pendiente</span>
           </div>
           <div class="informe-pax">
-            <span class="informe-pax-item" id="asist-count-${escH(e.id)}">✅ ${asistShow} / ${paxShow} asistentes</span>
+            <span class="informe-pax-item" id="asist-count-${escH(e.id)}">✅ ${asistShow} / ${origTotal} asistentes</span>
             ${totalMen>0?`<span class="informe-pax-item">👤 ${totalAd} adultos · 🧒 ${totalMen} menores</span>`:''}
           </div>`;
       if(tieneClientes){
@@ -1191,15 +1192,19 @@ function renderInformes(){
           <div onclick="toggleInformeAcord('${escH(e.id)}')" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:.78rem;color:#a78bfa;font-weight:500;margin-bottom:8px">
             <span id="iac-arr-${escH(e.id)}">▼</span> Clientes (${e.clientes.length}) — editable
           </div>
-          <div id="iac-body-${escH(e.id)}" style="display:block">
+          <div id="iac-body-${escH(e.id)}" style="display:block" data-orig-total="${origTotal}">
             <div style="display:grid;grid-template-columns:24px 1fr 56px 56px 1.2fr;gap:6px;margin-bottom:5px;font-size:.64rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">
               <span title="Asistió">✓</span><span>Nombre</span><span style="text-align:center">Ad.</span><span style="text-align:center">Men.</span><span>WhatsApp</span>
             </div>`;
         e.clientes.forEach((c,ci)=>{
+          const oa=parseInt(c.origAdults!==undefined?c.origAdults:c.adults)||0;
+          const om=parseInt(c.origMinors!==undefined?c.origMinors:c.minors)||0;
+          const cambioPax=(oa+om)!==((parseInt(c.adults)||0)+(parseInt(c.minors)||0));
           html+=`<div data-row-id="${escH(e.id)}" style="display:grid;grid-template-columns:24px 1fr 56px 56px 1.2fr;gap:6px;margin-bottom:5px;align-items:center">
             <input type="checkbox" ${c.present?'checked':''} onchange="recalcAsistTotal('${escH(e.id)}')" title="Asistió" style="cursor:pointer">
             <div style="display:flex;align-items:center;gap:6px;min-width:0">
               <input type="text" id="ic-cn-${escH(e.id)}-${ci}" value="${escH(c.name||'')}" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);padding:6px 8px;font-size:.82rem;outline:none;flex:1;min-width:0">
+              ${cambioPax?`<span title="Cantidad reservada originalmente" style="background:rgba(167,139,250,.15);color:#a78bfa;border:1px solid rgba(167,139,250,.4);font-size:.62rem;font-weight:600;padding:2px 6px;border-radius:4px;white-space:nowrap;flex-shrink:0">reservó ${oa+om}</span>`:''}
               ${c.reviewLinkSent?'<span title="Link de reseña enviado por el guía" style="background:rgba(39,174,96,.15);color:#27ae60;border:1px solid rgba(39,174,96,.4);font-size:.62rem;font-weight:600;padding:2px 6px;border-radius:4px;white-space:nowrap;flex-shrink:0">📩 Reseña</span>':(c.wa&&String(c.wa).replace(/[^0-9]/g,'').length>=7?'<span title="Link de reseña pendiente" style="background:rgba(201,168,76,.12);color:var(--gold);border:1px solid rgba(201,168,76,.4);font-size:.62rem;font-weight:600;padding:2px 6px;border-radius:4px;white-space:nowrap;flex-shrink:0">⏳</span>':'')}
             </div>
             <input type="number" id="ic-ca-${escH(e.id)}-${ci}" value="${parseInt(c.adults)||0}" min="0" oninput="recalcAsistTotal('${escH(e.id)}')" style="background:var(--graphite);border:1px solid var(--smoke);border-radius:5px;color:var(--white);padding:6px;font-size:.82rem;text-align:center;outline:none">
@@ -1233,8 +1238,10 @@ function recalcAsistTotal(id){
     total+=ad+men;
     if(row.querySelector('input[type="checkbox"]')?.checked)asis+=ad+men;
   });
+  const origTotal=parseInt(b.dataset.origTotal);
+  const denom=isNaN(origTotal)?total:origTotal;
   const pill=document.getElementById('asist-count-'+id);
-  if(pill)pill.textContent='✅ '+asis+' / '+total+' asistentes';
+  if(pill)pill.textContent='✅ '+asis+' / '+denom+' asistentes';
 }
 async function registrarInforme(guia, entryId, jornadaId){
     const cred = parseInt(document.getElementById('cred-'+entryId)?.value) || 0;
@@ -1266,7 +1273,10 @@ async function registrarInforme(guia, entryId, jornadaId){
             const menores = parseInt(document.getElementById('ic-cm-'+entryId+'-'+ci)?.value) || 0;
             const wa = document.getElementById('ic-cw-'+entryId+'-'+ci)?.value || '';
             const presente = row.querySelector('input[type="checkbox"]')?.checked || false;
-            clientesActualizados.push({name: nombre, adults: adultos, minors: menores, wa: wa, present: presente});
+            const cPrev = (entry.clientes && entry.clientes[ci]) || {};
+            const origAdults = cPrev.origAdults !== undefined ? (parseInt(cPrev.origAdults)||0) : adultos;
+            const origMinors = cPrev.origMinors !== undefined ? (parseInt(cPrev.origMinors)||0) : menores;
+            clientesActualizados.push({name: nombre, adults: adultos, minors: menores, origAdults: origAdults, origMinors: origMinors, wa: wa, present: presente});
             paxTotal += adultos + menores;
             if(presente) asistentes += adultos + menores;
         });
@@ -1285,6 +1295,9 @@ async function registrarInforme(guia, entryId, jornadaId){
         semana: semInfo.key,
         timestamp: new Date().toISOString()
     };
+    if(clientesActualizados.length){
+        updatedEntry.clientesJSON = JSON.stringify(clientesActualizados);
+    }
     delete updatedEntry.guia;
     
     let errs = [];
@@ -1337,7 +1350,7 @@ function cancelarFormularioJornada(){document.getElementById('formJornadaPanel')
 function initOpsCreate(){editingOpsId=null;document.getElementById('jornadaFormTitle').innerText='Nueva jornada';document.getElementById('ot-guide').value='';document.getElementById('ot-date').value='';document.getElementById('opsToursAccordion').innerHTML='';document.querySelectorAll('input[name="tourCheck"]').forEach(c=>c.checked=false);}
 async function guardarJornadaDesdeFormulario(btn){let g=document.getElementById('ot-guide').value.trim();let d=document.getElementById('ot-date').value;if(!g||!d){showToast('Faltan guía o fecha','error');return;}let toursData=getToursFromForm();if(!toursData.length){showToast('Selecciona al menos un tour','error');return;}let id=editingOpsId||('jor_'+normalizeId(g)+'_'+d+'_'+Date.now());await withLoadingButton(btn,'⏳ Guardando...',async()=>{showLoading();try{await registrarEnSheetsConLog(g,d,toursData);showToast('Jornada guardada ✓');cancelarFormularioJornada();cargarOperaciones();}catch(e){showToast('Error: '+e.message,'error');}hideLoading();});}
 function opsSaveLocal(){try{localStorage.setItem('gdp_tours',JSON.stringify(opsTours));return true;}catch(e){return false;}}
-function getToursFromForm(){let res=[];document.querySelectorAll('.acord-wrap').forEach(wrap=>{let tid=wrap.dataset.tourid;let chk=document.querySelector(`input[name="tourCheck"][value="${tid}"]`);if(!chk?.checked)return;let clients=[];wrap.querySelectorAll('.pax-card').forEach(card=>{let n=card.querySelector('.rn')?.value.trim();if(!n)return;clients.push({name:n,adults:parseInt(card.querySelector('.ra')?.value)||0,minors:parseInt(card.querySelector('.rm')?.value)||0,wa:card.querySelector('.rw')?.value.trim()||'',present:false});});res.push({tourId:tid,tourNombre:chk.dataset.nombre,horario:chk.dataset.horario,clients});});return res;}
+function getToursFromForm(){let res=[];document.querySelectorAll('.acord-wrap').forEach(wrap=>{let tid=wrap.dataset.tourid;let chk=document.querySelector(`input[name="tourCheck"][value="${tid}"]`);if(!chk?.checked)return;let clients=[];wrap.querySelectorAll('.pax-card').forEach(card=>{let n=card.querySelector('.rn')?.value.trim();if(!n)return;let ad=parseInt(card.querySelector('.ra')?.value)||0;let me=parseInt(card.querySelector('.rm')?.value)||0;clients.push({name:n,adults:ad,minors:me,origAdults:ad,origMinors:me,wa:card.querySelector('.rw')?.value.trim()||'',present:false});});res.push({tourId:tid,tourNombre:chk.dataset.nombre,horario:chk.dataset.horario,clients});});return res;}
 function renderTourCatalogChecks(){
   const el=document.getElementById('tourCatalogChecks');
   if(!el)return;
