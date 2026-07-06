@@ -508,6 +508,8 @@ function loadAll() {
 
 function loadJornadas() {
   setStatus('loading', 'Actualizando...');
+  apiCall({ action: 'getMensajes' }).then(function(m) { mensajesConfig = m || {}; }).catch(function() {});
+  apiCall({ action: 'getTours' }).then(function(ts) { (Array.isArray(ts) ? ts : []).forEach(function(t) { toursTodosMap[t.id] = t; }); }).catch(function() {});
   apiCall({ action: 'getJornadasGuia', guia: guiaNombre, includePast: 'true' }).then(function(raw) {
     jornadasData = parseJornadas(raw);
     jornadasData.forEach(function(j) {
