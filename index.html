@@ -2001,23 +2001,6 @@ async function guardarMensaje(clave) {
   }
 }
 
-const MENSAJES_CONFIG = [
-  { clave: 'esperando_cliente', label: '📍 Esperando cliente en el punto de encuentro', vars: '{saludo}, {nombre}, {guia}' },
-  { clave: 'pedir_resena', label: '⭐ Pedir reseña al finalizar el tour', vars: '{nombre}, {guia}, {tour}, {url}' }
-];
-let mensajesActuales = {};
-
-async function loadMensajes() {
-  const grid = document.getElementById('mensajesGrid');
-  grid.innerHTML = '<div class="empty-state"><div class="ei">⏳</div>Cargando...</div>';
-  try {
-    mensajesActuales = await apiCall({ action: 'getMensajes' });
-    renderMensajes();
-  } catch(e) {
-    grid.innerHTML = '<div class="empty-state"><div class="ei">⚠️</div>Error al cargar</div>';
-  }
-}
-
 function renderMensajes() {
   const grid = document.getElementById('mensajesGrid');
   grid.innerHTML = MENSAJES_CONFIG.map(m => `
