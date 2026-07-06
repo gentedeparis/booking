@@ -386,6 +386,7 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbxclPkEfE7mTvy-MyEJMBYoCyZWkCdgDeYWawcSgYHMJzez9l1fibOxydDuMM0Goixl/exec';
 var mensajesConfig = {};
+var toursTodosMap = {};
 function aplicarPlantilla(clave, defaultTxt, vars) {
   var txt = (mensajesConfig[clave] || defaultTxt);
   Object.keys(vars).forEach(function(k) {
@@ -489,6 +490,7 @@ function loadAll() {
   Promise.all([
     apiCall({ action: 'getJornadasGuia', guia: guiaNombre, includePast: 'true' }),
     apiCall({ action: 'getMensajes' }).then(function(m) { mensajesConfig = m || {}; }).catch(function() {}),
+    apiCall({ action: 'getTours' }).then(function(ts) { (Array.isArray(ts) ? ts : []).forEach(function(t) { toursTodosMap[t.id] = t; }); }).catch(function() {}),
     apiCall({ action: 'getDossier', guia: guiaNombre }),
     apiCall({ action: 'getPagosSemana', guia: guiaNombre })
   ]).then(function(results) {
@@ -1356,13 +1358,19 @@ function compartirResenaCliente(ci) {
   var cliente = (jornada.clientes || [])[ci];
   if (!cliente || !cliente.wa) return;
 
-  var params = new URLSearchParams();
-  params.set('tour', jornada.tourId || '');
-  params.set('tourNombre', jornada.tourNombre || '');
-  params.set('fecha', jornada.fecha || '');
-  params.set('guia', guiaNombre || '');
-  params.set('autor', cliente.name || '');
-  var url = 'https://gentedeparis.com/resena?' + params.toString();
+  var tourInfo = toursTodosMap[jornada.tourId];
+  var url;
+  if (tourInfo && tourInfo.resenaUrlCustom && String(tourInfo.resenaUrlCustom).trim()) {
+    url = String(tourInfo.resenaUrlCustom).trim();
+  } else {
+    var params = new URLSearchParams();
+    params.set('tour', jornada.tourId || '');
+    params.set('tourNombre', jornada.tourNombre || '');
+    params.set('fecha', jornada.fecha || '');
+    params.set('guia', guiaNombre || '');
+    params.set('autor', cliente.name || '');
+    url = 'https://gentedeparis.com/resena?' + params.toString();
+  }
 
  var primerNombre = (cliente.name || '').split(' ')[0] || 'amigo';
   var mensaje = aplicarPlantilla('pedir_resena', '¡Hola {nombre}! Soy {guia}, tu guía en {tour}. Espero que hayan disfrutado mucho. Si te animás a dejarnos una reseña, sería un regalo enorme ✨\n\n{url}', {
