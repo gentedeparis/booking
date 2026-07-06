@@ -416,6 +416,7 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
     <div class="nav-item" onclick="nav('qrs')" data-sec="qrs"><span>📱</span><span> QRs</span></div>
     <div class="nav-item" onclick="nav('marketing')" data-sec="marketing"><span>📣</span><span> Marketing</span></div>
     <div class="nav-item" onclick="nav('recursos')" data-sec="recursos"><span>📚</span><span> Recursos</span></div>
+    <div class="nav-item" onclick="nav('mensajes')" data-sec="mensajes"><span>✉️</span><span> Mensajes</span></div>
     <div class="nav-item" onclick="nav('estadisticas')" data-sec="estadisticas"><span>📊</span><span> Estadísticas</span></div>
     <div class="nav-item" onclick="nav('academia')" data-sec="academia"><span>🎓</span><span> Academia</span><span class="nav-badge nb-academia" id="academiaNavBadge" style="display:none">0</span></div>
   </nav>
@@ -438,6 +439,7 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
   <div class="nav-item" onclick="navMobile('qrs')" data-sec="qrs"><span>📱</span><span> QRs</span></div>
   <div class="nav-item" onclick="navMobile('marketing')" data-sec="marketing"><span>📣</span><span> Marketing</span></div>
   <div class="nav-item" onclick="navMobile('recursos')" data-sec="recursos"><span>📚</span><span> Recursos</span></div>
+  <div class="nav-item" onclick="navMobile('mensajes')" data-sec="mensajes"><span>✉️</span><span> Mensajes</span></div>
   <div class="nav-item" onclick="navMobile('estadisticas')" data-sec="estadisticas"><span>📊</span><span> Estadísticas</span></div>
   <div class="nav-item" onclick="navMobile('academia')" data-sec="academia"><span>🎓</span><span> Academia</span><span class="nav-badge nb-academia" id="academiaNavBadgeMobile" style="display:none">0</span></div>
 </div>
@@ -497,6 +499,13 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
       <button class="btn btn-gold" onclick="openRecursoModal()">+ Nuevo recurso</button>
     </div>
     <div id="recursosGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div>
+  </div>
+  <div class="section" id="sec-mensajes">
+    <div class="sec-header">
+      <h1 class="sec-title">✉️ Mensajes predeterminados</h1>
+    </div>
+    <p style="color:var(--muted);font-size:.8rem;margin-bottom:16px">Estos son los textos que el guía envía por WhatsApp. Variables disponibles entre llaves — se reemplazan automáticamente.</p>
+    <div id="mensajesGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div>
   </div>
   <div class="section" id="sec-marketing">
     <div class="sec-header">
@@ -785,7 +794,7 @@ async function withLoadingButton(btn, busyText, fn){
   finally { btn.disabled = originalDisabled; btn.innerHTML = originalHtml; }
 }
 
-function nav(sec){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));document.getElementById('sec-'+sec).classList.add('active');document.querySelector('[data-sec="'+sec+'"]')?.classList.add('active');if(sec==='operaciones')cargarOperaciones();if(sec==='dash')updateDashboard();if(sec==='dossier')initDossier();if(sec==='guias')initGuias();if(sec==='informes')initInformes();if(sec==='tours')loadTours();if(sec==='bloqueos')loadBloqueos();if(sec==='resenas')cargarResenas();if(sec==='codigos')loadCodigos();if(sec==='qrs')loadQRs();if(sec==='marketing')loadMarketing();if(sec==='recursos')loadRecursos();}
+function nav(sec){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.nav-item[data-sec]').forEach(n=>n.classList.remove('active'));document.getElementById('sec-'+sec).classList.add('active');document.querySelector('[data-sec="'+sec+'"]')?.classList.add('active');if(sec==='operaciones')cargarOperaciones();if(sec==='dash')updateDashboard();if(sec==='dossier')initDossier();if(sec==='guias')initGuias();if(sec==='informes')initInformes();if(sec==='tours')loadTours();if(sec==='bloqueos')loadBloqueos();if(sec==='resenas')cargarResenas();if(sec==='codigos')loadCodigos();if(sec==='qrs')loadQRs();if(sec==='marketing')loadMarketing();if(sec==='recursos')loadRecursos();if(sec==='mensajes')loadMensajes();}
 function updateInformesNavBadge(){const b=document.getElementById('informesNavBadge'),bm=document.getElementById('informesNavBadgeMobile');const c=informesPendientes.length;if(b){b.textContent=c;b.style.display=c>0?'inline-flex':'none';}if(bm){bm.textContent=c;bm.style.display=c>0?'inline-flex':'none';}}
 function populateTourSelect(){const sel=document.getElementById('bTourId');if(!sel)return;sel.innerHTML='<option value="all">🚫 Todos los tours</option>';tours.filter(t=>t.activo==='true'||t.activo===true).forEach(t=>sel.innerHTML+=`<option value="${t.id}">${escH(t.nombre)}</option>`);}
 async function cargarGuiasParaModales(){try{const r=await apiCall({action:'getGuiasData'});guiasData=Array.isArray(r)?r:[];const sc=document.getElementById('cambiarGuiaSelect'),sd=document.getElementById('duplicarJornadaGuia');const opts='<option value="">— Selecciona —</option>'+guiasData.filter(g=>g.activo==='true'||g.activo===true).map(g=>`<option value="${escH(g.nombre)}">${escH(g.nombre)}</option>`).join('');if(sc)sc.innerHTML=opts;if(sd)sd.innerHTML=opts;}catch(e){console.warn(e);}}
@@ -1949,6 +1958,90 @@ window.loadMarketing = loadMarketing;
 // ============================================
 let recursos = [];
 let recursosGuiasList = [];
+
+const MENSAJES_CONFIG = [
+  { clave: 'esperando_cliente', label: '📍 Esperando cliente en el punto de encuentro', vars: '{saludo}, {nombre}, {guia}' },
+  { clave: 'pedir_resena', label: '⭐ Pedir reseña al finalizar el tour', vars: '{nombre}, {guia}, {tour}, {url}' }
+];
+let mensajesActuales = {};
+
+async function loadMensajes() {
+  const grid = document.getElementById('mensajesGrid');
+  grid.innerHTML = '<div class="empty-state"><div class="ei">⏳</div>Cargando...</div>';
+  try {
+    mensajesActuales = await apiCall({ action: 'getMensajes' });
+    renderMensajes();
+  } catch(e) {
+    grid.innerHTML = '<div class="empty-state"><div class="ei">⚠️</div>Error al cargar</div>';
+  }
+}
+
+function renderMensajes() {
+  const grid = document.getElementById('mensajesGrid');
+  grid.innerHTML = MENSAJES_CONFIG.map(m => `
+    <div class="tour-card" style="margin-bottom:14px">
+      <div style="font-weight:600;margin-bottom:4px">${m.label}</div>
+      <div style="font-size:.7rem;color:var(--gold);margin-bottom:8px">Variables: ${m.vars}</div>
+      <textarea id="msg-${m.clave}" rows="4" style="width:100%;background:var(--graphite);border:1px solid var(--graphite);border-radius:8px;color:var(--light);padding:10px;font-size:.85rem;font-family:inherit">${escH(mensajesActuales[m.clave] || '')}</textarea>
+      <div style="text-align:right;margin-top:8px">
+        <button class="btn btn-gold btn-sm" onclick="guardarMensaje('${m.clave}')">💾 Guardar</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function guardarMensaje(clave) {
+  const texto = document.getElementById('msg-' + clave).value;
+  try {
+    await apiCall({ action: 'saveMensaje', data: { clave: clave, texto: texto } });
+    mensajesActuales[clave] = texto;
+    showToast('Mensaje guardado');
+  } catch(e) {
+    showToast('Error al guardar: ' + e.message, 'error');
+  }
+}
+
+const MENSAJES_CONFIG = [
+  { clave: 'esperando_cliente', label: '📍 Esperando cliente en el punto de encuentro', vars: '{saludo}, {nombre}, {guia}' },
+  { clave: 'pedir_resena', label: '⭐ Pedir reseña al finalizar el tour', vars: '{nombre}, {guia}, {tour}, {url}' }
+];
+let mensajesActuales = {};
+
+async function loadMensajes() {
+  const grid = document.getElementById('mensajesGrid');
+  grid.innerHTML = '<div class="empty-state"><div class="ei">⏳</div>Cargando...</div>';
+  try {
+    mensajesActuales = await apiCall({ action: 'getMensajes' });
+    renderMensajes();
+  } catch(e) {
+    grid.innerHTML = '<div class="empty-state"><div class="ei">⚠️</div>Error al cargar</div>';
+  }
+}
+
+function renderMensajes() {
+  const grid = document.getElementById('mensajesGrid');
+  grid.innerHTML = MENSAJES_CONFIG.map(m => `
+    <div class="tour-card" style="margin-bottom:14px">
+      <div style="font-weight:600;margin-bottom:4px">${m.label}</div>
+      <div style="font-size:.7rem;color:var(--gold);margin-bottom:8px">Variables: ${m.vars}</div>
+      <textarea id="msg-${m.clave}" rows="4" style="width:100%;background:var(--graphite);border:1px solid var(--graphite);border-radius:8px;color:var(--light);padding:10px;font-size:.85rem;font-family:inherit">${escH(mensajesActuales[m.clave] || '')}</textarea>
+      <div style="text-align:right;margin-top:8px">
+        <button class="btn btn-gold btn-sm" onclick="guardarMensaje('${m.clave}')">💾 Guardar</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function guardarMensaje(clave) {
+  const texto = document.getElementById('msg-' + clave).value;
+  try {
+    await apiCall({ action: 'saveMensaje', data: { clave: clave, texto: texto } });
+    mensajesActuales[clave] = texto;
+    showToast('Mensaje guardado');
+  } catch(e) {
+    showToast('Error al guardar: ' + e.message, 'error');
+  }
+}
 
 async function loadRecursos() {
   document.getElementById('recursosGrid').innerHTML = '<div class="empty-state"><div class="ei">⏳</div>Cargando...</div>';
