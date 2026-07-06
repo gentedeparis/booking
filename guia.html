@@ -385,6 +385,22 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
 </div>
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbxclPkEfE7mTvy-MyEJMBYoCyZWkCdgDeYWawcSgYHMJzez9l1fibOxydDuMM0Goixl/exec';
+var mensajesConfig = {};
+function aplicarPlantilla(clave, defaultTxt, vars) {
+  var txt = (mensajesConfig[clave] || defaultTxt);
+  Object.keys(vars).forEach(function(k) {
+    txt = txt.split('{' + k + '}').join(vars[k]);
+  });
+  return txt;
+}
+var mensajesConfig = {};
+function aplicarPlantilla(clave, defaultTxt, vars) {
+  var txt = (mensajesConfig[clave] || defaultTxt);
+  Object.keys(vars).forEach(function(k) {
+    txt = txt.split('{' + k + '}').join(vars[k]);
+  });
+  return txt;
+}
 const ADMIN_WA = '33760940851';
 const REFRESH_INTERVAL = 3 * 60 * 1000;
 
@@ -472,6 +488,7 @@ function loadAll() {
   document.getElementById('jornadasContent').innerHTML = '<div class="spinner-wrap"><div class="spinner"></div></div>';
   Promise.all([
     apiCall({ action: 'getJornadasGuia', guia: guiaNombre, includePast: 'true' }),
+    apiCall({ action: 'getMensajes' }).then(function(m) { mensajesConfig = m || {}; }).catch(function() {}),
     apiCall({ action: 'getDossier', guia: guiaNombre }),
     apiCall({ action: 'getPagosSemana', guia: guiaNombre })
   ]).then(function(results) {
@@ -1347,8 +1364,13 @@ function compartirResenaCliente(ci) {
   params.set('autor', cliente.name || '');
   var url = 'https://gentedeparis.com/resena?' + params.toString();
 
-  var primerNombre = (cliente.name || '').split(' ')[0] || 'amigo';
-  var mensaje = '¡Hola ' + primerNombre + '! Soy ' + guiaNombre + ', tu guía en ' + (jornada.tourNombre || 'el tour') + '. Espero que hayan disfrutado mucho. Si te animás a dejarnos una reseña, sería un regalo enorme ✨\n\n' + url;
+ var primerNombre = (cliente.name || '').split(' ')[0] || 'amigo';
+  var mensaje = aplicarPlantilla('pedir_resena', '¡Hola {nombre}! Soy {guia}, tu guía en {tour}. Espero que hayan disfrutado mucho. Si te animás a dejarnos una reseña, sería un regalo enorme ✨\n\n{url}', {
+    nombre: primerNombre,
+    guia: guiaNombre,
+    tour: (jornada.tourNombre || 'el tour'),
+    url: url
+  });
 
   var phone = String(cliente.wa).replace(/[^0-9]/g, '');
   window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(mensaje), '_blank');
@@ -1684,7 +1706,11 @@ function normalizeImageUrl(url) {
 function waMsgCliente(nombre) {
   var h = new Date().getHours();
   var saludo = h < 12 ? 'Buenos días' : (h < 20 ? 'Buenas tardes' : 'Buenas noches');
-  var msg = saludo + ', ' + (nombre || '').trim() + ', soy ' + (guiaNombre || '').trim() + ', estamos en el Punto de Encuentro esperándole para iniciar el tour. ¿Usted está llegando?';
+  var msg = aplicarPlantilla('esperando_cliente', 'Hola {saludo}, {nombre}, soy {guia}, estamos en el Punto de Encuentro esperándole para iniciar el tour. ¿Usted está llegando?', {
+    saludo: saludo,
+    nombre: (nombre || '').trim(),
+    guia: (guiaNombre || '').trim()
+  });
   return encodeURIComponent(msg);
 }
 
