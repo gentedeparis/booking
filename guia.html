@@ -982,6 +982,8 @@ function scheduleAutoSave(jornadaId, gi) {
 function enviarInforme(jornadaId, gi) {
   var j = jornadasData.find(function(x) { return x.id === jornadaId; });
   if (!j) return;
+  apiCall({ action: 'getTours' }).then(function(ts) { (Array.isArray(ts) ? ts : []).forEach(function(t) { toursTodosMap[t.id] = t; }); }).catch(function() {});
+  apiCall({ action: 'getMensajes' }).then(function(m) { mensajesConfig = m || {}; }).catch(function() {});
   var btn = document.getElementById('btn-informe-' + gi);
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Enviando...'; }
   var clientes = j.clientes || [];
@@ -1360,6 +1362,7 @@ function compartirResenaCliente(ci) {
   var cliente = (jornada.clientes || [])[ci];
   if (!cliente || !cliente.wa) return;
 
+  apiCall({ action: 'getTours' }).then(function(ts) { (Array.isArray(ts) ? ts : []).forEach(function(t) { toursTodosMap[t.id] = t; }); }).catch(function() {});
   var tourInfo = toursTodosMap[jornada.tourId];
   var url;
   if (tourInfo && tourInfo.resenaUrlCustom && String(tourInfo.resenaUrlCustom).trim()) {
