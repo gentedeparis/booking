@@ -509,6 +509,10 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
       <input type="datetime-local" id="linksCountdownFecha" style="background:var(--graphite);border:1px solid var(--graphite);border-radius:8px;color:var(--light);padding:8px 12px">
       <button class="btn btn-gold btn-sm" onclick="guardarCountdownLinks()" style="margin-left:8px">💾 Guardar fecha</button>
     </div>
+    <div style="background:#111;border-radius:14px;padding:20px 16px;margin-bottom:20px">
+      <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;text-align:center">👁 Vista previa — así se ve ahora en gentedeparis.com/links</div>
+      <div id="linksPreview" style="max-width:340px;margin:0 auto"></div>
+    </div>
     <div id="linksButtonsGrid"><div class="empty-state"><div class="ei">⏳</div>Cargando...</div></div>
     <button class="btn btn-gold" onclick="agregarLinkButton()">+ Nuevo link</button>
     <div style="margin-top:16px"><button class="btn btn-gold" onclick="guardarLinksButtons()">💾 Guardar todos los cambios</button></div>
@@ -1178,7 +1182,7 @@ async function toggleGuiaActivo(nombre, activoActual){
 
 window.toggleGuiaActivo = toggleGuiaActivo;
 async function eliminarGuia(nombre){if(!confirm('¿Eliminar guía?'))return;showLoading();try{await apiCall({action:'deleteGuia',nombre});await initGuias();showToast('Guía eliminado');}catch(e){showToast('Error','error');}hideLoading();}
-async function initInformes(){let cont=document.getElementById('informesContent');cont.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando...</div>';try{let guiasRaw=await apiCall({action:'getGuias'});dossierGuias=Array.isArray(guiasRaw)?guiasRaw:[];}catch(e){cont.innerHTML='<div class="empty-state"><div class="ei">⚠️</div>Error: '+escH(e.message)+'</div>';updateInformesNavBadge();return;}if(!dossierGuias.length){cont.innerHTML='<div class="informes-empty"><div class="ei">👤</div><p>No hay guías.</p></div>';updateInformesNavBadge();return;}let results=await Promise.allSettled(dossierGuias.map(g=>apiCall({action:'getDossier',guia:g}).then(entries=>({guia:g,entries:Array.isArray(entries)?entries:[]}))));informesPendientes=[];results.forEach(r=>{if(r.status==='fulfilled'){let{guia,entries}=r.value;entries.filter(e=>String(e.estadoPago).trim()==='informe_pendiente').forEach(e=>informesPendientes.push({...e,guia,fecha:normalizarFecha(e.fecha),horario:normalizarHorario(e.horario),clientes:[]}));}});let guiasCon=[...new Set(informesPendientes.map(e=>e.guia))];await Promise.allSettled(guiasCon.map(guia=>apiCall({action:'getJornadasGuia',guia,includePast:'true'}).then(jornadas=>{informesPendientes.filter(e=>e.guia===guia).forEach(e=>{let jid=String(e.id).replace(/^dos_/,'jor_');let j=(Array.isArray(jornadas)?jornadas:[]).find(x=>x.id===jid);if(j&&j.clientesJSON)try{e.clientes=JSON.parse(j.clientesJSON);}catch(e){}});}).catch(()=>{})));informesPendientes.sort((a,b)=>a.fecha>b.fecha?-1:1);document.getElementById('informes-total-count').textContent=informesPendientes.length;updateInformesNavBadge();renderInformes();}
+async function initInformes(){let cont=document.getElementById('informesContent');cont.innerHTML='<div class="empty-state"><div class="ei">⏳</div>Cargando...</div>';try{let guiasRaw=await apiCall({action:'getGuias'});dossierGuias=Array.isArray(guiasRaw)?guiasRaw:[];}catch(e){cont.innerHTML='<div class="empty-state"><div class="ei">⚠️</div>Error: '+escH(e.message)+'</div>';updateInformesNavBadge();return;}if(!dossierGuias.length){cont.innerHTML='<div class="informes-empty"><div class="ei">👤</div><p>No hay guías.</p></div>';updateInformesNavBadge();return;}let results=await Promise.allSettled(dossierGuias.map(g=>apiCall({action:'getDossier',guia:g}).then(entries=>({guia:g,entries:Array.isArray(entries)?entries:[]}))));informesPendientes=[];results.forEach(r=>{if(r.status==='fulfilled'){let{guia,entries}=r.value;entries.filter(e=>String(e.estadoPago).trim()==='informe_pendiente').forEach(e=>{let cli=[];try{cli=e.clientesJSON?JSON.parse(e.clientesJSON):[];}catch(err){cli=[];}informesPendientes.push({...e,guia,fecha:normalizarFecha(e.fecha),horario:normalizarHorario(e.horario),clientes:cli});});}});let guiasCon=[...new Set(informesPendientes.map(e=>e.guia))];await Promise.allSettled(guiasCon.map(guia=>apiCall({action:'getJornadasGuia',guia,includePast:'true'}).then(jornadas=>{informesPendientes.filter(e=>e.guia===guia).forEach(e=>{let jid=String(e.id).replace(/^dos_/,'jor_');let j=(Array.isArray(jornadas)?jornadas:[]).find(x=>x.id===jid);if(j&&j.clientesJSON)try{e.clientes=JSON.parse(j.clientesJSON);}catch(e){}});}).catch(()=>{})));informesPendientes.sort((a,b)=>a.fecha>b.fecha?-1:1);document.getElementById('informes-total-count').textContent=informesPendientes.length;updateInformesNavBadge();renderInformes();}
 function renderInformes(){
   const cont=document.getElementById('informesContent');
   if(!informesPendientes.length){
@@ -2057,25 +2061,39 @@ async function loadLinksPage() {
   }
 }
 
+function renderLinksPreview() {
+  const prev = document.getElementById('linksPreview');
+  if (!prev) return;
+  const visibles = linksButtonsData.filter(b => b.visible);
+  if (!visibles.length) { prev.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:.8rem">Ningún botón visible ahora mismo</div>'; return; }
+  const estilos = {
+    primary:   'background:#c9a84c;color:#111;font-weight:700',
+    whatsapp:  'background:#25d366;color:#fff;font-weight:600',
+    secondary: 'background:transparent;color:#f5f2ec;border:1.5px solid #444'
+  };
+  prev.innerHTML = visibles.map(b => `<div style="${estilos[b.tipo]||estilos.secondary};border-radius:10px;padding:12px 16px;margin-bottom:10px;text-align:center;font-size:.85rem">${escH(b.texto)}</div>`).join('');
+}
+
 function renderLinksButtons() {
   const grid = document.getElementById('linksButtonsGrid');
+  renderLinksPreview();
   if (!linksButtonsData.length) { grid.innerHTML = '<div class="empty-state">Sin botones. Agregá uno con "+ Nuevo link".</div>'; return; }
   grid.innerHTML = linksButtonsData.map((b, i) => `
     <div class="tour-card" style="margin-bottom:12px">
       <div class="form-row">
-        <div class="form-group"><label>Texto del botón</label><input type="text" value="${escH(b.texto)}" oninput="linksButtonsData[${i}].texto=this.value"></div>
+        <div class="form-group"><label>Texto del botón</label><input type="text" value="${escH(b.texto)}" oninput="linksButtonsData[${i}].texto=this.value;renderLinksPreview()"></div>
         <div class="form-group"><label>URL</label><input type="text" value="${escH(b.url)}" oninput="linksButtonsData[${i}].url=this.value"></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label>Tipo</label>
-          <select onchange="linksButtonsData[${i}].tipo=this.value" style="width:100%;background:var(--graphite);border:1px solid var(--graphite);border-radius:8px;color:var(--light);padding:8px">
+          <select onchange="linksButtonsData[${i}].tipo=this.value;renderLinksPreview()" style="width:100%;background:var(--graphite);border:1px solid var(--graphite);border-radius:8px;color:var(--light);padding:8px">
             <option value="primary" ${b.tipo==='primary'?'selected':''}>Destacado (dorado)</option>
             <option value="whatsapp" ${b.tipo==='whatsapp'?'selected':''}>WhatsApp (verde)</option>
             <option value="secondary" ${b.tipo==='secondary'?'selected':''}>Secundario</option>
           </select>
         </div>
         <div class="form-group" style="display:flex;align-items:flex-end;gap:10px">
-          <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" ${b.visible?'checked':''} onchange="linksButtonsData[${i}].visible=this.checked"> Visible</label>
+          <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" ${b.visible?'checked':''} onchange="linksButtonsData[${i}].visible=this.checked;renderLinksPreview()"> Visible</label>
           <button class="btn btn-sm" onclick="moverLinkButton(${i},-1)">↑</button>
           <button class="btn btn-sm" onclick="moverLinkButton(${i},1)">↓</button>
           <button class="btn btn-sm" style="color:#c0392b" onclick="eliminarLinkButton(${i})">✕</button>
