@@ -403,7 +403,7 @@ function aplicarPlantilla(clave, defaultTxt, vars) {
   return txt;
 }
 const ADMIN_WA = '33760940851';
-const REFRESH_INTERVAL = 3 * 60 * 1000;
+const REFRESH_INTERVAL = 8 * 60 * 1000;
 
 let guiaNombre = '';
 let jornadasData = [];
@@ -508,8 +508,6 @@ function loadAll() {
 
 function loadJornadas() {
   setStatus('loading', 'Actualizando...');
-  apiCall({ action: 'getMensajes' }).then(function(m) { mensajesConfig = m || {}; }).catch(function() {});
-  apiCall({ action: 'getTours' }).then(function(ts) { (Array.isArray(ts) ? ts : []).forEach(function(t) { toursTodosMap[t.id] = t; }); }).catch(function() {});
   apiCall({ action: 'getJornadasGuia', guia: guiaNombre, includePast: 'true' }).then(function(raw) {
     jornadasData = parseJornadas(raw);
     jornadasData.forEach(function(j) {
