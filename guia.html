@@ -420,15 +420,33 @@ let voucherTourSeleccionado = null;
 let voucherFechaSeleccionada = null;
 let voucherClientesSeleccionados = [];
 
-function apiCall(params) {
-  return fetch(API, { method: 'POST', body: JSON.stringify(params) })
-    .then(function(r) { return r.text(); })
-    .then(function(txt) {
-      if (txt.trim().charAt(0) !== '{' && txt.trim().charAt(0) !== '[') throw new Error('Respuesta inesperada');
-      var result = JSON.parse(txt);
-      if (result && result.error) throw new Error(result.error);
+async function apiCall(params) {
+  var NO_REINTENTAR = ['enviarEmail', 'validarCodigo', 'guardarResena', 'saveBloqueo'];
+  var maxIntentos = NO_REINTENTAR.indexOf(params.action) > -1 ? 1 : 3;
+  var ultimoError;
+  for (var intento = 1; intento <= maxIntentos; intento++) {
+    var c = new AbortController();
+    var t = setTimeout(function() { c.abort(); }, 30000);
+    try {
+      var resp = await fetch(API, { method: 'POST', body: JSON.stringify(params), signal: c.signal });
+      var txt = await resp.text();
+      clearTimeout(t);
+      var limpio = txt.trim();
+      if (limpio.charAt(0) !== '{' && limpio.charAt(0) !== '[') {
+        var m = limpio.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 140);
+        throw new Error('Google no respondió bien (' + resp.status + '): ' + m);
+      }
+      var result = JSON.parse(limpio);
+      if (result && result.error) { var eDef = new Error(result.error); eDef.definitivo = true; throw eDef; }
       return result;
-    });
+    } catch (e) {
+      clearTimeout(t);
+      if (e.definitivo) throw e;
+      ultimoError = (e.name === 'AbortError') ? new Error('Tiempo agotado') : e;
+      if (intento < maxIntentos) await new Promise(function(res) { setTimeout(res, 1500 * intento); });
+    }
+  }
+  throw ultimoError;
 }
 
 function escH(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
