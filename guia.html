@@ -384,7 +384,8 @@ body{background:var(--noir);color:var(--white);font-family:'Segoe UI',Arial,sans
   </div>
 </div>
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbxclPkEfE7mTvy-MyEJMBYoCyZWkCdgDeYWawcSgYHMJzez9l1fibOxydDuMM0Goixl/exec';
+const API = 'https://gentedeparis.com/api/index.php';
+let gdpToken = '';
 var mensajesConfig = {};
 var toursTodosMap = {};
 function aplicarPlantilla(clave, defaultTxt, vars) {
@@ -428,7 +429,7 @@ async function apiCall(params) {
     var c = new AbortController();
     var t = setTimeout(function() { c.abort(); }, 30000);
     try {
-      var resp = await fetch(API, { method: 'POST', body: JSON.stringify(params), signal: c.signal });
+      var resp = await fetch(API, { method: 'POST', body: JSON.stringify(Object.assign({ token: gdpToken }, params)), signal: c.signal });
       var txt = await resp.text();
       clearTimeout(t);
       var limpio = txt.trim();
@@ -475,7 +476,7 @@ function doLogin() {
   btn.disabled = true;
   btn.textContent = 'Verificando...';
   apiCall({ action: 'verificarPIN', pin: pin })
-    .then(function(resp) { if(resp && resp.ok){ guiaNombre = resp.guia; enterApp(); } else { document.getElementById('pinInput').classList.add('error'); errEl.textContent = 'PIN incorrecto'; document.getElementById('pinInput').value = ''; document.getElementById('pinInput').focus(); } })
+    .then(function(resp) { if(resp && resp.ok){ guiaNombre = resp.guia; gdpToken = resp.token || ''; enterApp(); } else { document.getElementById('pinInput').classList.add('error'); errEl.textContent = 'PIN incorrecto'; document.getElementById('pinInput').value = ''; document.getElementById('pinInput').focus(); } })
     .catch(function(e) { errEl.textContent = 'Error de conexión: ' + e.message; })
     .finally(function() { btn.disabled = false; btn.textContent = 'Entrar'; });
 }
