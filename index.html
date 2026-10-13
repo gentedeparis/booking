@@ -634,7 +634,31 @@ tr.cancelled td:last-child{text-decoration:none;opacity:1;}
 <div class="toast" id="toast"></div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbxclPkEfE7mTvy-MyEJMBYoCyZWkCdgDeYWawcSgYHMJzez9l1fibOxydDuMM0Goixl/exec';
+const API = 'https://gentedeparis.com/api/index.php';
+let gdpToken = '';
+try { gdpToken = sessionStorage.getItem('gdp_admin_token') || ''; } catch (e) {}
+async function gdpLogin() {
+  if (gdpToken) {
+    try { const p = await apiCall({ action: 'ping' }); if (p && p.rol === 'admin') return; } catch (e) {}
+    gdpToken = '';
+  }
+  while (true) {
+    const clave = prompt('Clave de administrador:');
+    if (clave === null) {
+      document.body.innerHTML = '<p style="padding:40px;color:#fff;font-family:sans-serif">Acceso cancelado. Recarga la página para entrar.</p>';
+      throw new Error('Acceso cancelado');
+    }
+    try {
+      const r = await apiCall({ action: 'adminLogin', clave: clave });
+      if (r && r.ok && r.token) {
+        gdpToken = r.token;
+        try { sessionStorage.setItem('gdp_admin_token', gdpToken); } catch (e) {}
+        return;
+      }
+      alert('Clave incorrecta');
+    } catch (e) { alert(e.message); }
+  }
+}
 const DIAS_MAP={lun:'Lun',mar:'Mar',mie:'Mié',jue:'Jue',vie:'Vie',sab:'Sáb',dom:'Dom'};
 let tours=[],bloqueos=[],reservas=[],jornadasList=[],opsTours={};
 let editingTourId=null,editingOpsId=null,editingGuiaNombre=null,editingClienteJornadaId=null;
@@ -788,7 +812,7 @@ async function apiCall(params,timeout=30000){
     const c=new AbortController();
     const t=setTimeout(()=>c.abort(),timeout);
     try{
-      const resp=await fetch(API,{method:'POST',body:JSON.stringify(params),signal:c.signal});
+      const resp=await fetch(API,{method:'POST',body:JSON.stringify(Object.assign({token:gdpToken},params)),signal:c.signal});
       const txt=await resp.text();
       clearTimeout(t);
       const limpio=txt.trim();
@@ -1457,7 +1481,7 @@ async function guardarDuplicarJornada(btn){let originalId=document.getElementByI
 async function init(){opsTours={};try{let d=localStorage.getItem('gdp_tours');if(d)opsTours=JSON.parse(d);}catch(e){}let ct=cacheGet('gdp_tours');if(ct){tours=ct;renderTours();populateTourSelect();setSyncStatus('ok','Desde caché');updateDashboard();}let cb=cacheGet('gdp_bloqueos');if(cb){bloqueos=cb;renderBloqueos();}await loadGuiasForDatalist();await refreshFromAPI();cargarResenas();}
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        await init();
+        await gdpLogin(); await init();
     } catch(e) {
         console.error('Error en init:', e);
         setSyncStatus('error', 'Error de inicio');
