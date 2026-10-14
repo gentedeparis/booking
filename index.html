@@ -642,22 +642,42 @@ async function gdpLogin() {
     try { const p = await apiCall({ action: 'ping' }); if (p && p.rol === 'admin') return; } catch (e) {}
     gdpToken = '';
   }
-  while (true) {
-    const clave = prompt('Clave de administrador:');
-    if (clave === null) {
-      document.body.innerHTML = '<p style="padding:40px;color:#fff;font-family:sans-serif">Acceso cancelado. Recarga la página para entrar.</p>';
-      throw new Error('Acceso cancelado');
-    }
-    try {
-      const r = await apiCall({ action: 'adminLogin', clave: clave });
-      if (r && r.ok && r.token) {
-        gdpToken = r.token;
-        try { sessionStorage.setItem('gdp_admin_token', gdpToken); } catch (e) {}
-        return;
-      }
-      alert('Clave incorrecta');
-    } catch (e) { alert(e.message); }
-  }
+  return new Promise(function (resolve) {
+    const ov = document.createElement('div');
+    ov.id = 'gdpLoginOverlay';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#090C14;display:flex;align-items:center;justify-content:center;padding:20px;font-family:"DM Sans",sans-serif';
+    ov.innerHTML =
+      '<form id="gdpLoginForm" style="width:100%;max-width:340px;background:#141a26;border:1px solid rgba(212,168,67,.35);border-radius:14px;padding:32px 26px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)">' +
+        '<div style="font-family:Fraunces,Georgia,serif;font-size:1.5rem;color:#D4A843;margin-bottom:4px">Gente de París</div>' +
+        '<div style="font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:#9a9a9a;margin-bottom:24px">Panel de administración</div>' +
+        '<input id="gdpLoginPass" type="password" autocomplete="current-password" placeholder="Clave de administrador" ' +
+          'style="width:100%;box-sizing:border-box;padding:13px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#0d121c;color:#FBF8F0;font-size:1rem;outline:none;margin-bottom:12px">' +
+        '<div id="gdpLoginErr" style="min-height:20px;font-size:.82rem;color:#e57373;margin-bottom:10px"></div>' +
+        '<button id="gdpLoginBtn" type="submit" style="width:100%;padding:13px;border:none;border-radius:8px;background:#D4A843;color:#090C14;font-weight:600;font-size:.95rem;cursor:pointer">Entrar</button>' +
+      '</form>';
+    document.body.appendChild(ov);
+    const inp = document.getElementById('gdpLoginPass');
+    const err = document.getElementById('gdpLoginErr');
+    const btn = document.getElementById('gdpLoginBtn');
+    setTimeout(function () { inp.focus(); }, 50);
+    document.getElementById('gdpLoginForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (!inp.value) { err.textContent = 'Escribe la clave'; return; }
+      btn.disabled = true; btn.textContent = 'Entrando…'; err.textContent = '';
+      try {
+        const r = await apiCall({ action: 'adminLogin', clave: inp.value });
+        if (r && r.ok && r.token) {
+          gdpToken = r.token;
+          try { sessionStorage.setItem('gdp_admin_token', gdpToken); } catch (e2) {}
+          ov.remove();
+          resolve();
+          return;
+        }
+        err.textContent = (r && r.error) || 'Clave incorrecta';
+      } catch (e3) { err.textContent = e3.message || 'Error de conexión'; }
+      btn.disabled = false; btn.textContent = 'Entrar'; inp.select();
+    });
+  });
 }
 const DIAS_MAP={lun:'Lun',mar:'Mar',mie:'Mié',jue:'Jue',vie:'Vie',sab:'Sáb',dom:'Dom'};
 let tours=[],bloqueos=[],reservas=[],jornadasList=[],opsTours={};
